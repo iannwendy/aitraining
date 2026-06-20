@@ -12,6 +12,8 @@ data/*.json
 models/*.joblib
 models/*.json
 models/phobert_first/
+models/phobert_second/
+models/bertopic/
 
 # External + unified datasets: large generated CSVs (tai tao bang script).
 # Giu lai: *.py, *_report.json, manifest.json, file import Label Studio, test set holdout nho.

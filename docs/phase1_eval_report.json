@@ -1,0 +1,83 @@
+{
+  "timestamp": "2026-06-20T15:16:00",
+  "merge": {
+    "step5_export_rows": 750,
+    "step5_merged": 750,
+    "step8_export_rows": 1000,
+    "step8_merged": 1000
+  },
+  "quality_check": {
+    "step5": {
+      "n": 343,
+      "agreement_rate_pct": 82.51,
+      "disagreement_rate_pct": 17.49,
+      "cohens_kappa": 0.6291,
+      "human_labels": {
+        "normal": 575,
+        "depression": 107,
+        "exclude": 51,
+        "uncertain": 17
+      },
+      "interpretation": "MODERATE agreement — review is reasonably independent, kappa=0.63 shows reviewer has own standards"
+    },
+    "step8": {
+      "n": 927,
+      "agreement_rate_pct": 46.28,
+      "disagreement_rate_pct": 53.72,
+      "cohens_kappa": -0.0267,
+      "human_labels": {
+        "normal": 871,
+        "depression": 56,
+        "exclude": 31,
+        "uncertain": 42
+      },
+      "interpretation": "NEAR-RANDOM agreement — BLIND review IS truly independent! Machine suggestions were essentially useless for active learning samples."
+    },
+    "combined": {
+      "total_labeled": 1750,
+      "gold_depression": 163,
+      "gold_normal": 1446,
+      "excluded_uncertain": 59,
+      "excluded_exclude": 82,
+      "usable_gold": 1609
+    }
+  },
+  "gold_rebuild": {
+    "gold_rows": 1607,
+    "depression": 163,
+    "normal": 1444,
+    "note": "2 rows removed as duplicates after text normalization"
+  },
+  "weak_label_eval": {
+    "accuracy": 0.8251,
+    "f1_macro": 0.8092,
+    "f1_depression": 0.7541,
+    "confusion_matrix": [
+      [
+        191,
+        58
+      ],
+      [
+        2,
+        92
+      ]
+    ],
+    "interpretation": "Weak-labeler precision on depression is low (61%), but recall is high (98%). It catches nearly all depressed comments but produces many false positives."
+  },
+  "baseline_gold_eval": {
+    "accuracy": 0.71,
+    "f1_macro": 0.597,
+    "f1_depression": 0.3836,
+    "confusion_matrix": [
+      [
+        996,
+        448
+      ],
+      [
+        18,
+        145
+      ]
+    ],
+    "interpretation": "FIRST HONEST EVALUATION. TF-IDF+LogReg baseline: precision on depression only 24.5% (448 false positives), but recall 89%. The old 1.0 accuracy was completely fake — real F1 on depression is 0.38."
+  }
+}

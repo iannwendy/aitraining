@@ -80,6 +80,26 @@ PHOBERT_CONFIDENT_PREDICTIONS_FILE = OUTPUT_DIR / "phobert_confident_predictions
 PHOBERT_ACTIVE_LEARNING_FILE = OUTPUT_DIR / "phobert_active_learning_samples.csv"
 PHOBERT_POSTPROCESS_REPORT_FILE = PHOBERT_OUTPUT_DIR / "phobert_postprocess_report.json"
 
+# BERTopic settings
+BERTOPIC_MODEL_DIR = MODEL_DIR / "bertopic"
+BERTOPIC_METRICS_FILE = BERTOPIC_MODEL_DIR / "bertopic_metrics.json"
+BERTOPIC_TOPICS_FILE = BERTOPIC_MODEL_DIR / "corpus_with_topics.csv"
+BERTOPIC_MODEL_FILE = BERTOPIC_MODEL_DIR / "bertopic_model.pkl"
+BERTOPIC_EMBEDDINGS_FILE = BERTOPIC_MODEL_DIR / "embeddings.npy"
+BERTOPIC_VISUALIZATION_FILE = BERTOPIC_MODEL_DIR / "topic_visualization.html"
+BERTOPIC_REPORT_FILE = MODEL_DIR / "bertopic_report.json"
+
+# BERTopic defaults for Vietnamese 316K corpus
+BERTOPIC_MIN_TOPIC_SIZE = 50  # Balanced for 316K documents
+BERTOPIC_N_TOPICS = "auto"  # Auto-determine (BERTopic default)
+BERTOPIC_EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"  # Good for Vietnamese
+BERTOPIC_UMAP_N_NEIGHBORS = 15
+BERTOPIC_UMAP_MIN_DIST = 0.0
+BERTOPIC_HDBSCAN_MIN_CLUSTER_SIZE = 50
+BERTOPIC_HDBSCAN_MIN_SAMPLES = 10
+BERTOPIC_TOP_N_WORDS = 10
+BERTOPIC_CALCULATE_PROBABILITIES = False  # Memory efficient for large corpus
+
 # Weak-labeling settings
 INITIAL_TRAIN_DEPRESSION_SAMPLES = 10_000
 INITIAL_TRAIN_NORMAL_SAMPLES = 10_000

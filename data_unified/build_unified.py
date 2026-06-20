@@ -126,7 +126,7 @@ def main() -> None:
                 "columns": list(corpus.columns),
                 "used_by": [
                     "Lam sach chung",
-                    "BERTopic (topic modeling)",
+                    "BERTopic (topic modeling) -> models/bertopic/",
                     "Domain-adapt PhoBERT (MLM) - co the loc is_holdout_text=True",
                 ],
                 "note": "Toan bo text YouTube + external. KHONG dung lam nhan supervised.",
