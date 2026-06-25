@@ -46,3 +46,32 @@ def run_finetune(model_path: str, seed: int, output_dir: str) -> str:
             f"Expected checkpoint at one of {candidates} but none exist"
         )
     return expected
+
+
+def run_eval(checkpoint_dir: str, eval_csv: str, output_csv: str) -> None:
+    """Run prediction on an eval CSV using a fine-tuned checkpoint.
+
+    Writes predictions (comment_text, prob_normal, prob_depression,
+    predicted_label) to output_csv.
+    """
+    import pandas as pd
+    from yt_depression_crawler.modeling.phobert import phobert_predict
+
+    df = pd.read_csv(eval_csv)
+    if "comment_text" not in df.columns:
+        raise ValueError(f"{eval_csv} must have a 'comment_text' column")
+
+    texts = df["comment_text"].astype(str).tolist()
+    preds = phobert_predict.predict_texts(
+        texts=texts,
+        model_dir=checkpoint_dir,
+    )
+    # preds is a list of dicts with keys: predicted_label, prob_normal, prob_depression
+    out_df = pd.DataFrame({
+        "comment_text": texts,
+        "predicted_label": [p["predicted_label"] for p in preds],
+        "prob_normal": [p["prob_normal"] for p in preds],
+        "prob_depression": [p["prob_depression"] for p in preds],
+    })
+    Path(output_csv).parent.mkdir(parents=True, exist_ok=True)
+    out_df.to_csv(output_csv, index=False)
