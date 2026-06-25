@@ -5,11 +5,13 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 from pathlib import Path
 
 import pandas as pd
 from tqdm import tqdm
 
+from yt_depression_crawler.core import config as _config
 from yt_depression_crawler.core.config import (
     GOLD_REVIEW_FILE,
     LABELING_REPORT_FILE,
@@ -41,6 +43,31 @@ from yt_depression_crawler.modeling.phobert.phobert_utils import (
     prepare_many_texts,
     set_seed,
 )
+
+# Allow scripts/evaluate_domain_adapted_phobert.py to override these via env vars.
+# We must mutate config BEFORE the `from ... import` lines above would normally
+# resolve PHOBERT_MODEL_NAME/OUTPUT_DIR/RANDOM_SEED. To make that work without
+# reordering the import block (which would break readability), we additionally
+# rebind the local module-level names here so downstream usages in this file
+# see the overridden values.
+_MODEL_NAME_OVERRIDE = os.environ.get("PHOBERT_MODEL_NAME_OVERRIDE")
+_OUTPUT_DIR_OVERRIDE = os.environ.get("PHOBERT_OUTPUT_DIR_OVERRIDE")
+_SEED_OVERRIDE = os.environ.get("PHOBERT_RANDOM_SEED_OVERRIDE")
+
+if _MODEL_NAME_OVERRIDE:
+    _config.PHOBERT_MODEL_NAME = _MODEL_NAME_OVERRIDE
+    PHOBERT_MODEL_NAME = _MODEL_NAME_OVERRIDE  # type: ignore[redefined]
+if _OUTPUT_DIR_OVERRIDE:
+    _output_path = Path(_OUTPUT_DIR_OVERRIDE)
+    _config.PHOBERT_OUTPUT_DIR = _output_path
+    PHOBERT_OUTPUT_DIR = _output_path  # type: ignore[redefined]
+    PHOBERT_METRICS_FILE = _output_path / "phobert_metrics.json"
+    PHOBERT_GOLD_METRICS_FILE = _output_path / "phobert_gold_metrics.json"
+    _config.PHOBERT_METRICS_FILE = PHOBERT_METRICS_FILE
+    _config.PHOBERT_GOLD_METRICS_FILE = PHOBERT_GOLD_METRICS_FILE
+if _SEED_OVERRIDE:
+    _config.PHOBERT_RANDOM_SEED = int(_SEED_OVERRIDE)
+    PHOBERT_RANDOM_SEED = int(_SEED_OVERRIDE)  # type: ignore[redefined]
 
 logger = logging.getLogger(__name__)
 
