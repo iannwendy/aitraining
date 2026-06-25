@@ -118,6 +118,102 @@ def predict_remaining_comments(
     return report
 
 
+def predict_texts(texts, model_dir, batch_size=None):
+    """Predict labels for a list of arbitrary texts using a fine-tuned checkpoint.
+
+    Thin adapter around :func:`predict_remaining_comments`. Synthesises a
+    minimal ``AUTO_LABELED``-shaped DataFrame (every row marked as
+    ``uncertain`` / not ``high`` confidence) so that
+    ``predict_remaining_comments`` will score them, then re-parses the
+    produced predictions CSV.
+
+    Args:
+        texts: list of raw comment strings.
+        model_dir: path to the fine-tuned model directory.
+        batch_size: optional override for ``PHOBERT_PREDICT_BATCH_SIZE`` in
+            ``yt_depression_crawler.core.config``.
+
+    Returns:
+        list of dicts: [{"predicted_label": int, "predicted_label_name": str,
+                          "probability": float, "prob_normal": float,
+                          "prob_depression": float, "comment_text": str}, ...]
+    """
+    import os
+    import tempfile
+    from pathlib import Path
+
+    from yt_depression_crawler.core import config
+
+    if not texts:
+        return []
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir_path = Path(tmpdir)
+        input_csv = tmpdir_path / "input.csv"
+        output_csv = tmpdir_path / "predictions.csv"
+
+        # Build a minimal AUTO_LABELED-shaped frame. Every row is tagged as
+        # "uncertain" so the filter inside predict_remaining_comments keeps it.
+        input_df = pd.DataFrame(
+            {
+                "comment_text": [str(t) for t in texts],
+                "weak_label": "uncertain",
+                "confidence": "low",
+                "depression_score": 0.0,
+                "matched_keywords": "",
+                "need_review": True,
+            }
+        )
+        input_df.to_csv(input_csv, index=False)
+
+        old_output = getattr(config, "PHOBERT_REMAINING_PREDICTIONS_FILE", None)
+        old_batch_size = getattr(config, "PHOBERT_PREDICT_BATCH_SIZE", None)
+        config.PHOBERT_REMAINING_PREDICTIONS_FILE = output_csv
+        if batch_size is not None:
+            config.PHOBERT_PREDICT_BATCH_SIZE = batch_size
+        try:
+            predict_remaining_comments(
+                input_file=input_csv,
+                model_dir=Path(model_dir),
+                output_file=output_csv,
+                resume=False,
+            )
+        finally:
+            config.PHOBERT_REMAINING_PREDICTIONS_FILE = old_output
+            if batch_size is not None and old_batch_size is not None:
+                config.PHOBERT_PREDICT_BATCH_SIZE = old_batch_size
+
+        if not output_csv.exists() or output_csv.stat().st_size == 0:
+            return [
+                {
+                    "comment_text": t,
+                    "predicted_label": -1,
+                    "predicted_label_name": "",
+                    "probability": 0.0,
+                    "prob_normal": 0.0,
+                    "prob_depression": 0.0,
+                }
+                for t in texts
+            ]
+
+        preds_df = pd.read_csv(output_csv).fillna("")
+        label_name_to_id = {name: idx for idx, name in ID_TO_LABEL.items()}
+        results = []
+        for _, row in preds_df.iterrows():
+            label_name = str(row.get("phobert_label", ""))
+            results.append(
+                {
+                    "comment_text": str(row.get("comment_text", "")),
+                    "predicted_label": label_name_to_id.get(label_name, -1),
+                    "predicted_label_name": label_name,
+                    "probability": float(row.get("probability", 0.0) or 0.0),
+                    "prob_normal": float(row.get("prob_normal", 0.0) or 0.0),
+                    "prob_depression": float(row.get("prob_depression", 0.0) or 0.0),
+                }
+            )
+        return results
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
     print(json.dumps(predict_remaining_comments(), ensure_ascii=False, indent=2))
