@@ -102,7 +102,7 @@ def compute_cross_domain_metrics(pred_csv: str, gold_csv: str) -> dict:
     y_true = gold["label"].astype(int).values
     y_pred = preds["predicted_label"].astype(int).values
 
-    metrics = _compute_metrics((y_pred, y_true))
+    metrics = _compute_metrics(y_true, y_pred)
     return metrics
 
 
