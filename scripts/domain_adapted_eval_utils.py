@@ -75,3 +75,32 @@ def run_eval(checkpoint_dir: str, eval_csv: str, output_csv: str) -> None:
     })
     Path(output_csv).parent.mkdir(parents=True, exist_ok=True)
     out_df.to_csv(output_csv, index=False)
+
+
+import json
+
+
+def compute_cross_domain_metrics(pred_csv: str, gold_csv: str) -> dict:
+    """Compute classification metrics for predictions joined with gold labels.
+
+    Both CSVs are joined by row index (positional alignment).
+    Returns a dict matching the metrics schema in the design spec.
+    """
+    import numpy as np
+    import pandas as pd
+    from yt_depression_crawler.modeling.phobert.phobert_utils import (
+        compute_metrics as _compute_metrics,
+    )
+
+    preds = pd.read_csv(pred_csv)
+    gold = pd.read_csv(gold_csv)
+    if len(preds) != len(gold):
+        raise ValueError(
+            f"Row count mismatch: predictions={len(preds)} gold={len(gold)}"
+        )
+
+    y_true = gold["label"].astype(int).values
+    y_pred = preds["predicted_label"].astype(int).values
+
+    metrics = _compute_metrics((y_pred, y_true))
+    return metrics
