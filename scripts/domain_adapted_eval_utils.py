@@ -148,7 +148,9 @@ def aggregate_results(runs: list, output_dir: str, git_commit: str, timestamp: s
         if not vals:
             return "n/a"
         mean = statistics.mean(vals)
-        std = statistics.stdev(vals) if len(vals) > 1 else 0.0
+        if len(vals) < 2:
+            return f"{mean:.4f} +/- n/a (n=1)"
+        std = statistics.stdev(vals)
         return f"{mean:.4f} +/- {std:.4f}"
 
     for (model_tag, test_set), group in sorted(groups.items()):
