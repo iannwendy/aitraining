@@ -104,3 +104,68 @@ def compute_cross_domain_metrics(pred_csv: str, gold_csv: str) -> dict:
 
     metrics = _compute_metrics((y_pred, y_true))
     return metrics
+
+
+def aggregate_results(runs: list, output_dir: str, git_commit: str, timestamp: str) -> None:
+    """Aggregate per-run metrics into metrics.json and comparison_table.md."""
+    import statistics
+    from collections import defaultdict
+
+    metrics_path = os.path.join(output_dir, "metrics.json")
+    table_path = os.path.join(output_dir, "comparison_table.md")
+
+    payload = {
+        "git_commit": git_commit,
+        "timestamp": timestamp,
+        "runs": runs,
+    }
+    with open(metrics_path, "w") as f:
+        json.dump(payload, f, indent=2)
+
+    # Group by (model_tag, test_set)
+    groups = defaultdict(list)
+    for r in runs:
+        if r.get("status") == "failed":
+            continue
+        key = (r["model_tag"], r["test_set"])
+        groups[key].append(r)
+
+    lines = [
+        "# Domain-Adapted PhoBERT Evaluation Results",
+        "",
+        f"Git commit: `{git_commit}`  ",
+        f"Timestamp: `{timestamp}`",
+        "",
+        "| Model | Test set | n_seeds | Accuracy (mean+/-std) | "
+        "F1 macro (mean+/-std) | F1 depression (mean+/-std) | "
+        "Precision macro (mean+/-std) | Recall macro (mean+/-std) |",
+        "|-------|----------|---------|------------------------|"
+        "------------------------|-----------------------------|"
+        "------------------------------|----------------------------|",
+    ]
+
+    def fmt(vals):
+        if not vals:
+            return "n/a"
+        mean = statistics.mean(vals)
+        std = statistics.stdev(vals) if len(vals) > 1 else 0.0
+        return f"{mean:.4f} +/- {std:.4f}"
+
+    for (model_tag, test_set), group in sorted(groups.items()):
+        n = len(group)
+        lines.append(
+            f"| {model_tag} | {test_set} | {n} | "
+            f"{fmt([g['accuracy'] for g in group])} | "
+            f"{fmt([g['f1_macro'] for g in group])} | "
+            f"{fmt([g['f1_depression'] for g in group])} | "
+            f"{fmt([g['precision_macro'] for g in group])} | "
+            f"{fmt([g['recall_macro'] for g in group])} |"
+        )
+
+    failed_count = sum(1 for r in runs if r.get("status") == "failed")
+    lines.append("")
+    lines.append(f"_Failed runs: {failed_count} / {len(runs)}_")
+    lines.append("")
+
+    with open(table_path, "w") as f:
+        f.write("\n".join(lines))
