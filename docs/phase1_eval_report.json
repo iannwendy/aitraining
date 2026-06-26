@@ -1,55 +1,12 @@
 {
-  "timestamp": "2026-06-20T15:16:00",
-  "merge": {
-    "step5_export_rows": 750,
-    "step5_merged": 750,
-    "step8_export_rows": 1000,
-    "step8_merged": 1000
-  },
-  "quality_check": {
-    "step5": {
-      "n": 343,
-      "agreement_rate_pct": 82.51,
-      "disagreement_rate_pct": 17.49,
-      "cohens_kappa": 0.6291,
-      "human_labels": {
-        "normal": 575,
-        "depression": 107,
-        "exclude": 51,
-        "uncertain": 17
-      },
-      "interpretation": "MODERATE agreement — review is reasonably independent, kappa=0.63 shows reviewer has own standards"
-    },
-    "step8": {
-      "n": 927,
-      "agreement_rate_pct": 46.28,
-      "disagreement_rate_pct": 53.72,
-      "cohens_kappa": -0.0267,
-      "human_labels": {
-        "normal": 871,
-        "depression": 56,
-        "exclude": 31,
-        "uncertain": 42
-      },
-      "interpretation": "NEAR-RANDOM agreement — BLIND review IS truly independent! Machine suggestions were essentially useless for active learning samples."
-    },
-    "combined": {
-      "total_labeled": 1750,
-      "gold_depression": 163,
-      "gold_normal": 1446,
-      "excluded_uncertain": 59,
-      "excluded_exclude": 82,
-      "usable_gold": 1609
-    }
-  },
-  "gold_rebuild": {
-    "gold_rows": 1607,
-    "depression": 163,
-    "normal": 1444,
-    "note": "2 rows removed as duplicates after text normalization"
-  },
+  "phase1_timestamp": "2026-06-26T16:05:44.849487",
   "weak_label_eval": {
+    "gold_rows": 2515,
+    "evaluated_rows": 343,
+    "skipped_uncertain": 2172,
     "accuracy": 0.8251,
+    "precision_macro": 0.8015,
+    "recall_macro": 0.8729,
     "f1_macro": 0.8092,
     "f1_depression": 0.7541,
     "confusion_matrix": [
@@ -62,22 +19,82 @@
         92
       ]
     ],
-    "interpretation": "Weak-labeler precision on depression is low (61%), but recall is high (98%). It catches nearly all depressed comments but produces many false positives."
+    "classification_report": {
+      "normal": {
+        "precision": 0.9896373056994818,
+        "recall": 0.7670682730923695,
+        "f1-score": 0.8642533936651584,
+        "support": 249.0
+      },
+      "depression": {
+        "precision": 0.6133333333333333,
+        "recall": 0.9787234042553191,
+        "f1-score": 0.7540983606557377,
+        "support": 94.0
+      },
+      "accuracy": 0.8250728862973761,
+      "macro avg": {
+        "precision": 0.8014853195164076,
+        "recall": 0.8728958386738443,
+        "f1-score": 0.809175877160448,
+        "support": 343.0
+      },
+      "weighted avg": {
+        "precision": 0.8865102695408288,
+        "recall": 0.8250728862973761,
+        "f1-score": 0.8340651338899818,
+        "support": 343.0
+      }
+    },
+    "error_rows": 60,
+    "errors_file": "/Users/iannwendy/Documents/crawl_yt/youtube_depression_crawler/data/review_eval_errors.csv"
   },
   "baseline_gold_eval": {
-    "accuracy": 0.71,
-    "f1_macro": 0.597,
-    "f1_depression": 0.3836,
+    "gold_rows": 2515,
+    "accuracy": 0.6354,
+    "precision_macro": 0.5832,
+    "recall_macro": 0.7282,
+    "f1_macro": 0.5334,
+    "f1_depression": 0.3152,
     "confusion_matrix": [
       [
-        996,
-        448
+        1387,
+        878
       ],
       [
-        18,
-        145
+        39,
+        211
       ]
     ],
-    "interpretation": "FIRST HONEST EVALUATION. TF-IDF+LogReg baseline: precision on depression only 24.5% (448 false positives), but recall 89%. The old 1.0 accuracy was completely fake — real F1 on depression is 0.38."
+    "classification_report": {
+      "normal": {
+        "precision": 0.9726507713884993,
+        "recall": 0.6123620309050772,
+        "f1-score": 0.7515578434028719,
+        "support": 2265.0
+      },
+      "depression": {
+        "precision": 0.19375573921028466,
+        "recall": 0.844,
+        "f1-score": 0.31516056758775207,
+        "support": 250.0
+      },
+      "accuracy": 0.6353876739562624,
+      "macro avg": {
+        "precision": 0.583203255299392,
+        "recall": 0.7281810154525385,
+        "f1-score": 0.533359205495312,
+        "support": 2515.0
+      },
+      "weighted avg": {
+        "precision": 0.8952258178916589,
+        "recall": 0.6353876739562624,
+        "f1-score": 0.7081783925266174,
+        "support": 2515.0
+      }
+    },
+    "model_file": "/Users/iannwendy/Documents/crawl_yt/youtube_depression_crawler/models/tfidf_logreg.joblib",
+    "error_rows": 917,
+    "errors_file": "/Users/iannwendy/Documents/crawl_yt/youtube_depression_crawler/data/baseline_gold_errors.csv"
   }
 }

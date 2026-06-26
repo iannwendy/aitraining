@@ -2,9 +2,10 @@
 
 1. Merge export_step5_review.csv → key_step5 → data/review_samples.csv
 2. Merge export_step8_active_learning.csv → key_step8 → data/phobert_active_learning_samples.csv
-3. Quality check: human vs machine disagreement
-4. Rebuild gold_review.csv
-5. Eval weak-label + baseline on new gold
+3. Merge export_round3_active_learning.csv → key_round3 → data/round3_review.csv (new source)
+4. Quality check: human vs machine disagreement (step5 + step8 + round3)
+5. Rebuild gold_review.csv
+6. Eval weak-label + baseline on new gold
 """
 
 from __future__ import annotations
@@ -136,6 +137,82 @@ def merge_step8() -> dict:
     return {"file": str(src), "rows": len(src_df), "updated": updated}
 
 
+def merge_round3() -> dict:
+    """Merge round 3 export → create data/round3_review.csv.
+
+    Khác với step 5/8: round 3 CHƯA có source file nào trong data/. Source được
+    tạo mới từ key file (đã có sẵn từ prepare_round3_active_learning.py) + export
+    Label Studio. Join trên row_id (`r3-XXXX` format), lấy final_label +
+    reviewer_note từ người review. Output file giữ nguyên schema của key để
+    rebuild_gold() có thể concat cùng step5/step8.
+    """
+    export = DOCS_DIR / "export_round3_active_learning.csv"
+    key = DOCS_DIR / "label_studio_round3_active_learning_key.csv"
+    out = DATA_DIR / "round3_review.csv"
+
+    if not export.exists():
+        raise FileNotFoundError(
+            f"Missing round 3 export: {export}. Run Label Studio review first."
+        )
+    if not key.exists():
+        raise FileNotFoundError(
+            f"Missing round 3 key: {key}. Run prepare_round3_active_learning.py first."
+        )
+
+    # Backup key trước khi merge (pattern giống step 5/8 đã có key_MERGED riêng).
+    key_backup = DOCS_DIR / "label_studio_round3_active_learning_key.backup_pre_merge.csv"
+    if not key_backup.exists():
+        key_df_raw = pd.read_csv(key, dtype=str).fillna("")
+        key_df_raw.to_csv(key_backup, index=False, encoding="utf-8-sig")
+        logging.info("Backed up round3 key → %s", key_backup.name)
+
+    exp_df = pd.read_csv(export, dtype=str).fillna("")
+    key_df = pd.read_csv(key, dtype=str).fillna("")
+
+    logging.info("Round3: export=%d rows, key=%d rows", len(exp_df), len(key_df))
+
+    # Lookup row_id → human label.
+    human = exp_df.set_index("row_id")[["final_label", "reviewer_note"]]
+
+    # Annotate key với human_final_label + original_final_label, đồng thời
+    # ghi đè final_label bằng human — pattern y hệt step 5/8.
+    key_df["human_final_label"] = key_df["row_id"].map(
+        lambda rid: human.at[rid, "final_label"] if rid in human.index else ""
+    )
+    key_df["original_final_label"] = key_df["final_label"]
+    key_df["final_label"] = key_df["human_final_label"]
+    key_merged = DOCS_DIR / "label_studio_round3_active_learning_key_MERGED.csv"
+    key_df.to_csv(key_merged, index=False, encoding="utf-8-sig")
+    logging.info("Wrote merged key → %s", key_merged.name)
+
+    # Ghi source file mới với schema giống key (giữ nguyên text_hash, row_id...).
+    out.parent.mkdir(parents=True, exist_ok=True)
+    key_df.to_csv(out, index=False, encoding="utf-8-sig")
+
+    valid_labels = {"normal", "depression"}
+    valid_mask = key_df["final_label"].str.strip().str.lower().isin(valid_labels)
+    updated = int(valid_mask.sum())
+
+    label_counts = key_df.loc[valid_mask, "final_label"].str.lower().value_counts().to_dict()
+    excluded = int(len(key_df) - updated)
+
+    print("\n" + "=" * 60)
+    print(f"ROUND 3 MERGE → {out.name}")
+    print("=" * 60)
+    print(f"  Total rows:        {len(key_df)}")
+    print(f"  Valid (gold):      {updated}")
+    print(f"  Excluded:          {excluded} (uncertain + exclude + blank)")
+    print(f"  Label distribution: {label_counts}")
+
+    return {
+        "file": str(out),
+        "rows": len(key_df),
+        "updated": updated,
+        "label_counts": {str(k): int(v) for k, v in label_counts.items()},
+        "excluded": excluded,
+    }
+
+
 # ── step 2: quality check ─────────────────────────────────────────────
 
 def quality_check() -> dict:
@@ -255,13 +332,81 @@ def quality_check() -> dict:
             txt = row["comment_text"][:80].replace("\n", " ")
             print(f"    human={row['hl']:12s} machine={row['ml']:12s}  text: {txt}...")
 
+    # ── Round 3 (active learning, n=1500) ──
+    r3_path = DATA_DIR / "round3_review.csv"
+    r3_summary: dict = {"available": False}
+    if r3_path.exists():
+        r3_df = pd.read_csv(r3_path, dtype=str).fillna("")
+        r3_df["hl"] = r3_df["final_label"].str.strip().str.lower()
+        r3_df["ml"] = r3_df["suggested_label"].str.strip().str.lower()
+
+        r3_eval = r3_df[r3_df["hl"].isin(valid_labels) & r3_df["ml"].isin(valid_labels)].copy()
+        agree_r3 = int((r3_eval["hl"] == r3_eval["ml"]).sum())
+        disagree_r3 = int((r3_eval["hl"] != r3_eval["ml"]).sum())
+        total_r3 = len(r3_eval)
+
+        # Chi tiết flip: người review ngược với máy.
+        flipped_dep_to_norm = int(
+            ((r3_eval["ml"] == "depression") & (r3_eval["hl"] == "normal")).sum()
+        )
+        flipped_norm_to_dep = int(
+            ((r3_eval["ml"] == "normal") & (r3_eval["hl"] == "depression")).sum()
+        )
+
+        hl_r3 = r3_df["hl"].value_counts().to_dict()
+        ml_r3 = r3_df["ml"].value_counts().to_dict()
+
+        r3_summary = {
+            "available": True,
+            "total_rows": int(len(r3_df)),
+            "evaluable_rows": int(total_r3),
+            "agreement_count": agree_r3,
+            "disagreement_count": disagree_r3,
+            "agreement_rate": round(agree_r3 / total_r3 * 100, 2) if total_r3 else 0,
+            "disagreement_rate": round(disagree_r3 / total_r3 * 100, 2) if total_r3 else 0,
+            "flipped_depression_to_normal": flipped_dep_to_norm,
+            "flipped_normal_to_depression": flipped_norm_to_dep,
+            "human_label_counts": hl_r3,
+            "machine_label_counts": ml_r3,
+        }
+
+        print("\n" + "=" * 60)
+        print(f"QUALITY CHECK — Round 3 (active_learning, n={total_r3})")
+        print("=" * 60)
+        print(f"  Human label distribution:    {hl_r3}")
+        print(f"  Machine label distribution:  {ml_r3}")
+        print(f"  Agreement:    {agree_r3}/{total_r3} ({r3_summary['agreement_rate']}%)")
+        print(f"  Disagreement: {disagree_r3}/{total_r3} ({r3_summary['disagreement_rate']}%)")
+        print(f"  Flipped depression→normal: {flipped_dep_to_norm}")
+        print(f"  Flipped normal→depression: {flipped_norm_to_dep}")
+
+        if total_r3 >= 2:
+            kappa_r3 = cohen_kappa_score(
+                r3_eval["hl"].map({"normal": 0, "depression": 1}),
+                r3_eval["ml"].map({"normal": 0, "depression": 1}),
+            )
+            r3_summary["cohens_kappa"] = round(float(kappa_r3), 4)
+            print(f"  Cohen's kappa: {r3_summary['cohens_kappa']}")
+
+        dis_r3_df = r3_eval[r3_eval["hl"] != r3_eval["ml"]]
+        if len(dis_r3_df) > 0:
+            print(f"\n  Sample disagreements (first 5):")
+            for _, row in dis_r3_df.head(5).iterrows():
+                txt = row["comment_text"][:80].replace("\n", " ")
+                print(f"    human={row['hl']:12s} machine={row['ml']:12s}  text: {txt}...")
+    else:
+        print("\n[round3 quality check] SKIPPED — data/round3_review.csv not found.")
+
+    results["round3"] = r3_summary
+
     # ── Combined ──
+    r3_hl = r3_summary.get("human_label_counts", {}) if r3_summary.get("available") else {}
     results["combined"] = {
-        "total_human_labeled": len(s5) + len(s8),
-        "depression_total": hl_counts.get("depression", 0) + hl8.get("depression", 0),
-        "normal_total": hl_counts.get("normal", 0) + hl8.get("normal", 0),
-        "uncertain_total": hl_counts.get("uncertain", 0) + hl8.get("uncertain", 0),
-        "exclude_total": hl_counts.get("exclude", 0) + hl8.get("exclude", 0),
+        "total_human_labeled": len(s5) + len(s8) + (r3_summary.get("total_rows", 0) if r3_summary.get("available") else 0),
+        "depression_total": hl_counts.get("depression", 0) + hl8.get("depression", 0) + r3_hl.get("depression", 0),
+        "normal_total": hl_counts.get("normal", 0) + hl8.get("normal", 0) + r3_hl.get("normal", 0),
+        "uncertain_total": hl_counts.get("uncertain", 0) + hl8.get("uncertain", 0) + r3_hl.get("uncertain", 0),
+        "exclude_total": hl_counts.get("exclude", 0) + hl8.get("exclude", 0) + r3_hl.get("exclude", 0),
     }
 
     print("\n" + "=" * 60)
@@ -299,8 +444,16 @@ def rebuild_gold() -> dict:
     s8 = pd.read_csv(DATA_DIR / "phobert_active_learning_samples.csv", dtype=str).fillna("")
     s8["source"] = "step8"
 
+    # Load round 3 (optional — gracefully skip nếu chưa merge).
+    r3_path = DATA_DIR / "round3_review.csv"
+    if r3_path.exists():
+        r3 = pd.read_csv(r3_path, dtype=str).fillna("")
+        r3["source"] = "round3"
+    else:
+        r3 = pd.DataFrame()
+
     # Combine
-    df = pd.concat([s5, s8], ignore_index=True)
+    df = pd.concat([s5, s8, r3], ignore_index=True)
 
     # Filter to valid labels only
     df["fl"] = df["final_label"].str.strip().str.lower()
@@ -331,6 +484,7 @@ def rebuild_gold() -> dict:
         "sources": {
             "step5": int((gold["source"] == "step5").sum()) if "source" in gold.columns else 0,
             "step8": int((gold["source"] == "step8").sum()) if "source" in gold.columns else 0,
+            "round3": int((gold["source"] == "round3").sum()) if "source" in gold.columns else 0,
         },
         "excluded": int(len(df) - len(gold)),
     }
@@ -391,8 +545,10 @@ def main():
     print("\n>>> Step 1: Merging human labels into source files...")
     r5 = merge_step5()
     r8 = merge_step8()
-    print(f"  Step5: {r5['updated']}/{r5['rows']} rows updated")
-    print(f"  Step8: {r8['updated']}/{r8['rows']} rows updated")
+    r3 = merge_round3()
+    print(f"  Step5:  {r5['updated']}/{r5['rows']} rows updated")
+    print(f"  Step8:  {r8['updated']}/{r8['rows']} rows updated")
+    print(f"  Round3: {r3['updated']}/{r3['rows']} rows updated ({r3['excluded']} excluded)")
 
     # Step 2
     print("\n>>> Step 2: Quality check...")

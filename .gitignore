@@ -41,3 +41,7 @@ data_unified/augmentation_negatives.csv
 # Archive: snapshot cũ (v1, backup_before_phase1, ...) — KHÔNG track,
 # giữ local-only cho audit. README.md trong archive vẫn track để giải thích.
 data/_archive/*.csv
+
+# Round 3 raw export (800KB human review output) — local-only, không track.
+# Key_MERGED.csv đã chứa final_label nên reproduce được từ đó.
+docs/export_round3_active_learning.csv
