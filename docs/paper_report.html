@@ -1314,15 +1314,33 @@ function positionPopover() {
   const rect = range.getBoundingClientRect();
   if (!rect || (rect.width === 0 && rect.height === 0)) return;
 
+  // Make popover visible temporarily so we can measure it accurately.
+  // (When display:none, offsetWidth/Height are 0, which causes drift.)
+  const wasHidden = !popover.classList.contains('visible');
+  if (wasHidden) {
+    popover.style.visibility = 'hidden';
+    popover.style.display = 'flex';
+  }
   const popH = popover.offsetHeight || 36;
   const popW = popover.offsetWidth || 180;
+  if (wasHidden) {
+    popover.style.visibility = '';
+    popover.style.display = '';
+  }
 
-  let top = rect.top - popH - 8;
+  // Prefer above selection; fall back to below if not enough room above.
+  const margin = 8;
+  const toolbarBottom = 56; // toolbar height + safety margin
+  let top = rect.top - popH - margin;
   let left = rect.left + rect.width / 2 - popW / 2;
 
-  if (left < 8) left = 8;
-  if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
-  if (top < 56) top = rect.bottom + 8;
+  if (top < toolbarBottom) top = rect.bottom + margin;
+  if (top + popH > window.innerHeight - margin) {
+    top = Math.max(toolbarBottom, rect.top - popH - margin);
+  }
+
+  if (left < margin) left = margin;
+  if (left + popW > window.innerWidth - margin) left = window.innerWidth - popW - margin;
 
   popover.style.top = top + 'px';
   popover.style.left = left + 'px';
@@ -1425,27 +1443,79 @@ function textToLatex(text) {
     .replace(/<\/code>/g, '}');
 }
 
+// ── Clipboard helper with fallback for file:// and insecure contexts ─
+function copyToClipboard(text) {
+  // Modern API (requires HTTPS or localhost)
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text).then(() => true).catch(() => fallbackCopy(text));
+  }
+  // Fallback for file://, http://, or older browsers
+  return Promise.resolve(fallbackCopy(text));
+}
+
+function fallbackCopy(text) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '0';
+    ta.style.left = '0';
+    ta.style.width = '1px';
+    ta.style.height = '1px';
+    ta.style.padding = '0';
+    ta.style.border = 'none';
+    ta.style.outline = 'none';
+    ta.style.boxShadow = 'none';
+    ta.style.background = 'transparent';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) {
+    return false;
+  }
+}
+
 function copySelectionLatex() {
-  if (!currentSelection) return;
+  if (!currentSelection) {
+    showToast('No selection — please select text first');
+    return;
+  }
   const latex = textToLatex(currentSelection);
-  navigator.clipboard.writeText(latex).then(() => {
-    selCopyLatexBtn.textContent = '✅ Copied!';
-    selCopyLatexBtn.classList.add('copied');
-    showToast('LaTeX for selection copied (' + currentSelection.length + ' chars)');
-    setTimeout(() => {
-      selCopyLatexBtn.textContent = '📋 LaTeX';
-      selCopyLatexBtn.classList.remove('copied');
-      hidePopover();
-    }, 1800);
-  }).catch(() => showToast('Failed to copy'));
+  copyToClipboard(latex).then((ok) => {
+    if (ok) {
+      selCopyLatexBtn.textContent = '✅ Copied!';
+      selCopyLatexBtn.classList.add('copied');
+      showToast('LaTeX for selection copied (' + currentSelection.length + ' chars)');
+      setTimeout(() => {
+        selCopyLatexBtn.textContent = '📋 LaTeX';
+        selCopyLatexBtn.classList.remove('copied');
+        hidePopover();
+      }, 1800);
+    } else {
+      showToast('Failed to copy — check browser console');
+    }
+  });
 }
 
 function copySelectionPlain() {
-  if (!currentSelection) return;
-  navigator.clipboard.writeText(currentSelection).then(() => {
-    showToast('Selection copied (' + currentSelection.length + ' chars)');
-    setTimeout(hidePopover, 1200);
-  }).catch(() => showToast('Failed to copy'));
+  if (!currentSelection) {
+    showToast('No selection — please select text first');
+    return;
+  }
+  copyToClipboard(currentSelection).then((ok) => {
+    if (ok) {
+      showToast('Selection copied (' + currentSelection.length + ' chars)');
+      setTimeout(hidePopover, 1200);
+    } else {
+      showToast('Failed to copy — check browser console');
+    }
+  });
 }
 
 // ── Clipboard functions ──────────────────────────────────────────────
@@ -1487,14 +1557,16 @@ Depression constitutes one of the most prevalent mental disorders worldwide, aff
 
 \\end{document}`;
 
-  navigator.clipboard.writeText(latex).then(() => {
+  copyToClipboard(latex).then((ok) => {
     const btn = document.getElementById('copyLatexBtn');
-    btn.textContent = '✅ Copied!';
-    btn.classList.add('copied');
-    showToast('LaTeX copied to clipboard');
-    setTimeout(() => { btn.textContent = '📋 Copy LaTeX'; btn.classList.remove('copied'); }, 2500);
-  }).catch(() => {
-    showToast('Failed to copy LaTeX');
+    if (ok) {
+      btn.textContent = '✅ Copied!';
+      btn.classList.add('copied');
+      showToast('LaTeX copied to clipboard');
+      setTimeout(() => { btn.textContent = '📋 Copy LaTeX'; btn.classList.remove('copied'); }, 2500);
+    } else {
+      showToast('Failed to copy LaTeX');
+    }
   });
 }
 
@@ -1509,14 +1581,16 @@ function copyHtml() {
     paper.innerHTML +
     '\\n</article>\\n</body>\\n</html>';
 
-  navigator.clipboard.writeText(html).then(() => {
+  copyToClipboard(html).then((ok) => {
     const btn = document.getElementById('copyHtmlBtn');
-    btn.textContent = '✅ Copied!';
-    btn.classList.add('copied');
-    showToast('HTML copied to clipboard');
-    setTimeout(() => { btn.textContent = '📋 Copy HTML'; btn.classList.remove('copied'); }, 2500);
-  }).catch(() => {
-    showToast('Failed to copy HTML');
+    if (ok) {
+      btn.textContent = '✅ Copied!';
+      btn.classList.add('copied');
+      showToast('HTML copied to clipboard');
+      setTimeout(() => { btn.textContent = '📋 Copy HTML'; btn.classList.remove('copied'); }, 2500);
+    } else {
+      showToast('Failed to copy HTML');
+    }
   });
 }
 
