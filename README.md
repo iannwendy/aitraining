@@ -80,9 +80,11 @@ counter-experiment with seeds 42, 123, 2024.)
 | Domain-adapted base | `scripts/domain_adaptive_pretrain.py`                |
 
 The domain-adapted base checkpoint (`models/phobert_domain_adapted/`,
-eval perplexity 18.01) is released for reproducibility. Adding a
-classification head and fine-tuning follows the same procedure as for
-the base checkpoint; no further adaptation is performed at inference.
+eval perplexity 18.01) is gitignored — reproduce it locally with the
+single command in the next section before re-running the DAPT
+evaluation. Adding a classification head and fine-tuning follows the
+same procedure as for the base checkpoint; no further adaptation is
+performed at inference.
 
 ## Pipeline Layout
 

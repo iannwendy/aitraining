@@ -16,6 +16,9 @@ models/phobert_second/
 models/phase3/
 models/bertopic/
 models/phobert_base_local/
+# Domain-adapted base checkpoint: ~540MB safetensors; reproduce via
+# `python3 scripts/domain_adaptive_pretrain.py` (see README "Reproducing").
+models/phobert_domain_adapted/
 
 # Domain-adapted evaluation checkpoints (large; reproduce via scripts/evaluate_domain_adapted_phobert.py)
 results/domain_adapted_eval_*/original_seed*/

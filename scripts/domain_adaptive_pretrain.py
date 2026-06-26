@@ -53,13 +53,13 @@ METRICS_FILE = OUTPUT_DIR / "pretrain_metrics.json"
 # Hyperparameters — conservative for overnight run on single GPU
 MLM_PROBABILITY = 0.15                    # Standard BERT masking rate
 MAX_LENGTH = 128                          # Truncate to this
-BATCH_SIZE = 16                           # Per GPU (adjust for your VRAM)
-EPOCHS = 3                                # 3 epochs on 125K ≈ overnight
+BATCH_SIZE = 32                           # Per GPU (adjust for your VRAM)
+EPOCHS = 2                                # 2 epochs on 125K — enough for domain warmup
 LEARNING_RATE = 5e-5                      # Lower than fine-tune — this is continued pretraining
 WARMUP_STEPS = 500
 GRADIENT_ACCUMULATION = 2                 # Effective batch = 16 * 2 = 32
 LOGGING_STEPS = 500
-SAVE_STEPS = 5000
+SAVE_STEPS = 1000                        # Save checkpoint every 1000 steps
 SEED = 42
 MAX_STEPS: int | None = None              # Override via CLI for quick test
 VAL_SPLIT = 0.02                          # 2% for eval perplexity
@@ -88,6 +88,7 @@ def main():
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     parser.add_argument("--lr", type=float, default=LEARNING_RATE)
     parser.add_argument("--corpus", type=str, default=str(CORPUS_FILE))
+    parser.add_argument("--sample", type=int, default=None, help="Randomly sample N texts (quick run)")
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -106,13 +107,18 @@ def main():
     df = pd.read_csv(args.corpus, dtype=str).fillna("")
     texts = df["comment_text"].str.strip().tolist()
     texts = [t for t in texts if len(t) >= 10]  # Filter very short
+    if args.sample and args.sample < len(texts):
+        import random
+        random.seed(SEED)
+        texts = random.sample(texts, args.sample)
     logger.info("Loaded %d texts (min 10 chars)", len(texts))
 
     # ── 2. Word segmentation (same as PhoBERT expects) ─────────────────
     try:
         from underthesea import word_tokenize
-        logger.info("Running word segmentation on %d texts...", len(texts))
-        texts = [word_tokenize(t, format="text") for t in texts]
+        from tqdm import tqdm as tqdm_seg
+        logger.info("Running word segmentation on %d texts (this may take 30-60 min)...", len(texts))
+        texts = [word_tokenize(t, format="text") for t in tqdm_seg(texts, desc="Segmentation")]
         logger.info("Segmentation complete")
     except Exception:
         logger.warning("underthesea not available, using raw texts")
