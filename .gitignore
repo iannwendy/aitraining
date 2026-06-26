@@ -37,3 +37,7 @@ external_datasets/external_augmentation_negatives.csv
 external_datasets/raw_per_dataset/
 data_unified/corpus_text_all.csv
 data_unified/augmentation_negatives.csv
+
+# Archive: snapshot cũ (v1, backup_before_phase1, ...) — KHÔNG track,
+# giữ local-only cho audit. README.md trong archive vẫn track để giải thích.
+data/_archive/*.csv

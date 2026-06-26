@@ -19,19 +19,31 @@ worth the compute cost for a low-resource downstream task?
 
 ## Headline Results
 
-Three-seed evaluation (mean ± std) on the final 3,576-sample training set:
+**Table 1 — Five-model comparison (single-seed, identical hyperparams).**
 
-| Model variant               | In-domain F1-macro   | Cross-domain F1-macro |
-|-----------------------------|----------------------|----------------------|
-| TF-IDF + SVM (baseline)     | 0.9312               | 0.4286               |
-| BiLSTM                      | 0.8951               | 0.4272               |
-| **PhoBERT (original)**      | **0.7876 ± 0.0229**  | **0.7618 ± 0.0099**  |
-| BERTopic-only               | 0.5599               | 0.5030               |
-| PhoBERT + BERTopic          | 0.9501               | 0.3977               |
-| **PhoBERT + DAPT (2 ep.)**  | 0.7493 ± 0.0285      | 0.7267 ± 0.0148      |
+| Model variant          | In-domain F1-macro | Cross-domain F1-macro |
+|------------------------|--------------------|----------------------|
+| TF-IDF + SVM (baseline)| 0.9312             | 0.4286               |
+| BiLSTM                 | 0.8951             | 0.4272               |
+| **PhoBERT (original)** | **0.7876**         | **0.7618**           |
+| BERTopic-only          | 0.5599             | 0.5030               |
+| PhoBERT + BERTopic     | 0.9501             | 0.3977               |
 
-(Five-model comparison is single-seed; DAPT row is the controlled
-counter-experiment with seeds 42, 123, 2024.)
+_Single-seed run; mean ± std not reported because seeds were not
+exhausted for these variants. The DAPT counter-experiment below
+adds the missing statistical rigor for the one model that warranted
+it._
+
+**Table 2 — Domain-adaptive pretraining counter-experiment (3 seeds: 42, 123, 2024).**
+
+| Model               | In-domain F1-macro (mean ± std) | Cross-domain F1-macro (mean ± std) |
+|---------------------|---------------------------------|-------------------------------------|
+| **PhoBERT (original)** | **0.7876 ± 0.0229**         | **0.7618 ± 0.0099**                 |
+| PhoBERT + DAPT (2 ep.) | 0.7493 ± 0.0285             | 0.7267 ± 0.0148                     |
+
+_Trained and evaluated on the same final dataset; only the encoder
+checkpoint differs. Numbers reproduce verbatim from
+`results/domain_adapted_eval_2026-06-25_123440/comparison_table.md`._
 
 **Two empirical findings.**
 
@@ -44,9 +56,11 @@ counter-experiment with seeds 42, 123, 2024.)
 
 2. **Domain-adaptive pretraining did not help.** Two epochs of
    continued MLM on 119,649 YouTube comments (eval perplexity 18.01)
-   reduced downstream F1 by approximately 3.5–4.0 points on both test
-   sets relative to the original PhoBERT base, while leaving the
-   generalization gap magnitude essentially unchanged. The base
+   reduced downstream F1 by approximately 3.8 points on the in-domain
+   test set (0.7876 → 0.7493) and approximately 3.5 points on the
+   cross-domain test set (0.7618 → 0.7267) relative to the original
+   PhoBERT base, while leaving the generalization gap magnitude
+   essentially unchanged. The base
    PhoBERT already covers broad Vietnamese registers; with only
    3,576 downstream training samples, the DAPT checkpoint is forced
    to re-learn general-purpose features from a weaker initialization.
