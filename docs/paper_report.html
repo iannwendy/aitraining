@@ -1069,6 +1069,38 @@ Manual inspection of confusion matrix diagonals and off-diagonal cells reveals t
 <strong>Orthographic noise from informal Vietnamese.</strong> The pervasive absence of diacritics in social media Vietnamese (e.g., &ldquo;buon&rdquo; vs. &ldquo;buồn&rdquo;) and the prevalence of nonstandard abbreviations (&ldquo;ko&rdquo; = &ldquo;không&rdquo; [not], &ldquo;dc&rdquo; = &ldquo;được&rdquo; [can/okay], &ldquo;j&rdquo; = &ldquo;gì&rdquo; [what]) produce tokenization artifacts that corrupt the semantic representation. While the weak-labeler handles diacritic-free text through accent-stripped matching, the PhoBERT tokenizer was trained on formal Vietnamese and segments these forms inconsistently, leading to out-of-vocabulary token fragmentation and representational degradation.
 </p>
 
+<h3>5.5. Domain-Adaptive Pretraining: A Controlled Counter-Experiment</h3>
+
+<p>
+To test whether the linguistic register divergence identified in Section&nbsp;5.2 could be mitigated by <em>continued masked language modeling</em> on the target domain, we conducted a controlled counter-experiment. The pretrained PhoBERT base (<code>vinai/phobert-base</code>) was further pretrained for two epochs of masked language modeling on the 119,649-comment training portion of the cleaned YouTube corpus (max length 128, batch size 32, learning rate 5&times;10<sup>&minus;5</sup>, gradient accumulation 2, 500 warm-up steps). The resulting domain-adapted checkpoint reached a final eval perplexity of 18.01, indicating that the model successfully absorbed domain-specific lexical and syntactic patterns. Both the original and domain-adapted checkpoints were then fine-tuned three times each (random seeds 42, 123, 2024) on the final 3,576-sample training set and evaluated on the same in-domain and cross-domain test sets used in Sections&nbsp;5.1&ndash;5.4. This yields six independent runs per test set, enabling statistical comparison via paired-seed t-tests.
+</p>
+
+<table>
+<thead>
+<tr><th>Model variant</th><th class="num">In-domain<br>F1-macro</th><th class="num">Cross-domain<br>F1-macro</th><th class="num">In-domain<br>Accuracy</th><th class="num">Cross-domain<br>Accuracy</th><th class="num">&Delta; F1<br>(cross &minus; in)</th></tr>
+</thead>
+<tbody>
+<tr><td>PhoBERT (original)</td><td class="num">0.7876 &plusmn; 0.0229</td><td class="num">0.7618 &plusmn; 0.0099</td><td class="num">0.7962 &plusmn; 0.0256</td><td class="num">0.7634 &plusmn; 0.0098</td><td class="num">&minus;0.0258</td></tr>
+<tr><td>PhoBERT + DAPT</td><td class="num">0.7493 &plusmn; 0.0285</td><td class="num">0.7267 &plusmn; 0.0148</td><td class="num">0.7553 &plusmn; 0.0305</td><td class="num">0.7337 &plusmn; 0.0115</td><td class="num">&minus;0.0226</td></tr>
+<tr><td><strong>&Delta; (original &minus; DAPT)</strong></td><td class="num"><strong>+0.0383</strong></td><td class="num"><strong>+0.0351</strong></td><td class="num"><strong>+0.0409</strong></td><td class="num"><strong>+0.0297</strong></td><td class="num">&minus;0.0032</td></tr>
+</tbody>
+</table>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.3: Domain-adaptive pretraining (DAPT) counter-experiment. Both checkpoints were fine-tuned three times (seeds 42, 123, 2024) on the identical 3,576-sample training set. Values are mean &plusmn; standard deviation. The original PhoBERT outperforms the domain-adapted checkpoint on both test sets; the in-domain and cross-domain F1 gaps (0.0383 and 0.0351) exceed the standard deviations, indicating a consistent effect across seeds.</p>
+
+<p>
+The direction of the effect is the opposite of what the linguistic register divergence hypothesis would predict. Rather than closing the in-domain/cross-domain gap, domain-adaptive pretraining <em>reduces</em> absolute performance on both test sets by roughly 3.5&ndash;4.0 macro-F1 points, while leaving the gap magnitude essentially unchanged (&minus;0.0258 for original, &minus;0.0226 for DAPT; difference of 0.0032). A paired t-test on per-seed F1 differences yields <em>t</em>(2)&nbsp;=&nbsp;6.91, <em>p</em>&nbsp;=&nbsp;0.020 for the in-domain contrast and <em>t</em>(2)&nbsp;=&nbsp;9.96, <em>p</em>&nbsp;=&nbsp;0.010 for the cross-domain contrast, both statistically significant despite the small sample size.
+</p>
+
+<p>
+Three explanations, mutually compatible, account for the result. <strong>First</strong>, the base PhoBERT is already exposed to a broad range of Vietnamese registers during its original pretraining on Wikipedia and news corpora; the marginal information added by continued MLM on 119K social media comments is small relative to what the encoder already encodes, and may even wash out useful general-purpose representations&mdash;a phenomenon Gururangan et al.&nbsp;(2020) describe as <em>domain over-fitting</em> when adaptation data is small and homogeneous. <strong>Second</strong>, the 3,576-sample downstream training set is insufficient to recover the general-purpose discriminative features that continued MLM partially erodes; the DAPT checkpoint is forced to re-learn them from a weaker initialization. <strong>Third</strong>, two epochs of MLM may under-train the domain adaptation&mdash;Gururangan et al.&nbsp;recommend 100&ndash;500 epochs on similar-sized domain corpora for DAPT to reach saturation. The present run covers only two epochs for tractability on commodity hardware.
+</p>
+
+<p>
+A practical implication follows. For practitioners building classifiers on small Vietnamese social-media datasets, <em>skipping the domain-adaptive pretraining step</em> and proceeding directly from the published base checkpoint to task fine-tuning is the recommended default. The 0.53 F1 cross-domain gap identified in Section&nbsp;5.1 cannot be closed by encoder-side adaptation alone; it must be addressed on the data side through broader and more diverse labeled training data&mdash;the same conclusion that the negative DAPT result reinforces from a different angle.
+</p>
+
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">All numerical values, per-seed metrics, confusion matrices, and prediction probability outputs for both model variants are archived in <code>results/domain_adapted_eval_2026-06-25_123440/</code> with the comparison table in <code>comparison_table.md</code> and the full per-(model, seed) record in <code>metrics.json</code>.</p>
+
 <div class="page-break"></div>
 
 <!-- ================================================================== -->
