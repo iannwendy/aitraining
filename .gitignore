@@ -15,6 +15,14 @@ models/phobert_first/
 models/phobert_second/
 models/phase3/
 models/bertopic/
+models/phobert_base_local/
+
+# Domain-adapted evaluation checkpoints (large; reproduce via scripts/evaluate_domain_adapted_phobert.py)
+results/domain_adapted_eval_*/original_seed*/
+results/domain_adapted_eval_*/domain_adapted_seed*/
+
+# Background process artifacts (point-in-time; not part of source)
+results_smoke.log
 
 # External + unified datasets: large generated CSVs (tai tao bang script).
 # Giu lai: *.py, *_report.json, manifest.json, file import Label Studio, test set holdout nho.
