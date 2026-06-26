@@ -26,14 +26,21 @@ def run_finetune(model_path: str, seed: int, output_dir: str) -> str:
         "train_phobert_first; "
         "train_phobert_first()"
     )
-    result = subprocess.run(
-        [sys.executable, "-c", script],
-        capture_output=True, text=True,
-    )
+    # Tee subprocess output to a per-run log so training progress is recoverable
+    # when the run succeeds (subprocess.run silently drops stdout otherwise).
+    log_path = os.path.join(output_dir, "finetune_stdout.log")
+    Path(log_path).parent.mkdir(parents=True, exist_ok=True)
+    with open(log_path, "w", encoding="utf-8") as logf:
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            stdout=logf,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
     if result.returncode != 0:
         raise RuntimeError(
-            f"Fine-tune failed for {model_path} seed={seed}:\n"
-            f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+            f"Fine-tune failed for {model_path} seed={seed}. "
+            f"See log: {log_path}"
         )
 
     # Trainer saves best weights straight to `output_dir` (no `best_model` subdir).
@@ -83,10 +90,10 @@ import json
 def compute_cross_domain_metrics(pred_csv: str, gold_csv: str) -> dict:
     """Compute classification metrics for predictions joined with gold labels.
 
-    Both CSVs are joined by row index (positional alignment).
-    Returns a dict matching the metrics schema in the design spec.
+    Both CSVs are joined by ``comment_text`` (text-keyed alignment, not
+    positional — robust against reordering or row-count drift). Returns
+    a dict matching the metrics schema in the design spec.
     """
-    import numpy as np
     import pandas as pd
     from yt_depression_crawler.modeling.phobert.phobert_utils import (
         compute_metrics as _compute_metrics,
@@ -94,16 +101,26 @@ def compute_cross_domain_metrics(pred_csv: str, gold_csv: str) -> dict:
 
     preds = pd.read_csv(pred_csv)
     gold = pd.read_csv(gold_csv)
-    if len(preds) != len(gold):
+    if "comment_text" not in preds.columns or "comment_text" not in gold.columns:
         raise ValueError(
-            f"Row count mismatch: predictions={len(preds)} gold={len(gold)}"
+            f"Both CSVs must have 'comment_text'; "
+            f"preds cols={list(preds.columns)}, gold cols={list(gold.columns)}"
         )
 
-    y_true = gold["label"].astype(int).values
-    y_pred = preds["predicted_label"].astype(int).values
+    # Text-keyed inner join: drop predictions whose text isn't in gold (shouldn't
+    # happen, but guards against silent drop) and gold rows that didn't get a
+    # prediction (also shouldn't happen, but worth flagging).
+    merged = preds.merge(gold[["comment_text", "label"]], on="comment_text", how="inner")
+    if len(merged) != len(gold):
+        raise ValueError(
+            f"After text-keyed join: merged={len(merged)} gold={len(gold)}. "
+            f"Predictions missing for some gold rows or vice versa."
+        )
 
-    metrics = _compute_metrics(y_true, y_pred)
-    return metrics
+    y_true = merged["label"].astype(int).values
+    y_pred = merged["predicted_label"].astype(int).values
+
+    return _compute_metrics(y_true, y_pred)
 
 
 def aggregate_results(runs: list, output_dir: str, git_commit: str, timestamp: str) -> None:

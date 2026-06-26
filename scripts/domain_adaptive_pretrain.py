@@ -57,7 +57,7 @@ BATCH_SIZE = 32                           # Per GPU (adjust for your VRAM)
 EPOCHS = 2                                # 2 epochs on 125K — enough for domain warmup
 LEARNING_RATE = 5e-5                      # Lower than fine-tune — this is continued pretraining
 WARMUP_STEPS = 500
-GRADIENT_ACCUMULATION = 2                 # Effective batch = 16 * 2 = 32
+GRADIENT_ACCUMULATION = 2                 # Effective batch = BATCH_SIZE * 2 = 64
 LOGGING_STEPS = 500
 SAVE_STEPS = 1000                        # Save checkpoint every 1000 steps
 SEED = 42
