@@ -5,10 +5,23 @@ import sys
 from pathlib import Path
 
 
-def run_finetune(model_path: str, seed: int, output_dir: str) -> str:
-    """Fine-tune a PhoBERT model on the final dataset.
+def run_finetune(
+    model_path: str,
+    seed: int,
+    output_dir: str,
+    train_csv: str = "data/final_train.csv",
+    val_csv: str = "data/final_val.csv",
+    test_csv: str = "data/final_test.csv",
+) -> str:
+    """Fine-tune a PhoBERT model on the FINAL dataset (post-Phase-1/2 rebuild).
 
     Returns path to the best checkpoint directory.
+
+    Earlier versions of this function omitted the CSV path overrides, which
+    caused the trainer to fall back to `TRAIN_FILE`/`VAL_FILE`/`TEST_FILE` in
+    `core/config.py` — those point to the pre-round-3 `data/train.csv` (2,632
+    rows), not the new `data/final_train.csv` (1,786 rows). The defaults here
+    make the new behaviour explicit; callers can override for ablation.
 
     The trainer (`phobert_train.train_phobert_first`) saves the best
     checkpoint directly to its `output_dir` argument via
@@ -21,10 +34,15 @@ def run_finetune(model_path: str, seed: int, output_dir: str) -> str:
     os.environ["PHOBERT_OUTPUT_DIR_OVERRIDE"] = output_dir
     os.environ["PHOBERT_RANDOM_SEED_OVERRIDE"] = str(seed)
 
+    # Subprocess snippet — must import Path before using it in kwargs.
     script = (
+        "from pathlib import Path; "
         "from yt_depression_crawler.modeling.phobert.phobert_train import "
         "train_phobert_first; "
-        "train_phobert_first()"
+        f"train_phobert_first("
+        f"train_file=Path('{train_csv}'), "
+        f"val_file=Path('{val_csv}'), "
+        f"test_file=Path('{test_csv}'))"
     )
     # Tee subprocess output to a per-run log so training progress is recoverable
     # when the run succeeds (subprocess.run silently drops stdout otherwise).

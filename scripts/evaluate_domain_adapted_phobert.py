@@ -42,10 +42,16 @@ def model_tag(model_path):
 
 
 def sanity_check_datasets():
-    """Validate final_train, final_test, and cross_domain_test schemas."""
+    """Validate final_train, final_val, final_test, and cross_domain_test schemas.
+
+    All splits in `data/final_*.csv` are produced by Phase 2 of the pipeline
+    (after the round-3 review merge). The orchestrator must train on these,
+    not the legacy `data/train.csv` from the original weak-label split.
+    """
     import pandas as pd
     for path, required in [
         ("data/final_train.csv", {"comment_text", "label", "weight"}),
+        ("data/final_val.csv", {"comment_text", "label"}),
         ("data/final_test.csv", {"comment_text", "label"}),
         ("data_unified/cross_domain_test.csv", {"comment_text", "label"}),
     ]:
@@ -55,8 +61,12 @@ def sanity_check_datasets():
             raise ValueError(f"{path} missing columns: {missing}")
         if "weight" in df.columns and (df["weight"] < 0).any():
             raise ValueError(f"{path} has negative weight values")
-        print(f"[sanity] {path}: {len(df)} rows, label dist: "
-              f"{df['label'].value_counts().to_dict()}")
+        weight_str = (
+            f", weight dist: {df['weight'].value_counts().to_dict()}"
+            if "weight" in df.columns else ""
+        )
+        print(f"[sanity] {path}: {len(df)} rows, "
+              f"label dist: {df['label'].value_counts().to_dict()}{weight_str}")
 
 
 def parse_args():
