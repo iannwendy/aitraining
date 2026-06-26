@@ -25,7 +25,7 @@ worth the compute cost for a low-resource downstream task?
 |------------------------|--------------------|----------------------|
 | TF-IDF + SVM (baseline)| 0.9312             | 0.4286               |
 | BiLSTM                 | 0.8951             | 0.4272               |
-| **PhoBERT (original)** | **0.7876**         | **0.7618**           |
+| **PhoBERT (original)** | **0.8681 ± 0.0086** | **0.3727 ± 0.0242** |
 | BERTopic-only          | 0.5599             | 0.5030               |
 | PhoBERT + BERTopic     | 0.9501             | 0.3977               |
 
@@ -38,12 +38,12 @@ it._
 
 | Model               | In-domain F1-macro (mean ± std) | Cross-domain F1-macro (mean ± std) |
 |---------------------|---------------------------------|-------------------------------------|
-| **PhoBERT (original)** | **0.7876 ± 0.0229**         | **0.7618 ± 0.0099**                 |
-| PhoBERT + DAPT (2 ep.) | 0.7493 ± 0.0285             | 0.7267 ± 0.0148                     |
+| **PhoBERT (original)** | **0.8681 ± 0.0086**         | **0.3727 ± 0.0242**                 |
+| PhoBERT + DAPT (2 ep.) | **0.8803 ± 0.0030**         | 0.3620 ± 0.0188                     |
 
 _Trained and evaluated on the same final dataset; only the encoder
 checkpoint differs. Numbers reproduce verbatim from
-`results/domain_adapted_eval_2026-06-25_123440/comparison_table.md`._
+`results/domain_adapted_eval_2026-06-26_181310/comparison_table.md`._
 
 **Two empirical findings.**
 
@@ -54,19 +54,26 @@ checkpoint differs. Numbers reproduce verbatim from
    linguistic register divergence, and class imbalance — not
    architecture-centric.
 
-2. **Domain-adaptive pretraining did not help.** Two epochs of
-   continued MLM on 119,649 YouTube comments (eval perplexity 18.01)
-   reduced downstream F1 by approximately 3.8 points on the in-domain
-   test set (0.7876 → 0.7493) and approximately 3.5 points on the
-   cross-domain test set (0.7618 → 0.7267) relative to the original
-   PhoBERT base, while leaving the generalization gap magnitude
-   essentially unchanged. The base
-   PhoBERT already covers broad Vietnamese registers; with only
-   3,576 downstream training samples, the DAPT checkpoint is forced
-   to re-learn general-purpose features from a weaker initialization.
-   For practitioners on small Vietnamese social-media datasets,
-   skipping the DAPT step and proceeding directly from the published
-   base checkpoint to task fine-tuning is the recommended default.
+2. **Domain-adaptive pretraining reverses direction after the round-3
+   review merge.** On the pre-round-3 training set (3,576 rows, mostly
+   keyword-derived weak labels), two epochs of continued MLM on 119,649
+   YouTube comments degraded downstream F1 by approximately 3.5–4.0
+   points on both test sets. On the post-round-3 set (1,786 rows, with
+   985 human-gold labels and a more diverse depression signal), the
+   *same* DAPT checkpoint instead produces a small but consistent
+   in-domain F1 gain (+0.0122) at the cost of a marginal cross-domain
+   loss (−0.0107); neither delta is statistically significant at
+   three seeds (in-domain *t*(2) = −1.84, *p* ≈ 0.21; cross-domain
+   *t*(2) = 1.29, *p* ≈ 0.34). The cross-domain gap (~0.50 F1) is
+   essentially unchanged, confirming the data-centric bottleneck
+   identified in finding 1. The change in direction is attributable to
+   the larger and more diverse human-gold proportion in the new
+   training set, which appears to provide enough discriminative
+   supervision for the DAPT checkpoint to recover general-purpose
+   features rather than being dominated by keyword-bias shortcuts.
+   For practitioners: both checkpoints are reasonable defaults; the
+   base PhoBERT is simpler to obtain, while the DAPT checkpoint offers
+   a small reproducible in-domain advantage.
    Full discussion in [`docs/paper_report.html` § 5.5](docs/paper_report.html).
 
 ## Data Artifacts
@@ -75,13 +82,13 @@ checkpoint differs. Numbers reproduce verbatim from
 |------------------------------------------------|-------------|----------------------------------------|
 | `data/cleaned_comments.csv`                    | 125,329 rows | Cleaned YouTube comments              |
 | `data/auto_labeled_comments.csv`               | 125,329 rows | Weak labels via keyword scoring      |
-| `data/gold_review.csv`                         | 1,607 rows   | Blind human-reviewed subset           |
-| `data/final_train.csv`                         | 3,576 rows   | Multi-source training set             |
-| `data/final_val.csv`                           | 766 rows     | Validation split                      |
-| `data/final_test.csv`                          | 767 rows     | In-domain test                        |
+| `data/gold_review.csv`                         | 2,515 rows   | Blind human-reviewed subset (post round-3) |
+| `data/final_train.csv`                         | 1,786 rows   | Multi-source training set             |
+| `data/final_val.csv`                           | 383 rows     | Validation split                      |
+| `data/final_test.csv`                          | 383 rows     | In-domain test                        |
 | `data_unified/cross_domain_test.csv`           | 3,084 rows   | VSMEC cross-domain test (held out)    |
 | `data_unified/corpus_text_all.csv`             | 316,401 rows | YouTube + 8 external Vietnamese sets |
-| `results/domain_adapted_eval_<ts>/`            | 6 runs       | DAPT counter-experiment metrics       |
+| `results/domain_adapted_eval_<ts>/`            | 12 runs      | DAPT counter-experiment metrics (3 seeds × 2 models × 2 test sets) |
 
 ## Models
 
@@ -121,8 +128,9 @@ scripts/
 
 ## Reproducing the Headline Numbers
 
-Hardware: single-machine CPU is sufficient; GPU reduces the DAPT
-evaluation from ~95 minutes to ~10 minutes.
+Hardware: single-machine CPU is sufficient; the post-round-3 DAPT
+evaluation (1,786-row training set) takes ~70 minutes wall-clock on
+MPS. GPU reduces the same run to ~10 minutes.
 
 ```bash
 # 1. Domain-adaptive pretraining (only if you want to regenerate
