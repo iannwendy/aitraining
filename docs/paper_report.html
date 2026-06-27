@@ -213,7 +213,7 @@ To develop an automated system capable of detecting linguistic indicators of dep
 
 <li><strong>Blind human annotation.</strong> Implement a blind review protocol&mdash;in which annotators see only the comment text and never the machine-suggested label&mdash;for 1,750 samples curated from five review buckets (depression high-confidence, normal high-confidence, uncertain, need-review, boundary). Quantify annotation quality through Cohen&rsquo;s Kappa and human-machine disagreement rates. Construct a clean gold set of 1,607 samples with independently validated binary labels.</li>
 
-<li><strong>Model training and comparative evaluation.</strong> Train five distinct architectures&mdash;TF-IDF&thinsp;+&thinsp;SVM, BiLSTM, PhoBERT, BERTopic-only, and PhoBERT&thinsp;+&thinsp;BERTopic&mdash;on the final training set (11,703 samples, stratified). Evaluate each model on two independent test sets: an in-domain test set from the YouTube distribution and a fixed cross-domain test set (VSMEC, 3,084 samples) that is never exposed during training. Report six performance metrics: accuracy, macro-averaged precision, recall, and F1, weighted F1, and depression-class F1.</li>
+<li><strong>Model training and comparative evaluation.</strong> Train five distinct architectures&mdash;TF-IDF&thinsp;+&thinsp;SVM, BiLSTM, PhoBERT, BERTopic-only, and PhoBERT&thinsp;+&thinsp;BERTopic&mdash;on the final training set (1,786 samples, post round-3 review merge, stratified). Evaluate each model on two independent test sets: an in-domain test set from the YouTube distribution (383 samples) and a fixed cross-domain test set (VSMEC, 3,084 samples) that is never exposed during training. Report six performance metrics: accuracy, macro-averaged precision, recall, and F1, weighted F1, and depression-class F1.</li>
 
 <li><strong>Topic modeling for latent structure discovery.</strong> Apply BERTopic to the full 316,401-document corpus to discover latent thematic clusters. Identify depression-related topics through keyword overlap analysis, providing qualitative insight into the structure of mental health discourse and supplying auxiliary features for the combined PhoBERT&thinsp;+&thinsp;BERTopic architecture.</li>
 
@@ -267,11 +267,11 @@ This report is organized into six chapters, reflecting the fifteen-step research
 </p>
 
 <p>
-<strong>Chapter 3&mdash;Data Acquisition, Processing, and Annotation:</strong> Provides a comprehensive account of the data pipeline&mdash;the most labor-intensive component of the project, consuming approximately 70% of the total development effort. Documents the YouTube crawling strategy (265 keywords across five thematic groups, YouTube Data API v3 configuration, crawler architecture with resume capability), the multi-stage preprocessing pipeline (Unicode normalization, spam detection, deduplication), the integration of eight external Vietnamese corpora from HuggingFace (191,072 texts), the construction of the 316,401-document unified corpus with strict leakage prevention, the design and application of a three-tier weighted-keyword weak-labeling lexicon (335 entries), the blind human annotation protocol with verified annotator independence (Cohen&rsquo;s Kappa = 0.63 and &minus;0.03 for regular and active-learning batches respectively), the weak-labeler performance audit, and the multi-source final training dataset assembly (11,703 samples, stratified 70/15/15 split with source-weighted integration).
+<strong>Chapter 3&mdash;Data Acquisition, Processing, and Annotation:</strong> Provides a comprehensive account of the data pipeline&mdash;the most labor-intensive component of the project, consuming approximately 70% of the total development effort. Documents the YouTube crawling strategy (265 keywords across five thematic groups, YouTube Data API v3 configuration, crawler architecture with resume capability), the multi-stage preprocessing pipeline (Unicode normalization, spam detection, deduplication), the integration of eight external Vietnamese corpora from HuggingFace (191,072 texts), the construction of the 316,401-document unified corpus with strict leakage prevention, the design and application of a three-tier weighted-keyword weak-labeling lexicon (335 entries), the blind human annotation protocol with verified annotator independence (Cohen&rsquo;s Kappa = 0.63 and &minus;0.03 for regular and active-learning batches respectively), the weak-labeler performance audit, and the multi-source final training dataset assembly (1,786 samples after round-3 review merge and class balancing, stratified 70/15/15 split with source-weighted integration; an earlier 11,703-sample intermediate was superseded).
 </p>
 
 <p>
-<strong>Chapter 4&mdash;Model Training and Evaluation Methodology:</strong> Specifies the architectural design and training configuration of five distinct models&mdash;TF-IDF&thinsp;+&thinsp;SVM, BiLSTM, PhoBERT, BERTopic-only, and PhoBERT&thinsp;+&thinsp;BERTopic. Details hyperparameter configurations, class-weighting strategy for imbalance mitigation, word segmentation via <code>underthesea</code>, and BERTopic topic modeling on the full 316K corpus. Defines the two-domain evaluation strategy (in-domain YouTube test set of 767 samples; cross-domain VSMEC test set of 3,084 samples, strictly held out from training) and the six-metric reporting protocol.
+<strong>Chapter 4&mdash;Model Training and Evaluation Methodology:</strong> Specifies the architectural design and training configuration of five distinct models&mdash;TF-IDF&thinsp;+&thinsp;SVM, BiLSTM, PhoBERT, BERTopic-only, and PhoBERT&thinsp;+&thinsp;BERTopic. Details hyperparameter configurations, class-weighting strategy for imbalance mitigation, word segmentation via <code>underthesea</code>, and BERTopic topic modeling on the full 316K corpus. Defines the two-domain evaluation strategy (in-domain YouTube test set of 383 samples after round-3 merge; cross-domain VSMEC test set of 3,084 samples, strictly held out from training) and the six-metric reporting protocol.
 </p>
 
 <p>
@@ -891,9 +891,9 @@ The balanced dataset is partitioned into training, validation, and test sets usi
 <table>
 <thead><tr><th>Split</th><th class="num">Ratio</th><th class="num">Samples</th><th>Purpose</th></tr></thead>
 <tbody>
-<tr><td>Train</td><td class="num">70%</td><td class="num">8,192</td><td>Model parameter optimization</td></tr>
-<tr><td>Validation</td><td class="num">15%</td><td class="num">1,755</td><td>Hyperparameter tuning, early stopping, model selection</td></tr>
-<tr><td>Test (in-domain)</td><td class="num">15%</td><td class="num">1,756</td><td>Final in-domain performance evaluation</td></tr>
+<tr><td>Train</td><td class="num">70%</td><td class="num">1,786</td><td>Model parameter optimization</td></tr>
+<tr><td>Validation</td><td class="num">15%</td><td class="num">383</td><td>Hyperparameter tuning, early stopping, model selection</td></tr>
+<tr><td>Test (in-domain)</td><td class="num">15%</td><td class="num">383</td><td>Final in-domain performance evaluation</td></tr>
 </tbody>
 </table>
 </p>
@@ -932,12 +932,13 @@ The model training and evaluation phase comprises the final five steps (Steps 11
 &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
 &#x2502;         CHAPTER 4: MODEL TRAINING AND EVALUATION METHODOLOGY                &#x2502;
 &#x2502;                                                                           &#x2502;
-&#x2502;  Step 11. Build final_dataset.csv (11,703 samples, multi-source,          &#x2502;
-&#x2502;           stratified 70/15/15 split)                                       &#x2502;
-&#x2502;  Step 12. Train 5 models: TF-IDF+SVM, BiLSTM, PhoBERT, BERTopic-only,    &#x2502;
+&#x2502;  Step 11. Build final_dataset.csv (2,553 samples, multi-source,          &#x2502;
+&#x2502;           stratified 70/15/15 split, post round-3 review merge)            &#x2502;
+&#x2502;  Step 12. Train 7 model variants: TF-IDF+LogReg, TF-IDF+LinearSVC,      &#x2502;
+&#x2502;           BiLSTM (random/PhoBERT-frozen), PhoBERT, BERTopic-only,         &#x2502;
 &#x2502;           PhoBERT+BERTopic                                                 &#x2502;
 &#x2502;  Step 13. Train BERTopic on 316K corpus (456 topics discovered)           &#x2502;
-&#x2502;  Step 14. Evaluate on in-domain test set (767 samples)                    &#x2502;
+&#x2502;  Step 14. Evaluate on in-domain test set (383 samples, post round-3)     &#x2502;
 &#x2502;  Step 15. Evaluate on cross-domain VSMEC test set (3,084 samples)         &#x2502;
 &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
 </pre>
@@ -978,7 +979,7 @@ All models are evaluated on two independent test sets:
 </p>
 
 <ul style="margin:0 0 8pt; padding-left:2em;">
-<li><strong>In-domain test:</strong> 767 samples (511 normal, 256 depression) drawn from <code>final_test.csv</code>, obtained by stratified splitting of <code>final_dataset.csv</code> (11,703 samples) with a 70/15/15 train/validation/test ratio.</li>
+<li><strong>In-domain test:</strong> 383 samples (256 normal, 127 depression) drawn from <code>final_test.csv</code>, obtained by stratified splitting of <code>final_dataset.csv</code> (2,553 samples post round-3) with a 70/15/15 train/validation/test ratio. An earlier 767-sample in-domain test from the pre-Phase-1 3,576-row splits is superseded.</li>
 <li><strong>Cross-domain test:</strong> 3,084 samples (1,542 distress [VSMEC Sadness + Fear], 1,542 normal [VSMEC Enjoyment]) from the hold-out VSMEC dataset. This test set is <em>never exposed during training</em>, including during weak-labeling, model selection, or hyperparameter tuning.</li>
 </ul>
 

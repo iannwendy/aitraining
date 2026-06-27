@@ -85,3 +85,36 @@ print(f'overlap: {len(overlap)} rows')
 ```
 
 Kỳ vọng: 0 overlap. Nếu >0, dedup trước khi train.
+
+---
+
+## Decisions resolved (cập nhật 2026-06-26)
+
+Sau khi merge Round 3 review (1.500 rows) + DAPT rerun + BiLSTM build,
+tất cả 4 decisions đã được resolve và áp dụng:
+
+| # | Decision | Resolution | Implementation |
+|---|----------|------------|----------------|
+| 1 | PhoBERT v2 retrain với active-learning bổ sung? | **NO** | `phobert_v2_confident` giữ nguyên, không retrain |
+| 2 | Hồi 113K pseudo-label vào `final_dataset`? | **NO** | Final dataset dùng human_gold + weak_high_conf + external_negative, không có PhoBERT pseudo |
+| 3 | Tỷ lệ human:pseudo | **3:2:1** (human_gold=3, weak_high_conf=2, phobert_v2_confident=1) | `final_dataset.csv` weight column; `phobert_train._build_train_loader` dùng WeightedRandomSampler |
+| 4 | uncertain/exclude loại khỏi train? | **YES — excluded** | `phase1_merge_review.merge_round3()` filter `final_label ∈ {normal, depression}` only |
+
+### Phase 1/2/3 status (cập nhật 2026-06-26)
+
+- ✅ Phase 1: `gold_review.csv` 2.515 rows (Round 3 merged in commit `35ca4b6`)
+- ✅ Phase 2: `final_dataset.csv` 2.553 rows; `final_train/val/test.csv`
+  1.786/383/383; cross-domain leak = 0
+- ✅ Phase 3: 5 model families trained + evaluated, see
+  `docs/ROADMAP_SAU_REVIEW.md` "Trạng thái hiện tại" section for the
+  full results table
+- ⏳ Phase 4: paper write-up in progress in `docs/paper_report.html`
+
+### Round 3 review summary
+
+- File input: `docs/export_round3_active_learning.csv` (1.500 rows,
+  gitignored for size)
+- Key file: `docs/label_studio_round3_active_learning_key.csv`
+- Merged key: `docs/label_studio_round3_active_learning_key_MERGED.csv`
+- Quality: agreement 43.17%, kappa = -0.05, 66.3% depression_auto rejected
+- 908 valid rows added to gold (821 normal + 87 depression)

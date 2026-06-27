@@ -93,3 +93,58 @@ Tất cả train trên `final_dataset`, test trên **2 tập**: in-domain + cros
 - **uncertain/exclude** loại khỏi train? (mặc định: có)
 
 Khi nhận 2 file export, bắt đầu thẳng từ **Phase 1**.
+
+---
+
+## Trạng thái hiện tại (cập nhật 2026-06-26)
+
+Toàn bộ Phase 1, 2, 3 đã hoàn thành. Phase 4 (báo cáo) đang được đồng bộ
+vào `docs/paper_report.html`. Chi tiết:
+
+### Phase 1 — ✅ DONE (commit `35ca4b6`)
+- 3 vòng review merged: Step 5 (750) + Step 8 (1.000) + **Round 3 (1.500)**
+- `gold_review.csv`: 1.607 → **2.515 rows** (2.265 normal / 250 depression)
+- Round 3 quality check: agreement 43.17%, kappa = -0.05
+  (reviewer độc lập — keyword weak-labeler bị reject 66.3%)
+- Baseline F1 trên gold mới: 0.5334 (accuracy 0.6354) — KHÔNG 1.0 ảo
+
+### Phase 2 — ✅ DONE
+- `final_dataset.csv`: **2.553 rows** (985 human_gold + 1.568 weak_high_conf,
+  balanced 2:1)
+- `final_train.csv` / `final_val.csv` / `final_test.csv`:
+  1.786 / 383 / 383 rows, stratified
+- Cross-domain leak check: 0 overlap với `cross_domain_test.csv`
+
+### Phase 3 — ✅ DONE (commits `e3e818e`, `1f85ff6`)
+5 model families đã train + eval trên final_dataset:
+
+| Model                       | In-domain F1 | Cross-domain F1 |
+|-----------------------------|--------------|-----------------|
+| TF-IDF + LogReg              | 0.8347       | 0.3917          |
+| TF-IDF + LinearSVC           | 0.8286       | 0.3820          |
+| BiLSTM (random embedding)    | 0.8357       | 0.4079          |
+| BiLSTM (PhoBERT-frozen)      | 0.8266       | 0.4352          |
+| **PhoBERT (3-seed mean±std)** | **0.8681 ± 0.0086** | **0.3727 ± 0.0242** |
+
+DAPT counter-experiment (commit `c8bc7fe`, `f09fddc`):
+- Original 0.8681 vs DAPT 0.8803 in-domain (DAPT slightly better,
+  not significant, t = -1.84, p ≈ 0.21)
+- Cross-domain essentially unchanged
+- Direction REVERSED from pre-round-3 finding (DAPT used to degrade
+  both test sets; bug in orchestrator trained on wrong splits)
+
+### Phase 4 — IN PROGRESS
+- `docs/paper_report.html` updated with new Table 5.1 (7 rows) +
+  §5.5 DAPT counter-experiment (numbers + errata footnote for the
+  bug)
+- README + paper headlines all reference post-round-3 numbers
+
+### Decisions resolved
+- **Decision 1** (PhoBERT v2 retrain?): **NO**. final_dataset built without
+  retraining PhoBERT v2.
+- **Decision 2** (113K pseudo?): **NO**. Not included; round 3 added 985
+  human_gold rows instead.
+- **Decision 3** (human:pseudo ratio): human_gold weight=3, weak_high_conf
+  weight=2, phobert_v2_confident weight=1. Consumed by
+  `WeightedRandomSampler` in `phobert_train._build_train_loader`.
+- **Decision 4** (uncertain/exclude?): **EXCLUDED** from train.
