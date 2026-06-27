@@ -92,6 +92,12 @@ checkpoint differs. Numbers reproduce verbatim from
 | `data_unified/corpus_text_all.csv`             | 316,401 rows | YouTube + 8 external Vietnamese sets |
 | `results/domain_adapted_eval_<ts>/`            | 12 runs      | DAPT counter-experiment metrics (3 seeds × 2 models × 2 test sets) |
 
+The `weight` column in `final_train.csv` (values 1/2/3 for
+phobert_v2_confident / weak_high_conf / human_gold) is consumed by
+`WeightedRandomSampler` inside `phobert_train._build_train_loader`
+to bias the batch distribution toward high-supervision-quality rows
+without changing the loss function.
+
 ## Models
 
 | Model               | Code path                                            |

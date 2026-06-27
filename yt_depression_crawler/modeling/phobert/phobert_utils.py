@@ -113,7 +113,14 @@ def compute_metrics(y_true, y_pred) -> dict:
 
 
 class PhoBertDataset:
-    def __init__(self, texts: list[str], labels: list[int] | None, tokenizer, max_length: int) -> None:
+    def __init__(
+        self,
+        texts: list[str],
+        labels: list[int] | None,
+        tokenizer,
+        max_length: int,
+        weights: list[float] | None = None,
+    ) -> None:
         import torch
 
         self.encodings = tokenizer(
@@ -124,6 +131,12 @@ class PhoBertDataset:
             return_tensors="pt",
         )
         self.labels = torch.tensor(labels, dtype=torch.long) if labels is not None else None
+        # weights are not added to per-item dict (the model doesn't
+        # accept sample_weight kwarg); instead they are consumed by
+        # WeightedRandomSampler in phobert_train._build_train_loader.
+        self.weights = (
+            torch.tensor(weights, dtype=torch.float) if weights is not None else None
+        )
 
     def __len__(self) -> int:
         return self.encodings["input_ids"].shape[0]

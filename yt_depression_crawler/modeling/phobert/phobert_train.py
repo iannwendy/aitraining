@@ -44,6 +44,37 @@ from yt_depression_crawler.modeling.phobert.phobert_utils import (
     set_seed,
 )
 
+
+def _build_train_loader(
+    train_df: pd.DataFrame,
+    train_dataset: "PhoBertDataset",
+    batch_size: int,
+) -> "DataLoader":
+    """Build train DataLoader, using WeightedRandomSampler when `weight` column present.
+
+    `final_train.csv` (post-Phase-2) carries a `weight` column ∈ {1, 2, 3}:
+      - weight=3: human_gold (985 rows; highest supervision quality)
+      - weight=2: weak_high_conf (1080 rows; keyword-derived high-confidence)
+      - weight=1: phobert_v2_confident (would be a 4th tier if present)
+    Sampling with replacement using these weights biases the batch
+    distribution toward human_gold without changing the loss function
+    (still standard CrossEntropyLoss with class weighting for imbalance).
+
+    Falls back to plain shuffle when `weight` is missing (legacy data).
+    """
+    from torch.utils.data import DataLoader, WeightedRandomSampler
+
+    if "weight" not in train_df.columns:
+        return DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
+    sample_weights = train_df["weight"].astype(float).tolist()
+    sampler = WeightedRandomSampler(
+        weights=sample_weights,
+        num_samples=len(sample_weights),
+        replacement=True,
+    )
+    return DataLoader(train_dataset, batch_size=batch_size, sampler=sampler)
+
 # Allow scripts/evaluate_domain_adapted_phobert.py to override these via env vars.
 # We must mutate config BEFORE the `from ... import` lines above would normally
 # resolve PHOBERT_MODEL_NAME/OUTPUT_DIR/RANDOM_SEED. To make that work without
@@ -101,11 +132,24 @@ def train_phobert_first(
     val_texts = prepare_many_texts(val_df["comment_text"].tolist())
     test_texts = prepare_many_texts(test_df["comment_text"].tolist())
 
-    train_dataset = PhoBertDataset(train_texts, train_df["label"].astype(int).tolist(), tokenizer, PHOBERT_MAX_LENGTH)
+    # If final_train.csv provides a `weight` column, pass it to the
+    # dataset so _build_train_loader can bias the batch sampler.
+    train_weights = (
+        train_df["weight"].astype(float).tolist()
+        if "weight" in train_df.columns
+        else None
+    )
+    train_dataset = PhoBertDataset(
+        train_texts,
+        train_df["label"].astype(int).tolist(),
+        tokenizer,
+        PHOBERT_MAX_LENGTH,
+        weights=train_weights,
+    )
     val_dataset = PhoBertDataset(val_texts, val_df["label"].astype(int).tolist(), tokenizer, PHOBERT_MAX_LENGTH)
     test_dataset = PhoBertDataset(test_texts, test_df["label"].astype(int).tolist(), tokenizer, PHOBERT_MAX_LENGTH)
 
-    train_loader = DataLoader(train_dataset, batch_size=PHOBERT_BATCH_SIZE, shuffle=True)
+    train_loader = _build_train_loader(train_df, train_dataset, PHOBERT_BATCH_SIZE)
     val_loader = DataLoader(val_dataset, batch_size=PHOBERT_EVAL_BATCH_SIZE)
     test_loader = DataLoader(test_dataset, batch_size=PHOBERT_EVAL_BATCH_SIZE)
 
