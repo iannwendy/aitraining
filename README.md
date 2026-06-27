@@ -25,8 +25,8 @@ worth the compute cost for a low-resource downstream task?
 |-----------------------------|--------------------|----------------------|
 | TF-IDF + LogReg (baseline)  | 0.8347             | 0.3917               |
 | TF-IDF + LinearSVC           | 0.8286             | 0.3820               |
-| BiLSTM (random embedding)   | _see paper §5.1_   | _see paper §5.1_     |
-| BiLSTM (PhoBERT-frozen)     | _see paper §5.1_   | _see paper §5.1_     |
+| BiLSTM (random embedding)   | 0.8357             | 0.4079               |
+| BiLSTM (PhoBERT-frozen)     | 0.8266             | 0.4352               |
 | **PhoBERT (original)**      | **0.8681 ± 0.0086** | **0.3727 ± 0.0242** |
 | BERTopic-only               | 0.5599             | 0.5030               |
 | PhoBERT + BERTopic          | 0.9501             | 0.3977               |
@@ -103,7 +103,7 @@ without changing the loss function.
 | Model               | Code path                                            |
 |---------------------|------------------------------------------------------|
 | TF-IDF + SVM        | `yt_depression_crawler/modeling/baseline/`           |
-| BiLSTM              | (in-repo notebook scripts)                           |
+| BiLSTM              | `yt_depression_crawler/modeling/bilstm/`             |
 | PhoBERT             | `yt_depression_crawler/modeling/phobert/`             |
 | BERTopic            | `yt_depression_crawler/modeling/bertopic/`           |
 | Domain-adapted base | `scripts/domain_adaptive_pretrain.py`                |
