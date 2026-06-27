@@ -22,6 +22,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from scripts.domain_adapted_eval_utils import (  # noqa: E402
     aggregate_results,
     compute_cross_domain_metrics,
+    run_finetune,
 )
 
 
@@ -160,6 +161,54 @@ class TestAggregateResults(unittest.TestCase):
             table = (Path(d) / "comparison_table.md").read_text()
             # stddev undefined for n=1 -> should show "n/a" rather than 0.0
             self.assertIn("+/- n/a", table)
+
+
+class TestRunFinetuneDataPath(unittest.TestCase):
+    """Regression test for the bug fixed in commit f09fddc.
+
+    Earlier versions of run_finetune() did not override the CSV paths, so
+    the subprocess fell back to TRAIN_FILE/VAL_FILE/TEST_FILE in
+    core/config.py — which still pointed to the pre-Phase-1 splits
+    (data/train.csv, 2,632 rows). The original DAPT evaluation
+    (results/domain_adapted_eval_2026-06-25_123440/) was inadvertently
+    trained on those OLD splits.
+
+    These tests guard against the regression by static-checking both the
+    function body and the default argument values. They do NOT execute
+    run_finetune (which requires GPU/MPS) and are safe to run on CPU.
+    """
+
+    def test_run_finetune_source_references_final_splits(self):
+        import inspect
+
+        src = inspect.getsource(run_finetune)
+        # Subprocess script body must explicitly override each split.
+        self.assertIn("final_train.csv", src,
+                      "run_finetune() body must reference final_train.csv")
+        self.assertIn("final_val.csv", src,
+                      "run_finetune() body must reference final_val.csv")
+        self.assertIn("final_test.csv", src,
+                      "run_finetune() body must reference final_test.csv")
+        # And must NOT silently fall back to the legacy train.csv path.
+        self.assertNotIn("train_file=TRAIN_FILE", src,
+                         "run_finetune() must not default to legacy TRAIN_FILE")
+
+    def test_run_finetune_default_args_point_to_final_splits(self):
+        import inspect
+
+        sig = inspect.signature(run_finetune)
+        self.assertEqual(
+            sig.parameters["train_csv"].default, "data/final_train.csv",
+            "Default train_csv must point at data/final_train.csv",
+        )
+        self.assertEqual(
+            sig.parameters["val_csv"].default, "data/final_val.csv",
+            "Default val_csv must point at data/final_val.csv",
+        )
+        self.assertEqual(
+            sig.parameters["test_csv"].default, "data/final_test.csv",
+            "Default test_csv must point at data/final_test.csv",
+        )
 
 
 class TestModelTag(unittest.TestCase):
