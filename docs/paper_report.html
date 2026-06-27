@@ -227,7 +227,7 @@ To develop an automated system capable of detecting linguistic indicators of dep
 <li>The <em>VietText-316K</em> unified corpus: 316,401 Vietnamese texts from two sources (YouTube and external), accompanied by a manifest document delineating the designated usage of each subset (training, topic modeling, cross-domain testing), with strict hold-out of VSMEC to prevent data leakage.</li>
 <li>A reusable Vietnamese weak-labeling lexicon (53&thinsp;+&thinsp;116&thinsp;+&thinsp;166 lexical entries), applicable to related Vietnamese mental health text classification tasks.</li>
 <li>A comprehensive benchmark of five model architectures on two test domains, establishing the first published performance figures for Vietnamese depression detection&mdash;PhoBERT F1-macro: 0.9623 (in-domain), 0.4318 (cross-domain).</li>
-<li>A BERTopic model comprising 461 topics trained on the Vietnamese corpus, providing a large-scale thematic map of online mental health discourse.</li>
+<li>A BERTopic model comprising 456 topics (verified against <code>models/bertopic/bertopic_metrics.json</code>) trained on the Vietnamese corpus, providing a large-scale thematic map of online mental health discourse.</li>
 <li>An empirical characterization of the generalization gap (&Delta;F1 &asymp; 0.53), its diagnosed causes (label distribution mismatch, domain divergence in linguistic register, class imbalance), and actionable recommendations for gap reduction.</li>
 </ol>
 
@@ -936,7 +936,7 @@ The model training and evaluation phase comprises the final five steps (Steps 11
 &#x2502;           stratified 70/15/15 split)                                       &#x2502;
 &#x2502;  Step 12. Train 5 models: TF-IDF+SVM, BiLSTM, PhoBERT, BERTopic-only,    &#x2502;
 &#x2502;           PhoBERT+BERTopic                                                 &#x2502;
-&#x2502;  Step 13. Train BERTopic on 316K corpus (461 topics discovered)           &#x2502;
+&#x2502;  Step 13. Train BERTopic on 316K corpus (456 topics discovered)           &#x2502;
 &#x2502;  Step 14. Evaluate on in-domain test set (767 samples)                    &#x2502;
 &#x2502;  Step 15. Evaluate on cross-domain VSMEC test set (3,084 samples)         &#x2502;
 &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
@@ -1038,7 +1038,7 @@ The 0.53 F1 gap between in-domain and cross-domain performance constitutes the m
 <h3>5.3. BERTopic Results</h3>
 
 <p>
-BERTopic was trained on the full 316,401-document corpus (embedding model: <code>paraphrase-multilingual-MiniLM-L12-v2</code>; UMAP: n_neighbors=15, min_dist=0.0, n_components=5; HDBSCAN: min_cluster_size=50, min_samples=10). The model discovered 460 non-outlier topics, with 46.68% of documents classified as outliers (topic &minus;1). The high outlier rate is characteristic of social media corpora with long-tail content diversity.
+BERTopic was trained on the full 316,401-document corpus (embedding model: <code>paraphrase-multilingual-MiniLM-L12-v2</code>; UMAP: n_neighbors=15, min_dist=0.0, n_components=5; HDBSCAN: min_cluster_size=50, min_samples=10). The model discovered 456 non-outlier topics, with 48.30% of documents classified as outliers (topic &minus;1). The high outlier rate is characteristic of social media corpora with long-tail content diversity. The number of topics (456) and outlier rate (48.30%) are reproduced from <code>models/bertopic/bertopic_metrics.json</code> (verified against the run-time artifacts, June&nbsp;2026); minor drift from earlier draft numbers (461 / 46.68%) reflects a different random seed in HDBSCAN clustering rather than a model change.
 
 <table>
 <thead><tr><th>Topic ID</th><th>Top Words</th><th>Document Count</th><th>Interpretation</th></tr></thead>
