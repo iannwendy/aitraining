@@ -63,6 +63,13 @@ BASELINE_GOLD_ERRORS_FILE = OUTPUT_DIR / "baseline_gold_errors.csv"
 TRAIN_FILE = OUTPUT_DIR / "train.csv"
 VAL_FILE = OUTPUT_DIR / "val.csv"
 TEST_FILE = OUTPUT_DIR / "test.csv"
+# Post-Phase-2 final splits (round-3 review merged). Models that should
+# use these defaults (LinearSVC baseline, DAPT eval, BiLSTM) reference
+# FINAL_TRAIN_FILE etc. explicitly; models that still need the legacy
+# pre-Phase-1 splits (initial PhoBERT smoke tests) keep TRAIN_FILE.
+FINAL_TRAIN_FILE = OUTPUT_DIR / "final_train.csv"
+FINAL_VAL_FILE = OUTPUT_DIR / "final_val.csv"
+FINAL_TEST_FILE = OUTPUT_DIR / "final_test.csv"
 LABELING_REPORT_FILE = OUTPUT_DIR / "labeling_report.json"
 PROCESSED_VIDEOS_FILE = OUTPUT_DIR / "processed_videos.txt"
 VIDEO_METADATA_FILE = OUTPUT_DIR / "video_metadata.csv"

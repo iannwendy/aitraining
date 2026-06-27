@@ -26,6 +26,9 @@ from yt_depression_crawler.core.config import (
     BASELINE_MODEL_FILE,
     BASELINE_SVC_METRICS_FILE,
     BASELINE_SVC_MODEL_FILE,
+    FINAL_TEST_FILE,
+    FINAL_TRAIN_FILE,
+    FINAL_VAL_FILE,
     LABELING_REPORT_FILE,
     TEST_FILE,
     TRAIN_FILE,
@@ -37,14 +40,18 @@ logger = logging.getLogger(__name__)
 
 
 def train_baseline_model(
-    train_file: Path = TRAIN_FILE,
-    val_file: Path = VAL_FILE,
-    test_file: Path = TEST_FILE,
+    train_file: Path = FINAL_TRAIN_FILE,
+    val_file: Path = FINAL_VAL_FILE,
+    test_file: Path = FINAL_TEST_FILE,
     model_file: Path = BASELINE_MODEL_FILE,
     metrics_file: Path = BASELINE_METRICS_FILE,
     report_file: Path = LABELING_REPORT_FILE,
 ) -> dict:
-    """Train baseline model và lưu metrics/model."""
+    """Train baseline TF-IDF + Logistic Regression trên final dataset (post round-3).
+
+    Defaults to data/final_*.csv (1,786 train rows). Override train_file/val_file/
+    test_file for ablation on the legacy pre-Phase-1 splits (data/train.csv).
+    """
     ensure_directories()
     train_df = _load_split(train_file)
     val_df = _load_split(val_file)
@@ -144,15 +151,15 @@ def _build_baseline_features() -> FeatureUnion:
 
 
 def train_linear_svc_model(
-    train_file: Path = TRAIN_FILE,
-    val_file: Path = VAL_FILE,
-    test_file: Path = TEST_FILE,
+    train_file: Path = FINAL_TRAIN_FILE,
+    val_file: Path = FINAL_VAL_FILE,
+    test_file: Path = FINAL_TEST_FILE,
     model_file: Path = BASELINE_SVC_MODEL_FILE,
     metrics_file: Path = BASELINE_SVC_METRICS_FILE,
     report_file: Path = LABELING_REPORT_FILE,
     C: float = 1.0,
 ) -> dict:
-    """Train baseline TF-IDF + LinearSVC classifier trên cùng dataset với LogReg.
+    """Train baseline TF-IDF + LinearSVC classifier trên final dataset (post round-3).
 
     LinearSVC thường cho decision boundary sharp hơn LogReg trên text sparse
     features và là baseline thứ hai đáng tham chiếu. Cùng class_weight='balanced'

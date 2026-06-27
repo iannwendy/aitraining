@@ -21,13 +21,15 @@ worth the compute cost for a low-resource downstream task?
 
 **Table 1 — Five-model comparison (single-seed, identical hyperparams).**
 
-| Model variant          | In-domain F1-macro | Cross-domain F1-macro |
-|------------------------|--------------------|----------------------|
-| TF-IDF + SVM (baseline)| 0.9312             | 0.4286               |
-| BiLSTM                 | 0.8951             | 0.4272               |
-| **PhoBERT (original)** | **0.8681 ± 0.0086** | **0.3727 ± 0.0242** |
-| BERTopic-only          | 0.5599             | 0.5030               |
-| PhoBERT + BERTopic     | 0.9501             | 0.3977               |
+| Model variant               | In-domain F1-macro | Cross-domain F1-macro |
+|-----------------------------|--------------------|----------------------|
+| TF-IDF + LogReg (baseline)  | 0.8347             | 0.3917               |
+| TF-IDF + LinearSVC           | 0.8286             | 0.3820               |
+| BiLSTM (random embedding)   | _see paper §5.1_   | _see paper §5.1_     |
+| BiLSTM (PhoBERT-frozen)     | _see paper §5.1_   | _see paper §5.1_     |
+| **PhoBERT (original)**      | **0.8681 ± 0.0086** | **0.3727 ± 0.0242** |
+| BERTopic-only               | 0.5599             | 0.5030               |
+| PhoBERT + BERTopic          | 0.9501             | 0.3977               |
 
 _Single-seed run; mean ± std not reported because seeds were not
 exhausted for these variants. The DAPT counter-experiment below
