@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-06-27T16:10:20.722806",
+  "model": "PhoBERT + BERTopic (rerun on final_dataset)",
+  "phobert_checkpoint": "/Users/iannwendy/Documents/crawl_yt/youtube_depression_crawler/models/phobert_first",
+  "bertopic_model": "/Users/iannwendy/Documents/crawl_yt/youtube_depression_crawler/models/bertopic/bertopic_model.pkl",
+  "fit_samples": 2169,
+  "in_domain": {
+    "accuracy": 0.8642,
+    "precision_macro": 0.8442,
+    "recall_macro": 0.8568,
+    "f1_macro": 0.8497,
+    "f1_weighted": 0.8654,
+    "f1_depression": 0.803,
+    "confusion_matrix": [
+      [
+        225,
+        31
+      ],
+      [
+        21,
+        106
+      ]
+    ]
+  },
+  "cross_domain": {
+    "accuracy": 0.5289,
+    "precision_macro": 0.5782,
+    "recall_macro": 0.5289,
+    "f1_macro": 0.4406,
+    "f1_weighted": 0.4406,
+    "f1_depression": 0.2184,
+    "confusion_matrix": [
+      [
+        1428,
+        114
+      ],
+      [
+        1339,
+        203
+      ]
+    ]
+  },
+  "delta_f1_in_minus_cross": 0.4091,
+  "predictions_in_domain_csv": "/Users/iannwendy/Documents/crawl_yt/youtube_depression_crawler/results/phobert_bertopic_predictions_in_domain.csv",
+  "predictions_cross_domain_csv": "/Users/iannwendy/Documents/crawl_yt/youtube_depression_crawler/results/phobert_bertopic_predictions_cross_domain.csv"
+}

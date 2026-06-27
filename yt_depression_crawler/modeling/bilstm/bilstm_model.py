@@ -264,6 +264,7 @@ def train_bilstm(
     max_len: int = 100,
     vocab_size: int = 15_000,
     phobert_local_dir: str | None = None,
+    seed: int = 42,
 ) -> dict:
     """Train BiLSTM and evaluate on val + test.
 
@@ -277,8 +278,17 @@ def train_bilstm(
 
     output_dir.mkdir(parents=True, exist_ok=True)
     device = _get_device()
-    torch.manual_seed(42)
-    logger.info("Train BiLSTM-%s on device=%s", variant, device)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    import random
+    random.seed(seed)
+    try:
+        import numpy as np
+        np.random.seed(seed)
+    except ImportError:
+        pass
+    logger.info("Train BiLSTM-%s on device=%s seed=%d", variant, device, seed)
 
     train_texts, train_labels = load_split(train_file)
     val_texts, val_labels = load_split(val_file)
@@ -360,6 +370,7 @@ def train_bilstm(
 
     metrics = {
         "variant": variant,
+        "seed": seed,
         "train_rows": int(len(train_texts)),
         "val_rows": int(len(val_texts)),
         "test_rows": int(len(test_texts)),
@@ -379,6 +390,7 @@ def train_bilstm(
             "hidden_dim": 128,
             "num_layers": 2,
             "dropout": 0.5,
+            "seed": seed,
         },
     }
 
