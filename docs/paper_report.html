@@ -734,6 +734,11 @@ Application of the weak-labeler to the 125,329 cleaned YouTube comments produced
 </p>
 <p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.8: Weak-label distribution on the YouTube dataset. The overwhelming majority of comments (78.52%) fall into the uncertain category, reflecting the empirical reality that most YouTube comments do not contain strong, unambiguous affective lexical signals. The high <code>need_review</code> rate (96.01%) reflects the conservative design of the review-flagging heuristics.</p>
 
+<figure>
+<img src="../report_pdf/figures/fig-02-weak-label-distribution.png" alt="Stacked horizontal bar chart and pie chart of weak-label distribution on the 125,329-comment YouTube corpus, split by depression_auto, normal_auto, and uncertain categories and by high/medium confidence" />
+<figcaption><strong>Figure 2.</strong> Weak-label distribution on the 125,329 cleaned YouTube comments. <em>Left panel:</em> stacked horizontal bar chart showing the three label tiers (depression_auto, normal_auto, uncertain) with high-confidence (vermillion) and medium-confidence (yellow) sub-divisions. <em>Right panel:</em> pie chart of overall proportions. The overwhelming majority of comments (78.52%, 98,410) fall into the <code>uncertain</code> category — reflecting the empirical reality that most YouTube comments do not contain strong, unambiguous affective lexical signals and that the keyword weak-labeler is conservative by design. Only 2.57% (3,223) are flagged as <code>depression_auto</code> and 18.91% (23,695) as <code>normal_auto</code>. This extreme class imbalance motivates the heavy reliance on blind human annotation (Section 3.6) rather than direct training on weak labels.</figcaption>
+</figure>
+
 <p>
 The most frequently matched keywords, in descending order, were: cảm ơn (thank you, 14,185 matches), hay quá (so good, 4,621), tuyệt vời (wonderful, 3,319), rất hay (very good, 2,518), cô đơn (lonely, 2,217), áp lực (pressure, 1,861), ủng hộ (support, 1,763), trầm cảm (depression, 1,576), mệt mỏi (tired, 1,245), and tự ti (insecure, 1,138). The dominance of positive/normal keywords (cảm ơn, hay quá, tuyệt vời) in the top matches reflects the larger size of the normal-keyword lexicon (166 entries) relative to the depression lexicons (53 + 116 = 169 entries) and the higher base rate of positive engagement language in YouTube comments.
 </p>
@@ -1066,6 +1071,11 @@ BERTopic was trained on the full 316,401-document corpus (embedding model: <code
 
 <h3>5.4. Qualitative Error Analysis</h3>
 
+<figure>
+<img src="../report_pdf/figures/fig-03-confusion-matrices.png" alt="2-column × 7-row panel of confusion matrix heatmaps for seven model variants on in-domain and cross-domain test sets" />
+<figcaption><strong>Figure 3.</strong> Confusion matrices for the seven model variants on the in-domain (YouTube, n=383) and cross-domain (VSMEC, n=3,084) test sets. Each cell shows the raw count with the row-normalized percentage. The diagonal represents correct predictions (TN, TP); the off-diagonal cells are false positives (FP, top-right) and false negatives (FN, bottom-left). The pattern is consistent across supervised architectures: in-domain confusion matrices concentrate mass on the diagonal, whereas cross-domain matrices are dominated by the true-normal column — every supervised model predicts "normal" for almost all VSMEC distress sentences. BERTopic-only is the lone architecture with non-trivial depression recall on VSMEC (its F1-depression of 0.5566 is the highest of any model) despite near-random overall accuracy. Cross-domain rows for PhoBERT and PhoBERT+BERTopic are illustrative placeholders because the source JSON files do not persist the full confusion matrix; the underlying F1 numbers in Table 5.1 remain authoritative.</figcaption>
+</figure>
+
 <p>
 Manual inspection of confusion matrix diagonals and off-diagonal cells reveals three systematic error patterns:
 </p>
@@ -1083,6 +1093,11 @@ Manual inspection of confusion matrix diagonals and off-diagonal cells reveals t
 </p>
 
 <h3>5.5. Domain-Adaptive Pretraining: A Controlled Counter-Experiment</h3>
+
+<figure>
+<img src="../report_pdf/figures/fig-06-dapt-counter-experiment.png" alt="Two-panel scatter plot of per-seed F1 scores (in-domain and cross-domain) for PhoBERT original vs PhoBERT + DAPT across three seeds" />
+<figcaption><strong>Figure 6.</strong> DAPT counter-experiment: per-seed F1 scores across three seeds (42, 123, 2024) for the PhoBERT (original) and PhoBERT + DAPT checkpoints. <em>Top panel:</em> in-domain F1-macro on the YouTube test set (n=383). DAPT produces a small but consistent gain (+0.0122 F1) across all three seeds (diffs: −0.0128, −0.0004, −0.0234). <em>Bottom panel:</em> cross-domain VSMEC (n=3,084) showing both F1-macro (filled markers) and F1-depression (open triangles). DAPT incurs a marginal cross-domain loss (−0.0107 F1-macro) with inconsistent sign across seeds (diffs: +0.0218, +0.0158, −0.0055). Neither delta is statistically significant at α=0.05 with three seeds (in-domain t(2)=−1.84, p≈0.21; cross-domain t(2)=1.29, p≈0.34). The dashed lines connect same-seed pairs to visualize the per-seed directional change. The 0.50 F1 cross-domain gap is essentially unchanged by encoder-side adaptation, confirming the data-centric bottleneck identified in Section 5.2.</figcaption>
+</figure>
 
 <p>
 To test whether the linguistic register divergence identified in Section&nbsp;5.2 could be mitigated by <em>continued masked language modeling</em> on the target domain, we conducted a controlled counter-experiment. The pretrained PhoBERT base (<code>vinai/phobert-base</code>) was further pretrained for two epochs of masked language modeling on the 119,649-comment training portion of the cleaned YouTube corpus (max length 128, batch size 32, learning rate 5&times;10<sup>&minus;5</sup>, gradient accumulation 2, 500 warm-up steps). The resulting domain-adapted checkpoint reached a final eval perplexity of 18.01, indicating that the model successfully absorbed domain-specific lexical and syntactic patterns. Both the original and domain-adapted checkpoints were then fine-tuned three times each (random seeds 42, 123, 2024) on the final 1,786-sample training set (post round-3 review merge) and evaluated on the same in-domain and cross-domain test sets used in Sections&nbsp;5.1&ndash;5.4. This yields six independent runs per test set, enabling statistical comparison via paired-seed t-tests.
