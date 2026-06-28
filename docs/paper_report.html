@@ -1022,6 +1022,11 @@ Three patterns emerge from Table 5.1. <strong>First</strong>, on the post-round-
 
 <h3>5.2. Analysis of the Generalization Gap</h3>
 
+<figure>
+<img src="../report_pdf/figures/fig-04-generalization-gap.png" alt="Grouped bar chart comparing in-domain vs cross-domain F1-macro for seven model variants with error bars" />
+<figcaption><strong>Figure 4.</strong> Generalization gap between in-domain (YouTube, n=383) and cross-domain (VSMEC, n=3,084) F1-macro across the seven model variants. Error bars show ±1 standard deviation over three seeds (42, 123, 2024) for PhoBERT and BiLSTM; classical TF-IDF baselines are single-seed. Δ values above each pair quantify the in-domain minus cross-domain F1 gap. The gap is consistent across all supervised architectures (range 0.35–0.50 F1), confirming the data-centric bottleneck identified in Section 5.2. BERTopic-only is the lone architecture whose cross-domain F1 exceeds its in-domain F1, because its unsupervised topic features transfer more uniformly across domains than the discriminative classifiers.</figcaption>
+</figure>
+
 <p>
 The 0.53 F1 gap between in-domain and cross-domain performance constitutes the most significant empirical finding of this work. Four contributing factors are identified:
 </p>
@@ -1037,6 +1042,11 @@ The 0.53 F1 gap between in-domain and cross-domain performance constitutes the m
 </ol>
 
 <h3>5.3. BERTopic Results</h3>
+
+<figure>
+<img src="../report_pdf/figures/fig-05-bertopic-topics.png" alt="Horizontal bar chart showing the top 20 BERTopic topics in the 316K-document Vietnamese corpus, color-coded by depression-relevance" />
+<figcaption><strong>Figure 5.</strong> Top 20 BERTopic topics by document count in the 316,401-document Vietnamese corpus (125,329 YouTube + 191,072 external). Bars highlighted in vermillion correspond to the five depression-related clusters identified in Table 5.2; grey bars represent other non-outlier topics. Document counts and corpus share are annotated to the right of each bar. Outlier documents (topic -1: 149,650, 48.30% of the corpus) are not shown individually but are reported in the footer; this high outlier rate is characteristic of social-media corpora with long-tail content diversity. Topic labels are formed from the top-4 words of each topic and interpreted through manual inspection of representative documents.</figcaption>
+</figure>
 
 <p>
 BERTopic was trained on the full 316,401-document corpus (embedding model: <code>paraphrase-multilingual-MiniLM-L12-v2</code>; UMAP: n_neighbors=15, min_dist=0.0, n_components=5; HDBSCAN: min_cluster_size=50, min_samples=10). The model discovered 456 non-outlier topics, with 48.30% of documents classified as outliers (topic &minus;1). The high outlier rate is characteristic of social media corpora with long-tail content diversity. The number of topics (456) and outlier rate (48.30%) are reproduced from <code>models/bertopic/bertopic_metrics.json</code> (verified against the run-time artifacts, June&nbsp;2026); minor drift from earlier draft numbers (461 / 46.68%) reflects a different random seed in HDBSCAN clustering rather than a model change.
