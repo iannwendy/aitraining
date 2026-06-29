@@ -19,22 +19,21 @@ worth the compute cost for a low-resource downstream task?
 
 ## Headline Results
 
-**Table 1 — Five-model comparison (single-seed, identical hyperparams).**
+**Table 1 — Five-model comparison (multi-seed for BiLSTM and PhoBERT).**
 
 | Model variant               | In-domain F1-macro | Cross-domain F1-macro |
 |-----------------------------|--------------------|----------------------|
-| TF-IDF + LogReg (baseline)  | 0.8347             | 0.3917               |
-| TF-IDF + LinearSVC           | 0.8286             | 0.3820               |
-| BiLSTM (random embedding)   | 0.8357             | 0.4079               |
-| BiLSTM (PhoBERT-frozen)     | 0.8266             | 0.4352               |
+| TF-IDF + LogReg             | 0.8347             | 0.3917               |
+| TF-IDF + LinearSVC          | 0.8286             | 0.3820               |
+| BiLSTM (random embedding)   | 0.8145 ± 0.0244   | 0.4690 ± 0.0601     |
+| BiLSTM (PhoBERT-frozen)     | 0.8244 ± 0.0044   | 0.4344 ± 0.0008     |
 | **PhoBERT (original)**      | **0.8681 ± 0.0086** | **0.3727 ± 0.0242** |
 | BERTopic-only               | 0.5599             | 0.5030               |
-| PhoBERT + BERTopic          | 0.9501             | 0.3977               |
+| PhoBERT + BERTopic          | 0.8497             | 0.4406               |
 
-_Single-seed run; mean ± std not reported because seeds were not
-exhausted for these variants. The DAPT counter-experiment below
-adds the missing statistical rigor for the one model that warranted
-it._
+_TF-IDF baselines are single-seed; BiLSTM and PhoBERT are mean ± std over three seeds (42, 123, 2024).
+PhoBERT + BERTopic numbers are from the post-round-3 rerun on final_dataset (1,786 rows).
+DAPT counter-experiment below adds the missing statistical rigor for PhoBERT._
 
 **Table 2 — Domain-adaptive pretraining counter-experiment (3 seeds: 42, 123, 2024).**
 
@@ -49,9 +48,9 @@ checkpoint differs. Numbers reproduce verbatim from
 
 **Two empirical findings.**
 
-1. **A generalization gap of approximately 0.50–0.53 F1-macro** between
-   in-domain and cross-domain performance is consistent across model
-   families (TF-IDF+SVM, BiLSTM, PhoBERT). The bottleneck is
+1. **A generalization gap of approximately 0.50 F1-macro** between
+   in-domain and cross-domain performance is consistent across all
+   supervised model families (range 0.35–0.50 F1). The bottleneck is
    data-centric — label definition divergence, text length mismatch,
    linguistic register divergence, and class imbalance — not
    architecture-centric.
