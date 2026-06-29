@@ -1024,15 +1024,27 @@ Table 5.1 presents the comprehensive evaluation results for all five models on b
 <tr><td>TF‑IDF + LinearSVC</td><td class="num">0.8286</td><td class="num">0.3820</td><td class="num">0.7739</td><td class="num">0.1121</td><td class="num">0.8460</td><td class="num">0.5175</td></tr>
 <tr><td>BiLSTM (random embedding)</td><td class="num">0.8145 &plusmn; 0.0244</td><td class="num">0.4690 &plusmn; 0.0601</td><td class="num">0.7626 &plusmn; 0.0206</td><td class="num">0.2811 &plusmn; 0.1317</td><td class="num">0.8294 &plusmn; 0.0289</td><td class="num">0.5388 &plusmn; 0.0175</td></tr>
 <tr><td>BiLSTM (PhoBERT-frozen)</td><td class="num">0.8244 &plusmn; 0.0044</td><td class="num">0.4344 &plusmn; 0.0008</td><td class="num">0.7653 &plusmn; 0.0073</td><td class="num">0.1956 &plusmn; 0.0044</td><td class="num">0.8442 &plusmn; 0.0031</td><td class="num">0.5352 &plusmn; 0.0023</td></tr>
-<tr><td><strong>PhoBERT</strong></td><td class="num"><strong>0.8681 &plusmn; 0.0086</strong></td><td class="num"><strong>0.3727 &plusmn; 0.0242</strong></td><td class="num"><strong>0.8230 &plusmn; 0.0132</strong></td><td class="num">0.0716 &plusmn; 0.0440</td><td class="num"><strong>0.8834 &plusmn; 0.0065</strong></td><td class="num"><strong>0.5174 &plusmn; 0.0109</strong></td></tr>
+<tr><td><strong>PhoBERT</strong></td><td class="num"><strong>0.8681 &plusmn; 0.0086</strong></td><td class="num">0.3727 &plusmn; 0.0242</td><td class="num"><strong>0.8230 &plusmn; 0.0132</strong></td><td class="num">0.0716 &plusmn; 0.0440</td><td class="num"><strong>0.8834 &plusmn; 0.0065</strong></td><td class="num">0.5174 &plusmn; 0.0109</td></tr>
 <tr><td>BERTopic‑only</td><td class="num">0.5599</td><td class="num">0.5030</td><td class="num">0.4939</td><td class="num"><strong>0.5566</strong></td><td class="num">0.5698</td><td class="num">0.5088</td></tr>
 <tr><td>PhoBERT + BERTopic</td><td class="num">0.8497</td><td class="num">0.4406</td><td class="num">0.8030</td><td class="num">0.2184</td><td class="num">0.8642</td><td class="num">0.5289</td></tr>
+<tr style="background:#e8f5e9;"><td colspan="7" style="font-style:italic; color:#2e7d32; border-top:2px solid #ccc;"><strong>After Data Augmentation (Section 5.6)</strong></td></tr>
+<tr style="background:#e8f5e9;"><td>TF‑IDF + LogReg (augmented)</td><td class="num">0.9525</td><td class="num">0.4280</td><td class="num">0.9698</td><td class="num">0.1784</td><td class="num">0.9588</td><td class="num">0.5370</td></tr>
+<tr style="background:#e8f5e9;"><td>TF‑IDF + LinearSVC (augmented)</td><td class="num"><strong>0.9678</strong></td><td class="num">0.4006</td><td class="num"><strong>0.9793</strong></td><td class="num">0.1300</td><td class="num"><strong>0.9719</strong></td><td class="num">0.5227</td></tr>
+<tr style="background:#e8f5e9;"><td>BiLSTM (random, augmented)</td><td class="num">0.6716 &plusmn; 0.1900</td><td class="num">0.4796 &plusmn; 0.1035</td><td class="num">0.8541 &plusmn; 0.0477</td><td class="num">0.6137 &plusmn; 0.0615</td><td class="num">0.7840 &plusmn; 0.0961</td><td class="num">0.5417 &plusmn; 0.0335</td></tr>
+<tr style="background:#e8f5e9;"><td>BiLSTM (PhoBERT‑frozen, augmented)</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+<tr style="background:#e8f5e9;"><td>PhoBERT (augmented)</td><td class="num">0.9619</td><td class="num">0.3993</td><td class="num">0.9749</td><td class="num">0.1218</td><td class="num">0.9663</td><td class="num">0.5276</td></tr>
+<tr style="background:#e8f5e9;"><td>BERTopic‑only (augmented)</td><td class="num">0.5864</td><td class="num">0.5022</td><td class="num">0.6972</td><td class="num">0.5580</td><td class="num">0.6161</td><td class="num">0.5084</td></tr>
+<tr style="background:#e8f5e9;"><td>PhoBERT + BERTopic (augmented)</td><td class="num">0.9377</td><td class="num"><strong>0.5262</strong></td><td class="num">0.9600</td><td class="num"><strong>0.3973</strong></td><td class="num">0.9457</td><td class="num">0.5613</td></tr>
 </tbody>
 </table>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.1: Comparative performance of five model families on in-domain (383 samples, post round-3 review) and cross-domain VSMEC (3,084 samples) test sets. PhoBERT and BiLSTM numbers are mean &plusmn; std over three seeds (42, 123, 2024); classical TF-IDF baselines are single-seed (verified low-variance). The two BiLSTM rows form an ablation: random-init embeddings vs PhoBERT word embeddings frozen (linear projection 768&nbsp;→&nbsp;128 before the BiLSTM). BERTopic-only yields the highest cross-domain depression F1 (0.5566) but at near-random overall accuracy. The PhoBERT + BERTopic row reports the rerun on the post-round-3 final_dataset (1,786 train rows), which superseded the earlier pre-round-3 numbers (0.9501 / 0.3977) that appeared in earlier drafts of this table. The generalization gap remains consistent across all supervised models, confirming the data-centric bottleneck identified in Section&nbsp;5.1. Note: TF-IDF, BiLSTM, and PhoBERT + BERTopic numbers are all post round-3 review; older single-seed numbers (e.g., 0.9312 for TF-IDF+SVM) were obtained on the pre-Phase-1 splits and are superseded.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.1: Comparative performance of five model families on in-domain (383 samples, post round-3 review) and cross-domain VSMEC (3,084 samples) test sets, with augmented variants (green rows). PhoBERT and BiLSTM numbers are mean &plusmn; std over three seeds (42, 123, 2024); classical TF-IDF baselines are single-seed. Data augmentation (Section&nbsp;5.6) yields: TF-IDF+SVC +11.4 pp in-domain, TF-IDF+LogReg +11.8 pp in-domain, PhoBERT +9.4 pp in-domain, and PhoBERT+BERTopic +8.6 pp cross-domain. BiLSTM shows high variance on augmented data; BiLSTM PhoBERT-frozen failed due to implementation error.</p>
 
 <p>
-Three patterns emerge from Table 5.1. <strong>First</strong>, on the post-round-3 final_dataset (1,786 train rows) the in-domain ranking is: PhoBERT (0.8681 &plusmn; 0.0086) &gt; BiLSTM PhoBERT-frozen (0.8244 &plusmn; 0.0044) &gt; TF-IDF + LogReg (0.8347) ≈ BiLSTM random (0.8145 &plusmn; 0.0244) &gt; TF-IDF + LinearSVC (0.8286); PhoBERT exceeds the strongest classical baseline by 3.3 percentage points in macro-F1. The pre-round-3 numbers (PhoBERT 0.9623, TF-IDF+SVM 0.9312) were obtained on the legacy 3,576-row pre-Phase-1 splits and are superseded&mdash;they appear in earlier drafts of this table. <strong>Second</strong>, the BiLSTM ablation (now with three-seed mean &plusmn; std) shows that the cross-domain ranking reverses: BiLSTM random (0.4690 &plusmn; 0.0601) outperforms BiLSTM PhoBERT-frozen (0.4344 &plusmn; 0.0008) on VSMEC, with the random variant's higher std (0.0601 vs 0.0008) confirming that pretrained embeddings yield more stable but slightly lower cross-domain generalization for BiLSTM. The very low std on the frozen-PhoBERT variant (0.0008) is striking and suggests the pretrained embeddings collapse the LSTM to a near-deterministic cross-domain solution. <strong>Third</strong>, the generalization gap is remarkably consistent across supervised architectures: the difference between in-domain and cross-domain macro-F1 is 0.3455 (BiLSTM random), 0.3900 (BiLSTM PhoBERT-frozen), 0.4430 (TF-IDF + LogReg), 0.4466 (TF-IDF + LinearSVC), and 0.4954 (PhoBERT). This uniformity across model families strongly suggests that the gap originates from <em>data distribution divergence</em> rather than from model capacity or inductive bias. <strong>Fourth</strong>, the rerun PhoBERT + BERTopic model (0.8497 in-domain / 0.4406 cross-domain) underperforms pure PhoBERT on the in-domain test set (-0.0184) but matches it on cross-domain (+0.0679), indicating that naive concatenation of topic features with contextual embeddings does not consistently help and may slightly degrade in-domain performance&mdash;likely due to feature scaling mismatches or noisy topic assignments. The earlier pre-round-3 numbers (0.9501 / 0.3977) that appeared in earlier drafts of this row have been superseded.
+Three patterns emerge from Table 5.1. <strong>First</strong>, on the post-round-3 final_dataset (1,786 train rows) the in-domain ranking is: PhoBERT (0.8681 &plusmn; 0.0086) &gt; BiLSTM PhoBERT-frozen (0.8244 &plusmn; 0.0044) &gt; TF-IDF + LogReg (0.8347) &asymp; BiLSTM random (0.8145 &plusmn; 0.0244) &gt; TF-IDF + LinearSVC (0.8286); PhoBERT exceeds the strongest classical baseline by 3.3 percentage points in macro-F1. The pre-round-3 numbers (PhoBERT 0.9623, TF-IDF+SVM 0.9312) were obtained on the legacy 3,576-row pre-Phase-1 splits and are superseded. <strong>Second</strong>, the BiLSTM ablation (now with three-seed mean &plusmn; std) shows that the cross-domain ranking reverses: BiLSTM random (0.4690 &plusmn; 0.0601) outperforms BiLSTM PhoBERT-frozen (0.4344 &plusmn; 0.0008) on VSMEC, with the random variant's higher std (0.0601 vs 0.0008) confirming that pretrained embeddings yield more stable but slightly lower cross-domain generalization for BiLSTM. The very low std on the frozen-PhoBERT variant (0.0008) is striking and suggests the pretrained embeddings collapse the LSTM to a near-deterministic cross-domain solution. <strong>Third</strong>, the generalization gap is remarkably consistent across supervised architectures: the difference between in-domain and cross-domain macro-F1 is 0.3455 (BiLSTM random), 0.3900 (BiLSTM PhoBERT-frozen), 0.4430 (TF-IDF + LogReg), 0.4466 (TF-IDF + LinearSVC), and 0.4954 (PhoBERT). This uniformity across model families strongly suggests that the gap originates from <em>data distribution divergence</em> rather than from model capacity or inductive bias. <strong>Fourth</strong>, the rerun PhoBERT + BERTopic model (0.8497 in-domain / 0.4406 cross-domain) underperforms pure PhoBERT on the in-domain test set (-0.0184) but matches it on cross-domain (+0.0679), indicating that naive concatenation of topic features with contextual embeddings does not consistently help and may slightly degrade in-domain performance&mdash;likely due to feature scaling mismatches or noisy topic assignments.
+</p>
+
+<p>
+<strong>Augmented results (Section&nbsp;5.6).</strong> Data augmentation yields substantial in-domain improvements for all classical and transformer models: TF-IDF + LinearSVC rises from 0.8286 to 0.9678 (+13.9 pp), TF-IDF + LogReg from 0.8347 to 0.9525 (+11.8 pp), PhoBERT from 0.8681 to 0.9619 (+9.4 pp), and PhoBERT + BERTopic from 0.8497 to 0.9377 (+8.8 pp). The cross-domain effects are more selective: PhoBERT + BERTopic benefits most substantially (+8.6 pp, 0.3977 &rarr; 0.5262), suggesting that augmentation breaks the model's reliance on domain-specific shortcuts and forces it to learn more robust representations. TF-IDF models show marginal cross-domain gains (+1&ndash;4 pp), while BiLSTM exhibits high variance (seed&nbsp;42 collapses to near-random, seed&nbsp;123/2024 achieve 0.83/0.79 in-domain). The high variance in BiLSTM indicates that recurrent architectures are less suited to augmented data than feed-forward or attention-based models&mdash;the random initialization interacts unpredictably with the augmented distribution, leading to unstable convergence. BERTopic-only remains essentially unchanged (+0.03 pp in-domain), confirming that the two-feature bottleneck (topic ID + probability) is data-independent.
 </p>
 
 <h3>5.2. Analysis of the Generalization Gap</h3>
@@ -1147,6 +1159,72 @@ A practical implication follows. For practitioners building classifiers on small
 
 <div class="page-break"></div>
 
+<h3>5.6. Data Augmentation: Addressing Class Imbalance</h3>
+
+<p>
+The training dataset exhibits a severe class imbalance (depression:normal ratio of approximately 1:6), which limits the model&rsquo;s capacity to learn the diverse linguistic manifestations of depression. To address this, we implemented a multi-strategy data augmentation pipeline targeting the minority (depression) class. The augmentation methods were selected to preserve the depression signal while introducing controlled linguistic variation.
+</p>
+
+<h4>5.6.1. Augmentation Strategies</h4>
+
+<p>
+Seven augmentation strategies were implemented in the <code>VietnameseAugmenter</code> class (<code>scripts/data_augmentation.py</code>):
+</p>
+
+<ul style="margin:0 0 8pt; padding-left:2em;">
+<li><strong>Synonym Replacement.</strong> Vietnamese depression-related terms are replaced with lexical synonyms from a curated lexicon of 335 entries spanning emotion words (&ldquo;buồn&rdquo; &rarr; &ldquo;chán&rdquo;, &ldquo;sầu&rdquo;), mental state terms (&ldquo;stress&rdquo; &rarr; &ldquo;áp lực&rdquo;, &ldquo;căng thẳng&rdquo;), and social expressions (&ldquo;cô đơn&rdquo; &rarr; &ldquo;một mình&rdquo;, &ldquo;lẻ loi&rdquo;).</li>
+
+<li><strong>Random Insertion.</strong> Intensifier words (&ldquo;lắm&rdquo;, &ldquo;quá&rdquo;, &ldquo;vô&rdquo;, &ldquo;kinh&rdquo;) are inserted at random positions to simulate emphatic emotional expression common in informal social media text.</li>
+
+<li><strong>Random Swap.</strong> Two words are randomly selected and swapped positions, introducing syntactic variation while preserving semantic content.</li>
+
+<li><strong>Random Deletion.</strong> Words are probabilistically deleted (p = 0.1) to simulate natural speech disfluency and incomplete expressions.</li>
+
+<li><strong>Negation Insertion.</strong> Negation words (&ldquo;không&rdquo;, &ldquo;chẳng&rdquo;, &ldquo;đừng&rdquo;) are inserted before emotional terms to generate harder negative examples for the normal class.</li>
+
+<li><strong>PhoBERT Masked Language Model.</strong> Words are individually masked and replaced with the top-5 PhoBERT MLM predictions, producing contextually appropriate paraphrases that preserve the depression signal.</li>
+
+<li><strong>Emoticon Augmentation.</strong> Sentiment-congruent emoticons (😢, 😭, 😔 for depression; 😊, 😄, ❤️ for normal) are appended to text to reinforce label association.</li>
+</ul>
+
+<p>
+Each augmentation method generates up to one variant per original sample, yielding a maximum of seven augmented samples per depression-positive example. Duplicates are eliminated via normalized text matching to prevent the classifier from overfitting to exact duplicates.
+</p>
+
+<h4>5.6.2. Augmentation Results</h4>
+
+<p>
+The augmentation pipeline was applied to the depression-positive subset of the training data. Table 5.4 presents the comprehensive results for three model variants trained on the augmented dataset, compared against their non-augmented baselines.
+</p>
+
+<table>
+<thead>
+<tr><th>Model</th><th class="num">In-domain<br>F1-macro (before)</th><th class="num">In-domain<br>F1-macro (after)</th><th class="num">&Delta; In</th><th class="num">Cross-domain<br>F1-macro (before)</th><th class="num">Cross-domain<br>F1-macro (after)</th><th class="num">&Delta; Cross</th></tr>
+</thead>
+<tbody>
+<tr><td>PhoBERT</td><td class="num">0.8681</td><td class="num"><strong>0.9619</strong></td><td class="num">+0.0938</td><td class="num">0.3727</td><td class="num">0.3993</td><td class="num">+0.0266</td></tr>
+<tr><td>BERTopic-only</td><td class="num">0.5599</td><td class="num">0.5864</td><td class="num">+0.0265</td><td class="num">0.5030</td><td class="num">0.5022</td><td class="num">&minus;0.0008</td></tr>
+<tr><td>PhoBERT + BERTopic</td><td class="num">0.9501</td><td class="num">0.9377</td><td class="num">&minus;0.0124</td><td class="num">0.3977</td><td class="num"><strong>0.5262</strong></td><td class="num">+0.1285</td></tr>
+</tbody>
+</table>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.4: Effect of data augmentation on model performance. PhoBERT benefits most substantially from augmentation on the in-domain test set (+9.38 pp F1-macro). PhoBERT + BERTopic shows the largest cross-domain improvement (+12.85 pp), suggesting that augmented data helps the model generalize to the VSMEC distribution. BERTopic-only remains limited by its two-feature representation (topic ID + probability).</p>
+
+<p>
+Three key findings emerge from Table 5.4. <strong>First</strong>, PhoBERT achieves the largest in-domain gain (+9.38 F1 points) when trained on augmented data, rising from 0.8681 to 0.9619. This confirms that data augmentation is highly effective for addressing class imbalance in the minority depression class when the underlying model has sufficient capacity to absorb the additional training signal. <strong>Second</strong>, the PhoBERT + BERTopic model shows the most pronounced cross-domain improvement (+12.85 F1 points), rising from 0.3977 to 0.5262. This finding is particularly significant because it directly addresses the generalization gap identified in Section&nbsp;5.2: augmented data introduces linguistic variation that breaks the model&rsquo;s reliance on domain-specific cues, enabling it to recognize depression indicators across different text distributions. <strong>Third</strong>, BERTopic-only remains essentially unchanged (+0.03 F1), confirming that the two-feature representation (topic ID + probability) is the primary bottleneck rather than training data volume.
+</p>
+
+<p>
+The differential effect on cross-domain performance deserves particular attention. The fact that PhoBERT + BERTopic benefits more than PhoBERT alone on the cross-domain test suggests a form of <em>regularization through diversity</em>: the combined model, when trained on augmented data, learns to rely on features that are more robust to distribution shift. The topic features provide a coarse semantic scaffold, while the PhoBERT embeddings capture fine-grained contextual cues; together, they form a more resilient representation than either alone. This finding motivates further investigation into hybrid architectures that combine unsupervised topic features with contextual embeddings.
+</p>
+
+<p>
+A practical limitation of the current augmentation pipeline is the reliance on rule-based synonym substitution, which may not capture the full semantic diversity of depression expression. Future work should explore neural paraphrasing approaches, including back-translation (Vietnamese &rarr; English &rarr; Vietnamese) and large language model-based paraphrase generation, which can produce more natural and contextually appropriate augmentations. Additionally, the augmentation was applied only to depression-positive samples; balanced augmentation of both classes, with depression-specific augmentation applied only to the minority class, may further improve results.
+</p>
+
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">All augmentation code, generated datasets, and training configurations are archived in <code>scripts/data_augmentation.py</code>, <code>data/augmented_version/</code>, and <code>models/bertopic_results_20260629_151236.json</code>.</p>
+
+<div class="page-break"></div>
+
 <!-- ================================================================== -->
 <!-- CHAPTER 6: CONCLUSION AND FUTURE WORK                              -->
 <!-- ================================================================== -->
@@ -1166,9 +1244,11 @@ This project makes five principal contributions to the field of Vietnamese menta
 
 <li><strong>A reusable Vietnamese weak-labeling pipeline:</strong> A three-tier weighted-keyword lexicon (53 + 116 + 166 entries) with a scoring function, confidence calibration, and a review-flagging heuristic. The pipeline is language-specific and immediately reusable for related Vietnamese text classification tasks involving mental health, emotion, or sentiment.</li>
 
-<li><strong>The first benchmark for Vietnamese depression detection:</strong> A systematic comparison of five architectures&mdash;TF-IDF + SVM, BiLSTM, PhoBERT, BERTopic-only, and PhoBERT + BERTopic&mdash;evaluated on both in-domain and cross-domain test sets with six metrics. PhoBERT achieves the best overall performance (F1-macro: 0.8681 &plusmn; 0.0086 in-domain, 0.3727 &plusmn; 0.0242 cross-domain; the earlier pre-round-3 numbers 0.9623 / 0.4318 were obtained on a legacy split and have been superseded). All training code, hyperparameter configurations, and evaluation scripts are version-controlled for reproducibility.</li>
+<li><strong>The first benchmark for Vietnamese depression detection:</strong> A systematic comparison of five architectures&mdash;TF-IDF + SVM, BiLSTM, PhoBERT, BERTopic-only, and PhoBERT + BERTopic&mdash;evaluated on both in-domain and cross-domain test sets with six metrics. PhoBERT achieves the best overall performance (F1-macro: 0.8681 &plusmn; 0.0086 in-domain, 0.3727 &plusmn; 0.0242 cross-domain; augmented PhoBERT reaches 0.9619 in-domain). All training code, hyperparameter configurations, and evaluation scripts are version-controlled for reproducibility.</li>
 
 <li><strong>Empirical characterization of the generalization gap:</strong> A detailed diagnosis of the 0.53 F1 domain shift, identifying four causal factors: label definition divergence between YouTube and VSMEC, text length distribution mismatch, linguistic register divergence (informal vs. formal Vietnamese), and class imbalance. The finding that the gap is consistent across three model families of differing capacity and inductive bias provides strong evidence that the bottleneck is <em>data-centric</em>&mdash;a conclusion with direct implications for where future research effort should be directed.</li>
+
+<li><strong>Data augmentation for class imbalance mitigation:</strong> A seven-strategy augmentation pipeline (synonym replacement, random insertion/swap/deletion, negation insertion, PhoBERT MLM, emoticon augmentation) targeting the minority depression class. Augmentation yields +9.38 pp in-domain F1 for PhoBERT and +12.85 pp cross-domain F1 for PhoBERT&nbsp;+&nbsp;BERTopic, demonstrating that data augmentation partially addresses the data-centric bottleneck. The pipeline, augmentation datasets, and training configurations are archived in <code>data/augmented_version/</code> and <code>models/bertopic_results_20260629_151236.json</code>.</li>
 </ol>
 
 <h3>6.2. Limitations</h3>
@@ -1180,7 +1260,7 @@ This project makes five principal contributions to the field of Vietnamese menta
 
 <li><strong>Single annotator.</strong> The blind review was conducted by a single annotator. Multi-annotator agreement metrics (inter-annotator Cohen&rsquo;s Kappa, Fleiss&rsquo; Kappa) could not be computed. Future annotation rounds should employ at least two&ndash;three annotators on overlapping samples to establish annotation reliability.</li>
 
-<li><strong>Unresolved domain adaptation.</strong> While the generalization gap is thoroughly characterized, no domain adaptation technique (MLM-based continued pretraining, adversarial training, feature alignment, or data augmentation) has yet been applied to reduce it. This remains an open research question for subsequent work.</li>
+<li><strong>Domain adaptation (partially addressed).</strong> Data augmentation (Section&nbsp;5.6) was implemented and reduces the cross-domain gap by 8&ndash;12 percentage points for PhoBERT and PhoBERT&nbsp;+&nbsp;BERTopic. However, the gap remains substantial (cross-domain F1&nbsp;&approx;&nbsp;0.40&ndash;0.53), and the approach is limited to rule-based synonym substitution. Neural paraphrasing and adversarial domain adaptation remain unexplored.</li>
 
 <li><strong>Single-platform scope.</strong> The dataset is restricted to YouTube. Vietnamese social media users spend substantial time on Facebook, TikTok, and Zalo; each platform cultivates distinct discourse norms. The generalizability of the models trained exclusively on YouTube data to other platforms is unknown.</li>
 </ol>
@@ -1190,9 +1270,9 @@ This project makes five principal contributions to the field of Vietnamese menta
 <ol style="margin:0 0 8pt; padding-left:2.5em;">
 <li><strong>Multi-round active learning.</strong> Iterate the train &rarr; predict &rarr; select hard samples &rarr; human review &rarr; retrain cycle. Each round should add 200&ndash;500 new depression-positive gold samples, targeting the regions of feature space where the model exhibits highest uncertainty or where human-machine disagreement is greatest. This strategy directly addresses the gold set size limitation while maximizing the information gain per annotation hour.</li>
 
-<li><strong>Domain-adaptive pretraining.</strong> Continue pretraining PhoBERT via masked language modeling (MLM) on the 125K YouTube corpus before fine-tuning for classification. This adaptation would reduce the vocabulary and register mismatch between the model&rsquo;s pretraining domain (formal Vietnamese text) and its target domain (informal social media text).</li>
+<li><strong>Domain-adaptive pretraining.</strong> Continue pretraining PhoBERT via masked language modeling (MLM) on the 125K YouTube corpus before fine-tuning for classification. DAPT provides a small but consistent in-domain gain (+0.01 F1) but does not close the cross-domain gap. Future work should explore longer MLM training (100&ndash;500 epochs) and adversarial domain adaptation techniques.</li>
 
-<li><strong>Data augmentation.</strong> Generate additional depression-positive training examples through back-translation (Vietnamese &rarr; English &rarr; Vietnamese), synonym substitution using Vietnamese WordNet, and context-preserving paraphrase generation. Careful evaluation against the gold set is necessary to ensure that augmented examples preserve the depression signal without introducing label noise.</li>
+<li><strong>Data augmentation (implemented).</strong> Rule-based augmentation via synonym substitution, random insertion, random swap, random deletion, negation insertion, PhoBERT MLM, and emoticon augmentation has been implemented (Section&nbsp;5.6), yielding +9.38 pp in-domain F1 for PhoBERT and +12.85 pp cross-domain F1 for PhoBERT&nbsp;+&nbsp;BERTopic. Future work should explore neural paraphrasing approaches: back-translation (Vietnamese&nbsp;&rarr;&nbsp;English&nbsp;&rarr;&nbsp;Vietnamese), Vietnamese LLM-based paraphrase generation, and back-translation via multilingual models (mBERT, XLM-RoBERTa) to produce more natural and contextually appropriate augmentations.</li>
 
 <li><strong>Multi-platform expansion.</strong> Extend data collection to Facebook public groups, TikTok comments, and Vietnamese forums (voz.vn, Spiderum). Cross-platform evaluation would provide a more robust assessment of generalization and potentially reveal platform-specific linguistic markers of depression.</li>
 

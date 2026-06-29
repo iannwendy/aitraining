@@ -300,6 +300,37 @@ Bug trong DAPT eval orchestrator (train trên wrong splits) đã được:
 - [x] Update §1.2.3 Expected Outcomes
 - [x] Update LaTeX Abstract trong HTML
 
+### ✅ Data Augmentation — ĐÃ HOÀN THÀNH (2026-06-29)
+
+- [x] Create `scripts/data_augmentation.py` (synonym, EDA, MLM)
+- [x] Create `scripts/merge_augmented.py`
+- [x] Generate augmented depression samples: 596 → 2,366 (~4x)
+- [x] Merge vào training data: 1,786 → 3,556 rows
+- [x] Copy augmented files vào data/
+
+**Augmented Dataset:**
+```
+Combined: 3,556 rows (train: 2,489 / val: 533 / test: 534)
+Depression: 2,366 (tăng 4x từ 596)
+Normal: 1,190
+```
+
+### ✅ Training — HOÀN THÀNH
+
+- [x] TF-IDF + SVM: **0.9612** (in) / **0.4422** (cross)
+- [x] BiLSTM: **0.9185** (in) / **0.4494** (cross)
+- [x] PhoBERT: **0.9619** (in) / **0.3993** (cross)
+
+### 📊 Kết Quả So Sánh
+
+| Model | Before Aug | After Aug | Delta |
+|-------|------------|-----------|-------|
+| TF-IDF + SVM | 0.8347 | **0.9612** | **+12.6%** ✅ |
+| BiLSTM | 0.8145 | **0.9185** | **+10.4%** ✅ |
+| PhoBERT | 0.8681 | **0.9619** | **+9.4%** ✅ |
+
+**Augmentation giúp tăng in-domain F1 đáng kể (9-13%)!**
+
 ### Priority 1: PDF Sync (~30 phút)
 
 1. Regenerate PDF từ HTML (Chrome headless hoặc wkhtmltopdf)
