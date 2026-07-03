@@ -17,6 +17,7 @@ export const i18nKeys = {
     loading: 'common.loading',
     error: 'common.error',
     characters: 'common.characters',
+    comments: 'common.comments',
   },
   risk: {
     high: 'risk.high',

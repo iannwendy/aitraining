@@ -16,7 +16,8 @@
     "topic": "Chủ đề",
     "loading": "Đang xử lý...",
     "error": "Đã xảy ra lỗi",
-    "characters": "ký tự"
+    "characters": "ký tự",
+    "comments": "bình luận"
   },
   "risk": {
     "high": "Nguy cơ cao",

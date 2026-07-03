@@ -1,9 +1,12 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { topics } from '@/data/mockData';
 import { Network, Tag, BarChart2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { i18nKeys } from '../i18n/keys';
 
 export default function Topics() {
+  const { t } = useTranslation();
   const topicColors = [
     'from-red-500 to-orange-500',
     'from-orange-500 to-amber-500',
@@ -18,20 +21,20 @@ export default function Topics() {
       {/* Header */}
       <section className="text-center space-y-2">
         <h1 className="font-display text-3xl font-bold text-dark">
-          Topic Analysis
+          {t(i18nKeys.topics.title)}
         </h1>
         <p className="text-muted">
-          BERTopic analysis revealing common themes in depression-related texts
+          {t(i18nKeys.prediction.description)}
         </p>
       </section>
 
       {/* Overview Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Topics', value: topics.length },
-          { label: 'Top Topic', value: topics[0].name },
-          { label: 'Most Frequent', value: `${topics[0].count.toLocaleString()} comments` },
-          { label: 'Coverage', value: '100%' },
+          { label: t(i18nKeys.topics.totalTopics), value: topics.length },
+          { label: t(i18nKeys.topics.topTopic), value: topics[0].name },
+          { label: t(i18nKeys.topics.mostFrequent), value: `${topics[0].count.toLocaleString()} ${t(i18nKeys.common.comments)}` },
+          { label: t(i18nKeys.topics.coverage), value: '100%' },
         ].map((stat) => (
           <Card key={stat.label} hover>
             <CardContent className="p-4 text-center">
@@ -69,7 +72,7 @@ export default function Topics() {
               <div className="mb-4">
                 <div className="flex items-center gap-2 text-sm text-muted mb-2">
                   <Tag className="w-4 h-4" />
-                  <span>Top Keywords</span>
+                  <span>{t(i18nKeys.topics.topKeywords)}</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {topic.keywords.map((keyword) => (
@@ -90,7 +93,7 @@ export default function Topics() {
               <div>
                 <div className="flex items-center gap-2 text-sm text-muted mb-2">
                   <BarChart2 className="w-4 h-4" />
-                  <span>Example Comments</span>
+                  <span>{t(i18nKeys.topics.examples)}</span>
                 </div>
                 <div className="space-y-2">
                   {topic.examples.map((example, i) => (
@@ -109,7 +112,7 @@ export default function Topics() {
       <Card>
         <CardContent className="p-6">
           <h3 className="font-display text-lg font-semibold text-dark mb-4">
-            Topic Distribution
+            {t(i18nKeys.topics.distribution)}
           </h3>
           <div className="space-y-3">
             {topics.map((topic, index) => (

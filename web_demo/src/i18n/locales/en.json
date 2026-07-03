@@ -16,7 +16,8 @@
     "topic": "Topic",
     "loading": "Processing...",
     "error": "An error occurred",
-    "characters": "characters"
+    "characters": "characters",
+    "comments": "comments"
   },
   "risk": {
     "high": "High Risk",
