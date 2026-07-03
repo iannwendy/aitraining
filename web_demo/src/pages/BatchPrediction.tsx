@@ -1,12 +1,15 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Upload, Download, FileText, AlertTriangle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { batchResults as initialResults } from '@/data/mockData';
 import { BatchPredictionResult } from '@/types';
+import { i18nKeys } from '../i18n/keys';
 
 export default function BatchPrediction() {
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<BatchPredictionResult[]>([]);
@@ -54,10 +57,10 @@ export default function BatchPrediction() {
       {/* Header */}
       <section className="text-center space-y-2">
         <h1 className="font-display text-3xl font-bold text-dark">
-          Batch Prediction
+          {t(i18nKeys.batch.title)}
         </h1>
         <p className="text-muted">
-          Upload a CSV file to analyze multiple texts at once
+          {t(i18nKeys.prediction.description)}
         </p>
       </section>
 
@@ -86,10 +89,10 @@ export default function BatchPrediction() {
                 </div>
                 <div>
                   <p className="font-semibold text-dark">{file.name}</p>
-                  <p className="text-sm text-muted">{(file.size / 1024).toFixed(1)} KB</p>
+                  <p className="text-sm text-muted">{(file.size / 1024).toFixed(1)} {t(i18nKeys.batch.fileSize)}</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setFile(null); }}>
-                  Remove
+                  {t(i18nKeys.button.remove)}
                 </Button>
               </div>
             ) : (
@@ -99,10 +102,10 @@ export default function BatchPrediction() {
                 </div>
                 <div>
                   <p className="font-semibold text-dark">
-                    Drop your file here or click to upload
+                    {t(i18nKeys.batch.dropzone)}
                   </p>
                   <p className="text-sm text-muted mt-1">
-                    Supports CSV and TXT formats
+                    {t(i18nKeys.batch.supportsFormat)}
                   </p>
                 </div>
               </div>
@@ -111,7 +114,7 @@ export default function BatchPrediction() {
 
           {/* Sample Format */}
           <div className="mt-6 p-4 bg-slate-50 rounded-xl">
-            <p className="text-sm font-medium text-dark mb-2">Expected CSV format:</p>
+            <p className="text-sm font-medium text-dark mb-2">{t(i18nKeys.batch.format)}:</p>
             <pre className="text-xs font-mono text-muted bg-white p-3 rounded-lg overflow-x-auto">
 {`comment
 Tôi rất cô đơn.
@@ -128,7 +131,7 @@ Video hay quá.
               size="lg"
             >
               <Upload className="w-5 h-5" />
-              Process File
+              {t(i18nKeys.button.process)}
             </Button>
           </div>
         </CardContent>
@@ -140,11 +143,11 @@ Video hay quá.
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-display text-xl font-semibold text-dark">
-                Results ({results.length} texts analyzed)
+                {t(i18nKeys.batch.resultsTitle)} ({results.length} {t(i18nKeys.batch.resultsCount)})
               </h3>
               <Button onClick={handleDownloadCSV} variant="outline">
                 <Download className="w-4 h-4" />
-                Download CSV
+                {t(i18nKeys.button.download)} CSV
               </Button>
             </div>
 
@@ -153,10 +156,10 @@ Video hay quá.
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-200">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted">Comment</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted">Prediction</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted">Confidence</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted">Topic</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted">{t(i18nKeys.batch.comment)}</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted">{t(i18nKeys.batch.prediction)}</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted">{t(i18nKeys.batch.confidence)}</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted">{t(i18nKeys.batch.topic)}</th>
                   </tr>
                 </thead>
                 <tbody>

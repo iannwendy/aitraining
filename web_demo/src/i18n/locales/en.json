@@ -58,7 +58,14 @@
     "dropzone": "Drop your file here or click to upload",
     "format": "Expected CSV format",
     "comment": "Comment",
-    "processing": "Processing file..."
+    "processing": "Processing file...",
+    "supportsFormat": "Supports CSV and TXT formats",
+    "fileSize": "KB",
+    "resultsTitle": "Results",
+    "resultsCount": "texts analyzed",
+    "prediction": "Prediction",
+    "confidence": "Confidence",
+    "topic": "Topic"
   },
   "topics": {
     "title": "Topic Analysis",
@@ -77,7 +84,17 @@
     "confusionMatrix": "Confusion Matrix",
     "metrics": "Metrics",
     "precision": "Precision",
-    "recall": "Recall"
+    "recall": "Recall",
+    "accuracy": "Accuracy",
+    "macroF1": "Macro F1",
+    "weightedF1": "Weighted F1",
+    "currentModelPerformance": "Current Model Performance",
+    "actualPredicted": "Actual ↓ / Predicted →",
+    "trueNegatives": "True Negatives",
+    "truePositives": "True Positives",
+    "falsePositives": "False Positives",
+    "falseNegatives": "False Negatives",
+    "wordCloud": "Word Cloud"
   },
   "history": {
     "title": "Prediction History",
@@ -92,7 +109,10 @@
     "bestModel": "Best Performing Model",
     "radar": "Performance Radar",
     "accuracyCompare": "Accuracy Comparison",
-    "improvement": "Improvement"
+    "improvement": "Improvement",
+    "fullComparisonTable": "Full Comparison Table",
+    "model": "Model",
+    "improvementOver": "Improvement over"
   },
   "topicsResearch": {
     "loneliness": "Loneliness",

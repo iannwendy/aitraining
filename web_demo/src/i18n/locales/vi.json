@@ -58,7 +58,14 @@
     "dropzone": "Kéo file vào đây hoặc click để tải lên",
     "format": "Định dạng CSV mong đợi",
     "comment": "Bình luận",
-    "processing": "Đang xử lý file..."
+    "processing": "Đang xử lý file...",
+    "supportsFormat": "Hỗ trợ định dạng CSV và TXT",
+    "fileSize": "KB",
+    "resultsTitle": "Kết quả",
+    "resultsCount": "văn bản đã phân tích",
+    "prediction": "Dự đoán",
+    "confidence": "Độ tin cậy",
+    "topic": "Chủ đề"
   },
   "topics": {
     "title": "Phân tích chủ đề",
@@ -77,7 +84,17 @@
     "confusionMatrix": "Ma trận nhầm lẫn",
     "metrics": "Các chỉ số",
     "precision": "Độ chính xác",
-    "recall": "Độ phủ"
+    "recall": "Độ phủ",
+    "accuracy": "Độ chính xác",
+    "macroF1": "Macro F1",
+    "weightedF1": "Weighted F1",
+    "currentModelPerformance": "Hiệu suất mô hình hiện tại",
+    "actualPredicted": "Thực tế ↓ / Dự đoán →",
+    "trueNegatives": "Đúng âm",
+    "truePositives": "Đúng dương",
+    "falsePositives": "Sai dương",
+    "falseNegatives": "Sai âm",
+    "wordCloud": "Đám mây từ khóa"
   },
   "history": {
     "title": "Lịch sử dự đoán",
@@ -92,7 +109,10 @@
     "bestModel": "Mô hình hoạt động tốt nhất",
     "radar": "Biểu đồ radar hiệu suất",
     "accuracyCompare": "So sánh độ chính xác",
-    "improvement": "Cải thiện"
+    "improvement": "Cải thiện",
+    "fullComparisonTable": "Bảng so sánh đầy đủ",
+    "model": "Mô hình",
+    "improvementOver": "Cải thiện so với"
   },
   "topicsResearch": {
     "loneliness": "Cô đơn",
