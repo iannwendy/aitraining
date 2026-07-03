@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { topics, wordCloudData, confusionMatrix, dashboardStats } from '@/data/mockData';
 import {
@@ -5,8 +6,10 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
+import { i18nKeys } from '../i18n/keys';
 
 export default function Statistics() {
+  const { t } = useTranslation();
   // Pie Chart Data
   const pieData = [
     { name: 'Depression', value: 35, color: '#EF4444' },
@@ -25,10 +28,10 @@ export default function Statistics() {
       {/* Header */}
       <section className="text-center space-y-2">
         <h1 className="font-display text-3xl font-bold text-dark">
-          Statistics & Analytics
+          {t(i18nKeys.statistics.title)}
         </h1>
         <p className="text-muted">
-          Visual insights into model performance and prediction distribution
+          {t(i18nKeys.prediction.description)}
         </p>
       </section>
 
@@ -38,7 +41,7 @@ export default function Statistics() {
         <Card>
           <CardContent className="p-6">
             <h3 className="font-display text-lg font-semibold text-dark mb-6">
-              Prediction Distribution
+              {t(i18nKeys.statistics.predictionDist)}
             </h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
@@ -88,7 +91,7 @@ export default function Statistics() {
         <Card>
           <CardContent className="p-6">
             <h3 className="font-display text-lg font-semibold text-dark mb-6">
-              Topic Distribution
+              {t(i18nKeys.statistics.topicDist)}
             </h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
@@ -129,7 +132,7 @@ export default function Statistics() {
         <Card>
           <CardContent className="p-6">
             <h3 className="font-display text-lg font-semibold text-dark mb-6">
-              Word Cloud
+              {t(i18nKeys.statistics.wordCloud)}
             </h3>
             <div className="min-h-[300px] flex flex-wrap items-center justify-center gap-4 p-4">
               {wordCloudData.map((word) => (
@@ -153,22 +156,22 @@ export default function Statistics() {
         <Card>
           <CardContent className="p-6">
             <h3 className="font-display text-lg font-semibold text-dark mb-6">
-              Confusion Matrix
+              {t(i18nKeys.statistics.confusionMatrix)}
             </h3>
             <div className="flex flex-col items-center">
               <div className="text-center text-sm text-muted mb-2">
-                <span className="inline-block w-24">Actual ↓ / Predicted →</span>
+                <span className="inline-block w-24">{t(i18nKeys.statistics.actualPredicted)}</span>
               </div>
               <div className="flex gap-1">
                 {/* Header Row */}
                 <div className="w-12" />
-                <div className="w-20 py-2 text-center text-xs font-medium text-muted">Normal</div>
-                <div className="w-20 py-2 text-center text-xs font-medium text-muted">Depression</div>
+                <div className="w-20 py-2 text-center text-xs font-medium text-muted">{t(i18nKeys.common.normal)}</div>
+                <div className="w-20 py-2 text-center text-xs font-medium text-muted">{t(i18nKeys.common.depression)}</div>
               </div>
 
               {/* Normal Row */}
               <div className="flex gap-1 items-center">
-                <div className="w-12 py-3 text-center text-xs font-medium text-muted">Normal</div>
+                <div className="w-12 py-3 text-center text-xs font-medium text-muted">{t(i18nKeys.common.normal)}</div>
                 <div className="w-20 h-16 flex items-center justify-center bg-normal/20 rounded-lg border border-normal/30">
                   <span className="font-mono font-semibold text-normal">{confusionMatrix.trueNegatives}</span>
                 </div>
@@ -179,7 +182,7 @@ export default function Statistics() {
 
               {/* Depression Row */}
               <div className="flex gap-1 items-center">
-                <div className="w-12 py-3 text-center text-xs font-medium text-muted">Depr.</div>
+                <div className="w-12 py-3 text-center text-xs font-medium text-muted">{t(i18nKeys.common.depression)}</div>
                 <div className="w-20 h-16 flex items-center justify-center bg-slate-100 rounded-lg">
                   <span className="font-mono text-slate-400">{confusionMatrix.falseNegatives}</span>
                 </div>
@@ -192,11 +195,11 @@ export default function Statistics() {
               <div className="mt-6 grid grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-normal" />
-                  <span className="text-muted">True Negatives: {confusionMatrix.trueNegatives}</span>
+                  <span className="text-muted">{t(i18nKeys.statistics.trueNegatives)}: {confusionMatrix.trueNegatives}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-depression" />
-                  <span className="text-muted">True Positives: {confusionMatrix.truePositives}</span>
+                  <span className="text-muted">{t(i18nKeys.statistics.truePositives)}: {confusionMatrix.truePositives}</span>
                 </div>
               </div>
             </div>
@@ -208,15 +211,15 @@ export default function Statistics() {
       <Card>
         <CardContent className="p-6">
           <h3 className="font-display text-lg font-semibold text-dark mb-6">
-            Current Model Performance
+            {t(i18nKeys.statistics.currentModelPerformance)}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
-              { label: 'Accuracy', value: `${dashboardStats.metrics.accuracy}%` },
-              { label: 'Macro F1', value: `${dashboardStats.metrics.macroF1}%` },
-              { label: 'Weighted F1', value: `${dashboardStats.metrics.weightedF1}%` },
-              { label: 'Precision', value: `${dashboardStats.metrics.precision}%` },
-              { label: 'Recall', value: `${dashboardStats.metrics.recall}%` },
+              { label: t(i18nKeys.statistics.accuracy), value: `${dashboardStats.metrics.accuracy}%` },
+              { label: t(i18nKeys.statistics.macroF1), value: `${dashboardStats.metrics.macroF1}%` },
+              { label: t(i18nKeys.statistics.weightedF1), value: `${dashboardStats.metrics.weightedF1}%` },
+              { label: t(i18nKeys.statistics.precision), value: `${dashboardStats.metrics.precision}%` },
+              { label: t(i18nKeys.statistics.recall), value: `${dashboardStats.metrics.recall}%` },
             ].map((metric) => (
               <div key={metric.label} className="text-center p-4 bg-slate-50 rounded-xl">
                 <p className="text-3xl font-display font-bold gradient-text">{metric.value}</p>
