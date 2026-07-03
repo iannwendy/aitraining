@@ -1,0 +1,103 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "prediction": "Text Analysis",
+    "batch": "Batch Processing",
+    "topics": "Topic Analysis",
+    "statistics": "Statistics",
+    "history": "History",
+    "compare": "Model Comparison"
+  },
+  "common": {
+    "depression": "Major Depressive Disorder",
+    "normal": "Non-Depressed",
+    "confidence": "Confidence",
+    "risk": "Risk Level",
+    "topic": "Topic",
+    "loading": "Processing...",
+    "error": "An error occurred"
+  },
+  "risk": {
+    "high": "High Risk",
+    "medium": "Moderate Risk",
+    "low": "Low Risk"
+  },
+  "button": {
+    "analyze": "Analyze",
+    "process": "Process File",
+    "download": "Download",
+    "remove": "Remove",
+    "upload": "Upload",
+    "search": "Search"
+  },
+  "dashboard": {
+    "title": "Mental Health AI",
+    "subtitle": "Depression Detection Platform",
+    "totalComments": "Total Comments",
+    "currentModel": "Current Model",
+    "accuracy": "Accuracy",
+    "macroF1": "Macro F1",
+    "weightedF1": "Weighted F1",
+    "trainingDate": "Training Date",
+    "quickAnalysis": "Quick Analysis",
+    "batchProcessing": "Batch Processing"
+  },
+  "prediction": {
+    "title": "Text Analysis",
+    "description": "Enter text to analyze and detect depression indicators",
+    "inputLabel": "Input Text",
+    "inputPlaceholder": "Enter a comment or text to analyze...",
+    "result": "Result",
+    "detectedTopic": "Detected Topic",
+    "explanation": "AI Explanation",
+    "keywords": "Highlighted Keywords"
+  },
+  "batch": {
+    "title": "Batch Prediction",
+    "dropzone": "Drop your file here or click to upload",
+    "format": "Expected CSV format",
+    "comment": "Comment",
+    "processing": "Processing file..."
+  },
+  "topics": {
+    "title": "Topic Analysis",
+    "totalTopics": "Total Topics",
+    "topTopic": "Top Topic",
+    "mostFrequent": "Most Frequent",
+    "coverage": "Coverage",
+    "topKeywords": "Top Keywords",
+    "examples": "Example Comments",
+    "distribution": "Topic Distribution"
+  },
+  "statistics": {
+    "title": "Statistics & Analytics",
+    "predictionDist": "Prediction Distribution",
+    "topicDist": "Topic Distribution",
+    "confusionMatrix": "Confusion Matrix",
+    "metrics": "Metrics",
+    "precision": "Precision",
+    "recall": "Recall"
+  },
+  "history": {
+    "title": "Prediction History",
+    "searchPlaceholder": "Search...",
+    "filterAll": "All",
+    "filterDepression": "Depression",
+    "filterNormal": "Normal",
+    "noResults": "No predictions found"
+  },
+  "compare": {
+    "title": "Model Comparison",
+    "bestModel": "Best Performing Model",
+    "radar": "Performance Radar",
+    "accuracyCompare": "Accuracy Comparison",
+    "improvement": "Improvement"
+  },
+  "topicsResearch": {
+    "loneliness": "Loneliness",
+    "academicStress": "Academic Stress",
+    "sleepDisturbance": "Sleep Disturbance",
+    "workStress": "Work-Related Stress",
+    "selfIsolation": "Self-Isolation"
+  }
+}
