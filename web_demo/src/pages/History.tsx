@@ -1,11 +1,14 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { predictionHistory } from '@/data/mockData';
 import { Search, Trash2, AlertTriangle, CheckCircle, Clock, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { i18nKeys } from '../i18n/keys';
 
 export default function History() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPrediction, setFilterPrediction] = useState<'all' | 'depression' | 'normal'>('all');
   const [history, setHistory] = useState(predictionHistory);
@@ -35,10 +38,10 @@ export default function History() {
       {/* Header */}
       <section className="text-center space-y-2">
         <h1 className="font-display text-3xl font-bold text-dark">
-          Prediction History
+          {t(i18nKeys.history.title)}
         </h1>
         <p className="text-muted">
-          View and manage your previous text analysis results
+          {t(i18nKeys.prediction.description)}
         </p>
       </section>
 
@@ -51,7 +54,7 @@ export default function History() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
               <input
                 type="text"
-                placeholder="Search predictions..."
+                placeholder={t(i18nKeys.history.searchPlaceholder)}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input-field pl-10"
@@ -60,22 +63,38 @@ export default function History() {
 
             {/* Filter Buttons */}
             <div className="flex gap-2">
-              {(['all', 'depression', 'normal'] as const).map((filter) => (
-                <Button
-                  key={filter}
-                  variant={filterPrediction === filter ? 'primary' : 'secondary'}
-                  size="sm"
-                  onClick={() => setFilterPrediction(filter)}
-                >
-                  <Filter className="w-4 h-4" />
-                  {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                </Button>
-              ))}
+              <Button
+                key="all"
+                variant={filterPrediction === 'all' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setFilterPrediction('all')}
+              >
+                <Filter className="w-4 h-4" />
+                {t(i18nKeys.history.filterAll)}
+              </Button>
+              <Button
+                key="depression"
+                variant={filterPrediction === 'depression' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setFilterPrediction('depression')}
+              >
+                <Filter className="w-4 h-4" />
+                {t(i18nKeys.history.filterDepression)}
+              </Button>
+              <Button
+                key="normal"
+                variant={filterPrediction === 'normal' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setFilterPrediction('normal')}
+              >
+                <Filter className="w-4 h-4" />
+                {t(i18nKeys.history.filterNormal)}
+              </Button>
             </div>
 
             {/* Stats */}
             <div className="text-sm text-muted">
-              {filteredHistory.length} of {history.length} predictions
+              {filteredHistory.length} / {history.length} {t(i18nKeys.history.title).toLowerCase()}
             </div>
           </div>
         </CardContent>
@@ -87,7 +106,7 @@ export default function History() {
           <Card>
             <CardContent className="p-12 text-center">
               <Clock className="w-12 h-12 mx-auto text-muted mb-4" />
-              <p className="text-muted">No predictions found</p>
+              <p className="text-muted">{t(i18nKeys.history.noResults)}</p>
             </CardContent>
           </Card>
         ) : (
@@ -122,7 +141,7 @@ export default function History() {
                           item.riskLevel === 'medium' && 'bg-amber-100 text-amber-800',
                           item.riskLevel === 'low' && 'bg-normal/10 text-normal',
                         )}>
-                          {item.riskLevel} risk
+                          {item.riskLevel && t(i18nKeys.risk[item.riskLevel as 'high' | 'medium' | 'low'])}
                         </span>
                       )}
                     </div>
@@ -133,12 +152,12 @@ export default function History() {
                     {/* Details */}
                     <div className="flex flex-wrap gap-4 text-sm">
                       <div>
-                        <span className="text-muted">Confidence: </span>
+                        <span className="text-muted">{t(i18nKeys.common.confidence)}: </span>
                         <span className="font-mono font-semibold">{item.confidence}%</span>
                       </div>
                       {item.topic && (
                         <div>
-                          <span className="text-muted">Topic: </span>
+                          <span className="text-muted">{t(i18nKeys.common.topic)}: </span>
                           <span className="font-medium text-primary">{item.topic}</span>
                         </div>
                       )}
