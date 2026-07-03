@@ -45,3 +45,26 @@ data/_archive/*.csv
 # Round 3 raw export (800KB human review output) — local-only, không track.
 # Key_MERGED.csv đã chứa final_label nên reproduce được từ đó.
 docs/export_round3_active_learning.csv
+
+# ============================================================
+# Large artifacts
+# ============================================================
+
+# Trained model weights (.pt files)
+models/**/*.pt
+
+# Domain adaptation evaluation results (reproduce via scripts/evaluate_domain_adapted_phobert.py)
+results/domain_adapted_eval_*/
+results/original_eval_*/
+
+# Thesis report PDFs
+report_pdf/*.pdf
+
+# ============================================================
+# Web demo
+# ============================================================
+web_demo/node_modules/
+web_demo/dist/
+web_demo/build/
+web_demo/.env
+web_demo/.vercel/
