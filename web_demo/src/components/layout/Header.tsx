@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Brain, LayoutDashboard, MessageSquare, Upload, Network, BarChart3, History, GitCompare } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -55,6 +56,11 @@ export function Header() {
               );
             })}
           </nav>
+
+          {/* Language Switcher */}
+          <div className="flex items-center">
+            <LanguageSwitcher />
+          </div>
         </div>
       </div>
     </header>
