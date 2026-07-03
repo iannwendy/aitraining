@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ../../models:/app/models  # Mount trained models
+      - ../../docs:/app/docs      # Mount docs (for CSV data)
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
