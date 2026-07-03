@@ -1,0 +1,103 @@
+{
+  "nav": {
+    "dashboard": "Trang chủ",
+    "prediction": "Phân tích văn bản",
+    "batch": "Xử lý hàng loạt",
+    "topics": "Phân tích chủ đề",
+    "statistics": "Thống kê",
+    "history": "Lịch sử",
+    "compare": "So sánh mô hình"
+  },
+  "common": {
+    "depression": "Trầm cảm",
+    "normal": "Bình thường",
+    "confidence": "Độ tin cậy",
+    "risk": "Mức độ rủi ro",
+    "topic": "Chủ đề",
+    "loading": "Đang xử lý...",
+    "error": "Đã xảy ra lỗi"
+  },
+  "risk": {
+    "high": "Nguy cơ cao",
+    "medium": "Nguy cơ trung bình",
+    "low": "Nguy cơ thấp"
+  },
+  "button": {
+    "analyze": "Phân tích",
+    "process": "Xử lý file",
+    "download": "Tải xuống",
+    "remove": "Xóa",
+    "upload": "Tải lên",
+    "search": "Tìm kiếm"
+  },
+  "dashboard": {
+    "title": "Mental Health AI",
+    "subtitle": "Nền tảng phát hiện trầm cảm",
+    "totalComments": "Tổng bình luận",
+    "currentModel": "Mô hình hiện tại",
+    "accuracy": "Độ chính xác",
+    "macroF1": "Macro F1",
+    "weightedF1": "Weighted F1",
+    "trainingDate": "Ngày huấn luyện",
+    "quickAnalysis": "Phân tích nhanh",
+    "batchProcessing": "Xử lý hàng loạt"
+  },
+  "prediction": {
+    "title": "Phân tích văn bản",
+    "description": "Nhập văn bản để phân tích và phát hiện dấu hiệu trầm cảm",
+    "inputLabel": "Văn bản đầu vào",
+    "inputPlaceholder": "Nhập bình luận hoặc văn bản cần phân tích...",
+    "result": "Kết quả",
+    "detectedTopic": "Chủ đề được phát hiện",
+    "explanation": "Giải thích từ AI",
+    "keywords": "Từ khóa nổi bật"
+  },
+  "batch": {
+    "title": "Xử lý hàng loạt",
+    "dropzone": "Kéo file vào đây hoặc click để tải lên",
+    "format": "Định dạng CSV mong đợi",
+    "comment": "Bình luận",
+    "processing": "Đang xử lý file..."
+  },
+  "topics": {
+    "title": "Phân tích chủ đề",
+    "totalTopics": "Tổng số chủ đề",
+    "topTopic": "Chủ đề hàng đầu",
+    "mostFrequent": "Phổ biến nhất",
+    "coverage": "Độ phủ",
+    "topKeywords": "Từ khóa hàng đầu",
+    "examples": "Ví dụ bình luận",
+    "distribution": "Phân bố chủ đề"
+  },
+  "statistics": {
+    "title": "Thống kê & Phân tích",
+    "predictionDist": "Phân bố dự đoán",
+    "topicDist": "Phân bố chủ đề",
+    "confusionMatrix": "Ma trận nhầm lẫn",
+    "metrics": "Các chỉ số",
+    "precision": "Độ chính xác",
+    "recall": "Độ phủ"
+  },
+  "history": {
+    "title": "Lịch sử dự đoán",
+    "searchPlaceholder": "Tìm kiếm...",
+    "filterAll": "Tất cả",
+    "filterDepression": "Trầm cảm",
+    "filterNormal": "Bình thường",
+    "noResults": "Không tìm thấy kết quả"
+  },
+  "compare": {
+    "title": "So sánh mô hình",
+    "bestModel": "Mô hình hoạt động tốt nhất",
+    "radar": "Biểu đồ radar hiệu suất",
+    "accuracyCompare": "So sánh độ chính xác",
+    "improvement": "Cải thiện"
+  },
+  "topicsResearch": {
+    "loneliness": "Cô đơn",
+    "academicStress": "Áp lực học tập",
+    "sleepDisturbance": "Mất ngủ",
+    "workStress": "Công việc",
+    "selfIsolation": "Tự kỷ"
+  }
+}
