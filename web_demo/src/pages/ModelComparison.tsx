@@ -144,7 +144,7 @@ export default function ModelComparison() {
                   <Tooltip
                     formatter={(value: number, name: string) => [
                       `${value}%`,
-                      metricLabels[name as keyof typeof metricLabels] || name
+                      getMetricLabel(name)
                     ]}
                     contentStyle={{
                       backgroundColor: 'white',
