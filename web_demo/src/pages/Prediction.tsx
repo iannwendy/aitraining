@@ -1,11 +1,14 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { AlertTriangle, CheckCircle, Brain, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { topics } from '@/data/mockData';
+import { i18nKeys } from '../i18n/keys';
 
 export default function Prediction() {
+  const { t } = useTranslation();
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{
@@ -54,8 +57,8 @@ export default function Prediction() {
   };
 
   const confidenceBars = [
-    { label: 'Normal', value: result ? (result.prediction === 'normal' ? result.confidence : 100 - result.confidence) : 0, color: 'bg-normal' },
-    { label: 'Depression', value: result ? (result.prediction === 'depression' ? result.confidence : 100 - result.confidence) : 0, color: 'bg-depression' },
+    { label: t(i18nKeys.common.normal), value: result ? (result.prediction === 'normal' ? result.confidence : 100 - result.confidence) : 0, color: 'bg-normal' },
+    { label: t(i18nKeys.common.depression), value: result ? (result.prediction === 'depression' ? result.confidence : 100 - result.confidence) : 0, color: 'bg-depression' },
   ];
 
   return (
@@ -63,10 +66,10 @@ export default function Prediction() {
       {/* Header */}
       <section className="text-center space-y-2">
         <h1 className="font-display text-3xl font-bold text-dark">
-          Text Analysis
+          {t(i18nKeys.prediction.title)}
         </h1>
         <p className="text-muted">
-          Enter Vietnamese text to analyze for depression indicators
+          {t(i18nKeys.prediction.description)}
         </p>
       </section>
 
@@ -74,17 +77,17 @@ export default function Prediction() {
       <Card>
         <CardContent className="p-8">
           <label className="block text-sm font-medium text-dark mb-3">
-            Input Text
+            {t(i18nKeys.prediction.inputLabel)}
           </label>
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Nhập văn bản tiếng Việt để phân tích..."
+            placeholder={t(i18nKeys.prediction.inputPlaceholder)}
             className="input-field min-h-[150px] resize-y font-body"
           />
           <div className="flex justify-between items-center mt-4">
             <p className="text-sm text-muted">
-              {inputText.length} characters
+              {inputText.length} {t(i18nKeys.common.characters)}
             </p>
             <Button
               onClick={handlePredict}
@@ -93,7 +96,7 @@ export default function Prediction() {
               size="lg"
             >
               <Brain className="w-5 h-5" />
-              Analyze
+              {t(i18nKeys.button.analyze)}
             </Button>
           </div>
         </CardContent>
@@ -124,12 +127,12 @@ export default function Prediction() {
                       'font-display text-3xl font-bold',
                       result.prediction === 'depression' ? 'text-depression' : 'text-normal'
                     )}>
-                      {result.prediction === 'depression' ? 'Depression' : 'Normal'}
+                      {result.prediction === 'depression' ? t(i18nKeys.common.depression) : t(i18nKeys.common.normal)}
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <TrendingUp className="w-4 h-4 text-muted" />
                       <span className="text-muted">
-                        Confidence: <span className="font-mono font-semibold text-dark">{result.confidence.toFixed(1)}%</span>
+                        {t(i18nKeys.common.confidence)}: <span className="font-mono font-semibold text-dark">{result.confidence.toFixed(1)}%</span>
                       </span>
                     </div>
                   </div>
@@ -142,7 +145,7 @@ export default function Prediction() {
                   result.riskLevel === 'medium' && 'bg-amber-100 text-amber-800',
                   result.riskLevel === 'low' && 'bg-normal text-white',
                 )}>
-                  Risk: {result.riskLevel.charAt(0).toUpperCase() + result.riskLevel.slice(1)}
+                  {t(i18nKeys.common.risk)}: {result.riskLevel === 'high' ? t(i18nKeys.risk.high) : result.riskLevel === 'medium' ? t(i18nKeys.risk.medium) : t(i18nKeys.risk.low)}
                 </div>
               </div>
 
@@ -170,7 +173,7 @@ export default function Prediction() {
           <div className="grid md:grid-cols-2 gap-6">
             <Card hover>
               <CardContent className="p-6">
-                <h4 className="text-sm font-medium text-muted mb-2">Detected Topic</h4>
+                <h4 className="text-sm font-medium text-muted mb-2">{t(i18nKeys.prediction.detectedTopic)}</h4>
                 <p className="font-display text-xl font-semibold text-primary">
                   {result.topic}
                 </p>
@@ -179,7 +182,7 @@ export default function Prediction() {
 
             <Card hover>
               <CardContent className="p-6">
-                <h4 className="text-sm font-medium text-muted mb-2">AI Explanation</h4>
+                <h4 className="text-sm font-medium text-muted mb-2">{t(i18nKeys.prediction.explanation)}</h4>
                 <p className="text-dark">
                   {result.explanation}
                 </p>
@@ -191,7 +194,7 @@ export default function Prediction() {
           {result.highlightedText && (
             <Card>
               <CardContent className="p-6">
-                <h4 className="text-sm font-medium text-muted mb-3">Highlighted Keywords</h4>
+                <h4 className="text-sm font-medium text-muted mb-3">{t(i18nKeys.prediction.keywords)}</h4>
                 <p className="text-lg">
                   {inputText.split(' ').map((word, i) => {
                     const isHighlighted = ['cô đơn', 'mệt mỏi', 'áp lực', 'vô nghĩa', 'buồn', 'không muốn']

@@ -15,7 +15,8 @@
     "risk": "Risk Level",
     "topic": "Topic",
     "loading": "Processing...",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "characters": "characters"
   },
   "risk": {
     "high": "High Risk",
