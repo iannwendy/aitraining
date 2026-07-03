@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { modelComparisons } from '@/data/mockData';
 import {
@@ -6,22 +7,28 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { Trophy, TrendingUp } from 'lucide-react';
+import { i18nKeys } from '../i18n/keys';
 
 const metrics = ['accuracy', 'macroF1', 'weightedF1', 'precision', 'recall'] as const;
-const metricLabels = {
-  accuracy: 'Accuracy',
-  macroF1: 'Macro F1',
-  weightedF1: 'Weighted F1',
-  precision: 'Precision',
-  recall: 'Recall',
-};
 
 export default function ModelComparison() {
+  const { t } = useTranslation();
   const bestModel = modelComparisons[modelComparisons.length - 1];
+
+  const getMetricLabel = (metric: string) => {
+    const keyMap: Record<string, string> = {
+      accuracy: i18nKeys.statistics.accuracy,
+      macroF1: i18nKeys.statistics.macroF1,
+      weightedF1: i18nKeys.statistics.weightedF1,
+      precision: i18nKeys.statistics.precision,
+      recall: i18nKeys.statistics.recall,
+    };
+    return t(keyMap[metric] || metric);
+  };
 
   // Prepare radar data
   const radarData = metrics.map((metric) => ({
-    metric: metricLabels[metric],
+    metric: getMetricLabel(metric),
     value: Math.round((bestModel[metric] + 10) * 10) / 10,
     fullMark: 100,
   }));
@@ -34,10 +41,10 @@ export default function ModelComparison() {
       {/* Header */}
       <section className="text-center space-y-2">
         <h1 className="font-display text-3xl font-bold text-dark">
-          Model Comparison
+          {t(i18nKeys.compare.title)}
         </h1>
         <p className="text-muted">
-          Compare performance across different deep learning architectures
+          {t(i18nKeys.prediction.description)}
         </p>
       </section>
 
@@ -49,7 +56,7 @@ export default function ModelComparison() {
               <Trophy className="w-10 h-10 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-muted">Best Performing Model</p>
+              <p className="text-sm text-muted">{t(i18nKeys.compare.bestModel)}</p>
               <h2 className="font-display text-3xl font-bold gradient-text">
                 {bestModel.name}
               </h2>
@@ -62,7 +69,7 @@ export default function ModelComparison() {
                 <p className="text-3xl font-display font-bold text-dark">
                   {bestModel[metric]}%
                 </p>
-                <p className="text-sm text-muted mt-1">{metricLabels[metric]}</p>
+                <p className="text-sm text-muted mt-1">{getMetricLabel(metric)}</p>
               </div>
             ))}
           </div>
@@ -77,7 +84,7 @@ export default function ModelComparison() {
             <h3 className="font-display text-lg font-semibold text-dark mb-2">
               {bestModel.name}
             </h3>
-            <p className="text-sm text-muted mb-6">Performance Radar</p>
+            <p className="text-sm text-muted mb-6">{t(i18nKeys.compare.radar)}</p>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={radarData}>
@@ -116,9 +123,9 @@ export default function ModelComparison() {
         <Card>
           <CardContent className="p-6">
             <h3 className="font-display text-lg font-semibold text-dark mb-2">
-              Accuracy Comparison
+              {t(i18nKeys.compare.accuracyCompare)}
             </h3>
-            <p className="text-sm text-muted mb-6">Across All Models</p>
+            <p className="text-sm text-muted mb-6">{t(i18nKeys.compare.radar)}</p>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={modelComparisons}>
@@ -161,16 +168,16 @@ export default function ModelComparison() {
       <Card>
         <CardContent className="p-6">
           <h3 className="font-display text-lg font-semibold text-dark mb-6">
-            Full Comparison Table
+            {t(i18nKeys.compare.fullComparisonTable)}
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200">
-                  <th className="text-left py-4 px-4 text-sm font-semibold text-muted">Model</th>
+                  <th className="text-left py-4 px-4 text-sm font-semibold text-muted">{t(i18nKeys.compare.model)}</th>
                   {metrics.map((metric) => (
                     <th key={metric} className="text-right py-4 px-4 text-sm font-semibold text-muted">
-                      {metricLabels[metric]}
+                      {getMetricLabel(metric)}
                     </th>
                   ))}
                 </tr>
@@ -221,7 +228,7 @@ export default function ModelComparison() {
               +12.2%
             </p>
             <p className="text-sm text-muted mt-1">
-              Improvement over TF-IDF+SVM
+              {t(i18nKeys.compare.improvement)} TF-IDF+SVM
             </p>
           </CardContent>
         </Card>
@@ -233,7 +240,7 @@ export default function ModelComparison() {
               +7.2%
             </p>
             <p className="text-sm text-muted mt-1">
-              Improvement over BiLSTM
+              {t(i18nKeys.compare.improvement)} BiLSTM
             </p>
           </CardContent>
         </Card>
@@ -245,7 +252,7 @@ export default function ModelComparison() {
               +2.2%
             </p>
             <p className="text-sm text-muted mt-1">
-              Improvement over PhoBERT
+              {t(i18nKeys.compare.improvement)} PhoBERT
             </p>
           </CardContent>
         </Card>
