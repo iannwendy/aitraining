@@ -2,65 +2,69 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { dashboardStats } from '@/data/mockData';
 import { Database, Brain, Target, TrendingUp, Calendar, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const statCards = [
-  {
-    label: 'Total Comments',
-    value: dashboardStats.totalComments.toLocaleString(),
-    icon: Database,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-  },
-  {
-    label: 'Current Model',
-    value: dashboardStats.currentModel,
-    icon: Brain,
-    color: 'text-primary',
-    bgColor: 'bg-primary/10',
-    small: true,
-  },
-  {
-    label: 'Accuracy',
-    value: `${dashboardStats.metrics.accuracy}%`,
-    icon: Target,
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-50',
-  },
-  {
-    label: 'Macro F1',
-    value: `${dashboardStats.metrics.macroF1}%`,
-    icon: TrendingUp,
-    color: 'text-violet-600',
-    bgColor: 'bg-violet-50',
-  },
-  {
-    label: 'Weighted F1',
-    value: `${dashboardStats.metrics.weightedF1}%`,
-    icon: Activity,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50',
-  },
-  {
-    label: 'Training Date',
-    value: dashboardStats.trainingDate,
-    icon: Calendar,
-    color: 'text-slate-600',
-    bgColor: 'bg-slate-100',
-    small: true,
-  },
-];
+import { useTranslation } from 'react-i18next';
+import { i18nKeys } from '../i18n/keys';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
+
+  const statCards = [
+    {
+      label: t(i18nKeys.dashboard.totalComments),
+      value: dashboardStats.totalComments.toLocaleString(),
+      icon: Database,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+    },
+    {
+      label: t(i18nKeys.dashboard.currentModel),
+      value: dashboardStats.currentModel,
+      icon: Brain,
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
+      small: true,
+    },
+    {
+      label: t(i18nKeys.dashboard.accuracy),
+      value: `${dashboardStats.metrics.accuracy}%`,
+      icon: Target,
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
+    },
+    {
+      label: t(i18nKeys.dashboard.macroF1),
+      value: `${dashboardStats.metrics.macroF1}%`,
+      icon: TrendingUp,
+      color: 'text-violet-600',
+      bgColor: 'bg-violet-50',
+    },
+    {
+      label: t(i18nKeys.dashboard.weightedF1),
+      value: `${dashboardStats.metrics.weightedF1}%`,
+      icon: Activity,
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-50',
+    },
+    {
+      label: t(i18nKeys.dashboard.trainingDate),
+      value: dashboardStats.trainingDate,
+      icon: Calendar,
+      color: 'text-slate-600',
+      bgColor: 'bg-slate-100',
+      small: true,
+    },
+  ];
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Hero Section */}
       <section className="text-center space-y-4 py-8">
         <h1 className="font-display text-4xl sm:text-5xl font-bold text-dark">
           <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
-            Mental Health AI
+            {t(i18nKeys.dashboard.title)}
           </span>
           <br />
-          Depression Detection Platform
+          {t(i18nKeys.dashboard.subtitle)}
         </h1>
         <p className="text-muted text-lg max-w-2xl mx-auto">
           Advanced NLP system using PhoBERT + BERTopic for detecting signs of depression
@@ -104,7 +108,7 @@ export default function Dashboard() {
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-display text-xl font-semibold text-dark mb-2 group-hover:text-primary transition-colors">
-                  Quick Analysis
+                  {t(i18nKeys.dashboard.quickAnalysis)}
                 </h3>
                 <p className="text-muted">
                   Enter a Vietnamese text to analyze for depression indicators
@@ -122,7 +126,7 @@ export default function Dashboard() {
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-display text-xl font-semibold text-dark mb-2 group-hover:text-primary transition-colors">
-                  Batch Processing
+                  {t(i18nKeys.dashboard.batchProcessing)}
                 </h3>
                 <p className="text-muted">
                   Upload a CSV file to analyze multiple texts at once
