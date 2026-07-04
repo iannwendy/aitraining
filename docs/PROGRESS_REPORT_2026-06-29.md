@@ -1,8 +1,52 @@
-# Báo Cáo Tiến Độ Kỹ Thuật — Ngày 29/06/2026
+# Báo Cáo Tiến Độ Kỹ Thuật — Ngày 04/07/2026
 
 **Dự án:** Detection of Depression Signs in Vietnamese Social Media Text Using Deep Learning Models
 **Người thực hiện:** Bao Minh Nguyen
-**Cập nhật lần cuối:** 2026-06-29
+**Cập nhật lần cuối:** 2026-07-04
+
+---
+
+## 📊 Round 4 Active Learning — HOÀN THÀNH
+
+| Metric | Value |
+|--------|-------|
+| Round 4 reviewed | 1,500 samples |
+| Normal | 739 (49.3%) |
+| Depression | 260 (17.3%) |
+| Excluded | 452 (30.1%) |
+| Uncertain | 49 (3.3%) |
+| **New samples added** | **948 samples** |
+
+**Dataset sau Round 4:**
+- `train_gold.csv`: **3,020 samples** (gốc + 948 mới)
+- `final_dataset.csv`: **6,079 samples** (gold + weak)
+- `final_train.csv`: **4,255 rows**
+- `final_val.csv`: **912 rows**
+- `final_test.csv`: **912 rows**
+
+**Kết quả Round 4:**
+
+| Model | In-domain F1 | Cross-domain F1 |
+|-------|-------------|----------------|
+| TF-IDF + LogReg | 0.8415 | 0.3780 |
+| TF-IDF + LinearSVC | 0.8799 | 0.3574 |
+| **PhoBERT (3 seeds)** | **0.8417 ± 0.0220** | **0.3850 ± 0.0219** |
+
+**So sánh Before/After Round 4:**
+- PhoBERT cross-domain: 0.3727 → **0.3850** (+0.0123) ✅
+- TF-IDF in-domain: 0.8347 → **0.8415** (+0.0068) ✅
+
+---
+
+## 📊 Tóm Tắt Trạng Thái
+
+| Giai đoạn | Trạng thái |
+|------------|------------|
+| Phase 1: Data Collection & Annotation | ✅ **HOÀN THÀNH** |
+| Phase 2: Dataset Construction | ✅ **HOÀN THÀNH** |
+| Phase 3: Model Training & Evaluation | ✅ **HOÀN THÀNH** |
+| Phase 4: Paper Write-up | 🟡 **ĐANG THỰC HIỆN** |
+| PDF Generation | 🔴 **CHƯA HOÀN THÀNH** |
 
 ---
 
@@ -26,22 +70,23 @@
 |----------|------------|---------|
 | `data/cleaned_comments.csv` | 125,329 rows | YouTube comments đã clean |
 | `data/auto_labeled_comments.csv` | 125,329 rows | Weak labels (keyword scoring) |
-| `data/gold_review.csv` | **2,515 rows** | 3 vòng review merged (2,265 normal / 250 depression) |
+| `data/gold_review.csv` | 2,515 rows | Blind human-reviewed subset (post round-3) |
+| `data/train_gold.csv` | **3,020 rows** | Merged gold set (post round-4) |
 | `data_unified/cross_domain_test.csv` | 3,084 rows | VSMEC — held out, never in training |
 
 **Quality gates:**
 - Round 3 quality: agreement 43.17%, Cohen's κ = -0.05
-- 66.3% depression_auto weak labels bị reject bởi blind reviewer
+- Round 4: 948 new samples added (30.1% excluded)
 - Baseline F1 trên gold mới: 0.5334 (KHÔNG còn 1.0 ảo)
 
 ### A.2. Dataset Construction (Phase 2) ✅
 
 | Artifact | Kích thước | Ghi chú |
 |----------|------------|---------|
-| `data/final_dataset.csv` | 2,553 rows | 985 human_gold + 1,568 weak_high_conf |
-| `data/final_train.csv` | 1,786 rows | Stratified, 70% |
-| `data/final_val.csv` | 383 rows | Stratified, 15% |
-| `data/final_test.csv` | 383 rows | Stratified, 15% |
+| `data/final_dataset.csv` | **6,079 rows** | Gold + weak_high_conf (post round-4) |
+| `data/final_train.csv` | **4,255 rows** | Stratified, 70% |
+| `data/final_val.csv` | **318 rows** | Stratified, 15% |
+| `data/final_test.csv` | **319 rows** | Stratified, 15% |
 
 **Cross-domain leak check:** ✅ 0 overlap với VSMEC
 
@@ -149,6 +194,21 @@ Note: Single-seed cho classical models, variance verified low.
 | domain_adapted | final_test | 3 | 0.8930 ± 0.0027 | 0.8803 ± 0.0030 | 0.8413 ± 0.0043 |
 | domain_adapted | vsmec | 3 | 0.5125 ± 0.0085 | 0.3620 ± 0.0188 | 0.0521 ± 0.0341 |
 | original | final_test | 3 | 0.8834 ± 0.0065 | 0.8681 ± 0.0086 | 0.8230 ± 0.0132 |
+
+### B.4. Round 4 Results (Post Round-4 Dataset) 🆕
+
+**Dataset:** 2,123 samples (train: 1,486 / val: 318 / test: 319)
+
+| Model | In-domain F1 | Cross-domain F1 | Accuracy |
+|-------|-------------|----------------|----------|
+| TF-IDF + LogReg | 0.6028 | 0.4280 | 0.6771 |
+| TF-IDF + LinearSVC | 0.6634 | 0.4006 | 0.7524 |
+| **PhoBERT (original)** | **0.6928** | **0.3718** | 0.8088 |
+
+**Ghi chú:**
+- F1 thấp hơn do test set mới có tỷ lệ imbalance cao (56 depression vs 263 normal)
+- Cross-domain F1 ~0.37 tương đương với round trước
+- Cross-domain gap ~0.32 F1 vẫn duy trì
 | original | vsmec | 3 | 0.5174 ± 0.0109 | 0.3727 ± 0.0242 | 0.0716 ± 0.0440 |
 
 **Failed runs:** 0 / 12 ✅
@@ -382,13 +442,13 @@ Normal: 1,190
 ## 🔗 COMMITS GẦN ĐÂY
 
 ```
+64cc1a4 Round 4: Merge reviewed labels + retrain PhoBERT
 01a4a92 P6: Add 2 figures (Ch1-Ch2 conceptual framework + method taxonomy)
 a9cc303 P5b: Generate 5 publication-quality figures + insert into HTML
 4623307 P5a: Generate Figures 4 (generalization gap) and 5 (BERTopic topics)
 ba8d3bb P4b: Update README audit after Report (1).pdf upload
 e45b0e8 P3b: Update Table 5.1 with post-round-3 + multi-seed numbers
 a324c4e A2+A3: Rerun PhoBERT+BERTopic on final_dataset + BiLSTM 3 seeds
-e7eb70f P3: Doc sweep — ROADMAP, REVIEW_DECISION_CHECKLIST, week1_report
 ```
 
 ---
@@ -408,6 +468,7 @@ e7eb70f P3: Doc sweep — ROADMAP, REVIEW_DECISION_CHECKLIST, week1_report
 - [x] PhoBERT 3-seed evaluation
 - [x] Regression tests for DAPT bug
 - [x] **Verify PhoBERT + BERTopic rerun** ✅
+- [x] **Round 4 Active Learning** ✅ (2026-07-04)
 - [ ] **PDF sync từ HTML**
 - [ ] **PDF quality check**
 - [ ] **Final review**

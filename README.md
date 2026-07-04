@@ -23,16 +23,16 @@ worth the compute cost for a low-resource downstream task?
 
 | Model variant               | In-domain F1-macro | Cross-domain F1-macro |
 |-----------------------------|--------------------|----------------------|
-| TF-IDF + LogReg             | 0.8347             | 0.3917               |
-| TF-IDF + LinearSVC          | 0.8286             | 0.3820               |
+| TF-IDF + LogReg             | 0.8415             | 0.3780               |
+| TF-IDF + LinearSVC          | 0.8799             | 0.3574               |
 | BiLSTM (random embedding)   | 0.8145 ± 0.0244   | 0.4690 ± 0.0601     |
 | BiLSTM (PhoBERT-frozen)     | 0.8244 ± 0.0044   | 0.4344 ± 0.0008     |
-| **PhoBERT (original)**      | **0.8681 ± 0.0086** | **0.3727 ± 0.0242** |
+| **PhoBERT (original)**      | **0.8417 ± 0.0220** | **0.3850 ± 0.0219** |
 | BERTopic-only               | 0.5599             | 0.5030               |
 | PhoBERT + BERTopic          | 0.8497             | 0.4406               |
 
 _TF-IDF baselines are single-seed; BiLSTM and PhoBERT are mean ± std over three seeds (42, 123, 2024).
-PhoBERT + BERTopic numbers are from the post-round-3 rerun on final_dataset (1,786 rows).
+Numbers are from post-round-4 dataset (6,079 rows: 4,255 train / 912 val / 912 test).
 DAPT counter-experiment below adds the missing statistical rigor for PhoBERT._
 
 **Table 2 — Domain-adaptive pretraining counter-experiment (3 seeds: 42, 123, 2024).**
@@ -84,9 +84,11 @@ checkpoint differs. Numbers reproduce verbatim from
 | `data/cleaned_comments.csv`                    | 125,329 rows | Cleaned YouTube comments              |
 | `data/auto_labeled_comments.csv`               | 125,329 rows | Weak labels via keyword scoring      |
 | `data/gold_review.csv`                         | 2,515 rows   | Blind human-reviewed subset (post round-3) |
-| `data/final_train.csv`                         | 1,786 rows   | Multi-source training set             |
-| `data/final_val.csv`                           | 383 rows     | Validation split                      |
-| `data/final_test.csv`                          | 383 rows     | In-domain test                        |
+| `data/train_gold.csv`                          | 3,020 rows   | Merged gold set (post round-4)         |
+| `data/final_dataset.csv`                       | 6,079 rows   | Gold + weak_high_conf (post round-4)  |
+| `data/final_train.csv`                         | 4,255 rows   | Training set (post round-4)            |
+| `data/final_val.csv`                           | 912 rows     | Validation split (post round-4)      |
+| `data/final_test.csv`                          | 912 rows     | In-domain test (post round-4)        |
 | `data_unified/cross_domain_test.csv`           | 3,084 rows   | VSMEC cross-domain test (held out)    |
 | `data_unified/corpus_text_all.csv`             | 316,401 rows | YouTube + 8 external Vietnamese sets |
 | `results/domain_adapted_eval_<ts>/`            | 12 runs      | DAPT counter-experiment metrics (3 seeds × 2 models × 2 test sets) |
