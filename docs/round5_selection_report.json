@@ -1,0 +1,30 @@
+{
+  "round": 5,
+  "total_selected": 2000,
+  "input_predictions_file": "/Users/iannwendy/Documents/crawl_yt/youtube_depression_crawler/data/phobert_remaining_predictions.csv",
+  "already_reviewed_gold": 2515,
+  "remaining_pool_size": 122813,
+  "selection_strategy": "probability_closest_to_0.5",
+  "uncertain_threshold": 0.75,
+  "phobert_label_distribution": {
+    "normal": 1258,
+    "depression": 742
+  },
+  "phobert_depression_count": 742,
+  "phobert_normal_count": 1258,
+  "source_weak_label_distribution": {
+    "uncertain": 1790,
+    "depression_auto": 115,
+    "normal_auto": 95
+  },
+  "probability_range": {
+    "min": 0.5001,
+    "max": 0.6751,
+    "median": 0.6019,
+    "mean": 0.5972
+  },
+  "mean_distance_from_05": 0.0972,
+  "output_import_file": "/Users/iannwendy/Documents/crawl_yt/youtube_depression_crawler/docs/label_studio_round5_active_learning_import.csv",
+  "output_key_file": "/Users/iannwendy/Documents/crawl_yt/youtube_depression_crawler/docs/label_studio_round5_active_learning_key.csv",
+  "instructions": "Round 5: Only HARDEST samples (model uncertain). 1. Import label_studio_round5_active_learning_import.csv into Label Studio. 2. Review samples (model predictions are in KEY file for reference only). 3. Export as export_round5_active_learning.csv. 4. Run merge script to update gold + final_dataset."
+}
