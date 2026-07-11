@@ -57,6 +57,9 @@ models/**/*.pt
 results/domain_adapted_eval_*/
 results/original_eval_*/
 
+# Round predictions (reproduce via scripts/retrain_phobert_for_round5.py)
+models/round*_predictions/
+
 # Thesis report PDFs
 report_pdf/*.pdf
 
