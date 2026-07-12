@@ -2,3 +2,15 @@ fastapi==0.111.0
 uvicorn[standard]==0.30.0
 pydantic==2.7.0
 python-multipart==0.0.9
+
+# ML dependencies
+torch
+transformers
+scikit-learn
+joblib
+scipy
+pandas
+numpy
+sentence-transformers
+underthesea
+bertopic

@@ -1,36 +1,69 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { predictionHistory } from '@/data/mockData';
 import { Search, Trash2, AlertTriangle, CheckCircle, Clock, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { i18nKeys } from '../i18n/keys';
+import { getHistory, deleteHistoryEntry } from '@/services/api';
+import { HistoryEntry } from '@/types';
 
 export default function History() {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPrediction, setFilterPrediction] = useState<'all' | 'depression' | 'normal'>('all');
-  const [history, setHistory] = useState(predictionHistory);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  const loadHistory = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await getHistory(50, 0);
+      setHistory(data.items);
+      setTotal(data.total);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load history');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteHistoryEntry(id);
+      setHistory(history.filter((item) => item.id !== id));
+      setTotal((prev) => prev - 1);
+    } catch {
+      // Silently fail — item may have been already deleted
+    }
+  };
 
   const filteredHistory = history.filter((item) => {
     const matchesSearch = item.text.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterPrediction === 'all' || item.prediction === filterPrediction;
+    const matchesFilter =
+      filterPrediction === 'all' || item.prediction === filterPrediction;
     return matchesSearch && matchesFilter;
   });
 
-  const handleDelete = (id: string) => {
-    setHistory(history.filter(item => item.id !== id));
-  };
-
-  const formatTime = (date: Date) => {
-    return new Intl.DateTimeFormat('vi-VN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
+  const formatTime = (dateStr: string) => {
+    try {
+      return new Intl.DateTimeFormat('vi-VN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(new Date(dateStr));
+    } catch {
+      return dateStr;
+    }
   };
 
   return (
@@ -44,6 +77,13 @@ export default function History() {
           {t(i18nKeys.prediction.description)}
         </p>
       </section>
+
+      {/* Error */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
+          {error}
+        </div>
+      )}
 
       {/* Filters */}
       <Card>
@@ -63,38 +103,28 @@ export default function History() {
 
             {/* Filter Buttons */}
             <div className="flex gap-2">
-              <Button
-                key="all"
-                variant={filterPrediction === 'all' ? 'primary' : 'secondary'}
-                size="sm"
-                onClick={() => setFilterPrediction('all')}
-              >
-                <Filter className="w-4 h-4" />
-                {t(i18nKeys.history.filterAll)}
-              </Button>
-              <Button
-                key="depression"
-                variant={filterPrediction === 'depression' ? 'primary' : 'secondary'}
-                size="sm"
-                onClick={() => setFilterPrediction('depression')}
-              >
-                <Filter className="w-4 h-4" />
-                {t(i18nKeys.history.filterDepression)}
-              </Button>
-              <Button
-                key="normal"
-                variant={filterPrediction === 'normal' ? 'primary' : 'secondary'}
-                size="sm"
-                onClick={() => setFilterPrediction('normal')}
-              >
-                <Filter className="w-4 h-4" />
-                {t(i18nKeys.history.filterNormal)}
-              </Button>
+              {(['all', 'depression', 'normal'] as const).map((filter) => (
+                <Button
+                  key={filter}
+                  variant={filterPrediction === filter ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setFilterPrediction(filter)}
+                >
+                  <Filter className="w-4 h-4" />
+                  {filter === 'all'
+                    ? t(i18nKeys.history.filterAll)
+                    : filter === 'depression'
+                      ? t(i18nKeys.history.filterDepression)
+                      : t(i18nKeys.history.filterNormal)}
+                </Button>
+              ))}
             </div>
 
             {/* Stats */}
             <div className="text-sm text-muted">
-              {filteredHistory.length} / {history.length} {t(i18nKeys.history.title).toLowerCase()}
+              {filteredHistory.length}
+              {total > 0 && ` / ${total}`}{' '}
+              {t(i18nKeys.history.title).toLowerCase()}
             </div>
           </div>
         </CardContent>
@@ -102,7 +132,14 @@ export default function History() {
 
       {/* History List */}
       <div className="space-y-4">
-        {filteredHistory.length === 0 ? (
+        {isLoading ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Clock className="w-12 h-12 mx-auto text-muted mb-4 animate-pulse" />
+              <p className="text-muted">Loading…</p>
+            </CardContent>
+          </Card>
+        ) : filteredHistory.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <Clock className="w-12 h-12 mx-auto text-muted mb-4" />
@@ -117,12 +154,14 @@ export default function History() {
                   <div className="flex-1">
                     {/* Prediction Badge & Time */}
                     <div className="flex items-center gap-3 mb-3">
-                      <span className={cn(
-                        'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold',
-                        item.prediction === 'depression'
-                          ? 'bg-depression/10 text-depression'
-                          : 'bg-normal/10 text-normal'
-                      )}>
+                      <span
+                        className={cn(
+                          'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold',
+                          item.prediction === 'depression'
+                            ? 'bg-depression/10 text-depression'
+                            : 'bg-normal/10 text-normal',
+                        )}
+                      >
                         {item.prediction === 'depression' ? (
                           <AlertTriangle className="w-4 h-4" />
                         ) : (
@@ -132,18 +171,18 @@ export default function History() {
                       </span>
                       <span className="text-sm text-muted flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        {formatTime(item.timestamp)}
+                        {formatTime(item.created_at)}
                       </span>
-                      {item.riskLevel && (
-                        <span className={cn(
+                      <span
+                        className={cn(
                           'px-2 py-0.5 rounded text-xs font-medium',
-                          item.riskLevel === 'high' && 'bg-depression/10 text-depression',
-                          item.riskLevel === 'medium' && 'bg-amber-100 text-amber-800',
-                          item.riskLevel === 'low' && 'bg-normal/10 text-normal',
-                        )}>
-                          {item.riskLevel && t(i18nKeys.risk[item.riskLevel as 'high' | 'medium' | 'low'])}
-                        </span>
-                      )}
+                          item.risk_level === 'high' && 'bg-depression/10 text-depression',
+                          item.risk_level === 'medium' && 'bg-amber-100 text-amber-800',
+                          item.risk_level === 'low' && 'bg-normal/10 text-normal',
+                        )}
+                      >
+                        {t(i18nKeys.risk[item.risk_level] || item.risk_level)}
+                      </span>
                     </div>
 
                     {/* Text */}
@@ -153,12 +192,20 @@ export default function History() {
                     <div className="flex flex-wrap gap-4 text-sm">
                       <div>
                         <span className="text-muted">{t(i18nKeys.common.confidence)}: </span>
-                        <span className="font-mono font-semibold">{item.confidence}%</span>
+                        <span className="font-mono font-semibold">
+                          {(item.confidence * 100).toFixed(1)}%
+                        </span>
                       </div>
                       {item.topic && (
                         <div>
                           <span className="text-muted">{t(i18nKeys.common.topic)}: </span>
                           <span className="font-medium text-primary">{item.topic}</span>
+                        </div>
+                      )}
+                      {item.model_name && (
+                        <div>
+                          <span className="text-muted">Model: </span>
+                          <span className="text-muted">{item.model_name}</span>
                         </div>
                       )}
                     </div>

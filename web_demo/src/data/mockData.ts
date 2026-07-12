@@ -1,7 +1,6 @@
 import {
   DashboardStats,
   Topic,
-  ModelComparison,
   PredictionResult,
   WordCloudItem,
   BatchPredictionResult
@@ -96,7 +95,7 @@ export const topics: Topic[] = [
   },
 ];
 
-export const modelComparisons: ModelComparison[] = [
+export const modelComparisons = [
   {
     name: 'TF-IDF + SVM',
     accuracy: 82.0,
@@ -104,6 +103,10 @@ export const modelComparisons: ModelComparison[] = [
     weightedF1: 83.0,
     precision: 80.5,
     recall: 81.5,
+    in_domain_f1: 0.81,
+    cross_domain_f1: 0.38,
+    model_type: 'baseline' as const,
+    note: undefined,
   },
   {
     name: 'BiLSTM',
@@ -112,6 +115,10 @@ export const modelComparisons: ModelComparison[] = [
     weightedF1: 88.0,
     precision: 85.5,
     recall: 86.5,
+    in_domain_f1: 0.86,
+    cross_domain_f1: 0.47,
+    model_type: 'bilstm' as const,
+    note: undefined,
   },
   {
     name: 'PhoBERT',
@@ -120,6 +127,10 @@ export const modelComparisons: ModelComparison[] = [
     weightedF1: 92.0,
     precision: 90.5,
     recall: 91.5,
+    in_domain_f1: 0.91,
+    cross_domain_f1: 0.39,
+    model_type: 'phobert' as const,
+    note: undefined,
   },
   {
     name: 'PhoBERT + BERTopic',
@@ -128,6 +139,10 @@ export const modelComparisons: ModelComparison[] = [
     weightedF1: 94.1,
     precision: 93.8,
     recall: 93.2,
+    in_domain_f1: 0.935,
+    cross_domain_f1: 0.441,
+    model_type: 'hybrid' as const,
+    note: undefined,
   },
 ];
 

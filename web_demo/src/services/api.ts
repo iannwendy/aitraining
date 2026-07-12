@@ -1,4 +1,12 @@
-import { PredictionResult, DashboardStats, Topic, ModelComparison } from '@/types';
+import {
+  PredictionResult,
+  DashboardStatsExt,
+  Topic,
+  ModelComparison,
+  HistoryListResponse,
+  StatisticsResponse,
+  RefreshStatus,
+} from '@/types';
 
 const API_BASE = '/api';
 
@@ -12,27 +20,30 @@ async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.statusText}`);
+    throw new Error(`API Error ${response.status}: ${response.statusText}`);
   }
 
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
-// Dashboard
-export async function getDashboardStats(): Promise<DashboardStats> {
-  return fetchJSON(`${API_BASE}/dashboard/stats`);
+// ── Dashboard ───────────────────────────────────────────────────────────────
+
+export async function getDashboardStats(): Promise<DashboardStatsExt> {
+  return fetchJSON<DashboardStatsExt>(`${API_BASE}/dashboard/stats`);
 }
 
-// Prediction
+// ── Prediction ─────────────────────────────────────────────────────────────
+
 export async function predict(text: string): Promise<PredictionResult> {
-  return fetchJSON(`${API_BASE}/predict`, {
+  return fetchJSON<PredictionResult>(`${API_BASE}/predict`, {
     method: 'POST',
     body: JSON.stringify({ text }),
   });
 }
 
-// Batch Prediction
-export async function batchPredict(comments: string[]): Promise<{
+export async function batchPredict(
+  comments: string[],
+): Promise<{
   results: PredictionResult[];
   total: number;
   depression_count: number;
@@ -44,12 +55,50 @@ export async function batchPredict(comments: string[]): Promise<{
   });
 }
 
-// Topics
-export async function getTopics(): Promise<Topic[]> {
-  return fetchJSON(`${API_BASE}/topics`);
+// ── Topics ────────────────────────────────────────────────────────────────
+
+export async function getTopics(limit = 20): Promise<Topic[]> {
+  return fetchJSON<Topic[]>(`${API_BASE}/topics?limit=${limit}`);
 }
 
-// Model Comparison
+// ── Model Comparison ────────────────────────────────────────────────────────
+
 export async function getModelComparison(): Promise<{ models: ModelComparison[] }> {
-  return fetchJSON(`${API_BASE}/models/comparison`);
+  return fetchJSON<{ models: ModelComparison[] }>(`${API_BASE}/models/comparison`);
+}
+
+// ── Statistics ─────────────────────────────────────────────────────────────
+
+export async function getStatistics(): Promise<StatisticsResponse> {
+  return fetchJSON<StatisticsResponse>(`${API_BASE}/statistics`);
+}
+
+// ── History ────────────────────────────────────────────────────────────────
+
+export async function getHistory(
+  limit = 50,
+  offset = 0,
+): Promise<HistoryListResponse> {
+  return fetchJSON<HistoryListResponse>(
+    `${API_BASE}/history?limit=${limit}&offset=${offset}`,
+  );
+}
+
+export async function deleteHistoryEntry(id: string): Promise<void> {
+  await fetchJSON(`${API_BASE}/history/${id}`, { method: 'DELETE' });
+}
+
+// ── Model Refresh (Hot-reload) ─────────────────────────────────────────────
+
+export async function getRefreshStatus(): Promise<RefreshStatus> {
+  return fetchJSON<RefreshStatus>(`${API_BASE}/models/refresh/status`);
+}
+
+export async function triggerRefresh(): Promise<{
+  status: string;
+  last_refresh: string | null;
+  round: string | null;
+  model_count: number;
+}> {
+  return fetchJSON(`${API_BASE}/models/refresh`, { method: 'POST' });
 }

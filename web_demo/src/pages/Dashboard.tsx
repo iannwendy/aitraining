@@ -1,59 +1,104 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
-import { dashboardStats } from '@/data/mockData';
-import { Database, Brain, Target, TrendingUp, Calendar, Activity } from 'lucide-react';
+import { DashboardStatsExt } from '@/types';
+import { getDashboardStats, triggerRefresh } from '@/services/api';
+import { Database, Brain, Target, TrendingUp, Calendar, Activity, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { i18nKeys } from '../i18n/keys';
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const [stats, setStats] = useState<DashboardStatsExt | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const statCards = [
-    {
-      label: t(i18nKeys.dashboard.totalComments),
-      value: dashboardStats.totalComments.toLocaleString(),
-      icon: Database,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-    },
-    {
-      label: t(i18nKeys.dashboard.currentModel),
-      value: dashboardStats.currentModel,
-      icon: Brain,
-      color: 'text-primary',
-      bgColor: 'bg-primary/10',
-      small: true,
-    },
-    {
-      label: t(i18nKeys.dashboard.accuracy),
-      value: `${dashboardStats.metrics.accuracy}%`,
-      icon: Target,
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-50',
-    },
-    {
-      label: t(i18nKeys.dashboard.macroF1),
-      value: `${dashboardStats.metrics.macroF1}%`,
-      icon: TrendingUp,
-      color: 'text-violet-600',
-      bgColor: 'bg-violet-50',
-    },
-    {
-      label: t(i18nKeys.dashboard.weightedF1),
-      value: `${dashboardStats.metrics.weightedF1}%`,
-      icon: Activity,
-      color: 'text-amber-600',
-      bgColor: 'bg-amber-50',
-    },
-    {
-      label: t(i18nKeys.dashboard.trainingDate),
-      value: dashboardStats.trainingDate,
-      icon: Calendar,
-      color: 'text-slate-600',
-      bgColor: 'bg-slate-100',
-      small: true,
-    },
-  ];
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await getDashboardStats();
+      setStats(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load stats');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await triggerRefresh();
+      await loadStats();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Refresh failed');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const statCards = stats
+    ? [
+        {
+          label: t(i18nKeys.dashboard.totalComments),
+          value: stats.totalComments.toLocaleString(),
+          subLabel: `${stats.goldLabels.toLocaleString()} human-labeled`,
+          icon: Database,
+          color: 'text-blue-600',
+          bgColor: 'bg-blue-50',
+        },
+        {
+          label: t(i18nKeys.dashboard.currentModel),
+          value: stats.currentModel,
+          subLabel: `Round ${stats.round}`,
+          icon: Brain,
+          color: 'text-primary',
+          bgColor: 'bg-primary/10',
+          small: true,
+        },
+        {
+          label: 'In-Domain F1',
+          value: stats.metrics.macroF1 > 0 ? `${(stats.metrics.macroF1 * 100).toFixed(1)}%` : '—',
+          subLabel: t(i18nKeys.dashboard.accuracy),
+          icon: Target,
+          color: 'text-emerald-600',
+          bgColor: 'bg-emerald-50',
+        },
+        {
+          label: t(i18nKeys.dashboard.macroF1),
+          value: stats.metrics.macroF1 > 0 ? `${(stats.metrics.macroF1 * 100).toFixed(1)}%` : '—',
+          subLabel: 'In-domain',
+          icon: TrendingUp,
+          color: 'text-violet-600',
+          bgColor: 'bg-violet-50',
+        },
+        {
+          label: 'Cross-Domain F1',
+          value: '—',
+          subLabel: stats.bestCrossDomain,
+          icon: Activity,
+          color: 'text-amber-600',
+          bgColor: 'bg-amber-50',
+        },
+        {
+          label: t(i18nKeys.dashboard.trainingDate),
+          value: stats.trainingDate
+            ? new Date(stats.trainingDate).toLocaleDateString('vi-VN')
+            : '—',
+          subLabel: `Round ${stats.round}`,
+          icon: Calendar,
+          color: 'text-slate-600',
+          bgColor: 'bg-slate-100',
+          small: true,
+        },
+      ]
+    : [];
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -72,34 +117,83 @@ export default function Dashboard() {
         </p>
       </section>
 
+      {/* Refresh Banner */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
+          {error}
+        </div>
+      )}
+
       {/* Stats Grid */}
       <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {statCards.map((stat, index) => (
-          <Card
-            key={stat.label}
-            hover
-            className={cn(
-              'relative overflow-hidden',
-              index === 0 && 'animate-breathe'
-            )}
-            style={{ animationDelay: `${index * 0.1}s` }}
-          >
-            <CardContent className="p-5">
-              <div className={cn('flex items-center gap-3 mb-3', stat.small && 'flex-col items-start')}>
-                <div className={cn('p-2.5 rounded-xl', stat.bgColor)}>
-                  <stat.icon className={cn('w-5 h-5', stat.color)} />
-                </div>
-              </div>
-              <p className={cn('font-mono font-bold text-dark', stat.small ? 'text-lg' : 'text-2xl')}>
-                {stat.value}
-              </p>
-              <p className="text-sm text-muted mt-1">{stat.label}</p>
-            </CardContent>
-            {/* Breathing glow effect */}
-            <div className={cn('absolute inset-0 rounded-2xl opacity-0', index === 0 && 'animate-pulse bg-gradient-to-r from-primary/5 to-transparent')} />
-          </Card>
-        ))}
+        {isLoading
+          ? Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i}>
+                <CardContent className="p-5 animate-pulse">
+                  <div className="h-10 bg-slate-100 rounded mb-2" />
+                  <div className="h-4 bg-slate-100 rounded w-3/4" />
+                </CardContent>
+              </Card>
+            ))
+          : statCards.map((stat, index) => (
+              <Card
+                key={stat.label}
+                hover
+                className={cn(
+                  'relative overflow-hidden',
+                  index === 0 && 'animate-breathe',
+                )}
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <CardContent className="p-5">
+                  <div
+                    className={cn(
+                      'flex items-center gap-3 mb-3',
+                      stat.small && 'flex-col items-start',
+                    )}
+                  >
+                    <div className={cn('p-2.5 rounded-xl', stat.bgColor)}>
+                      <stat.icon className={cn('w-5 h-5', stat.color)} />
+                    </div>
+                  </div>
+                  <p
+                    className={cn(
+                      'font-mono font-bold text-dark',
+                      stat.small ? 'text-lg' : 'text-2xl',
+                    )}
+                  >
+                    {stat.value}
+                  </p>
+                  {stat.subLabel && (
+                    <p className="text-sm text-muted mt-1">{stat.subLabel}</p>
+                  )}
+                  <p className="text-xs text-muted mt-0.5">{stat.label}</p>
+                </CardContent>
+                <div
+                  className={cn(
+                    'absolute inset-0 rounded-2xl opacity-0',
+                    index === 0 && 'animate-pulse bg-gradient-to-r from-primary/5 to-transparent',
+                  )}
+                />
+              </Card>
+            ))}
       </section>
+
+      {/* Refresh Button */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium',
+            'bg-slate-100 hover:bg-slate-200 text-slate-600',
+            'transition-colors disabled:opacity-50',
+          )}
+        >
+          <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
+          {isRefreshing ? 'Refreshing…' : 'Refresh Data'}
+        </button>
+      </div>
 
       {/* Quick Actions */}
       <section className="grid md:grid-cols-2 gap-6">
@@ -154,7 +248,14 @@ export default function Dashboard() {
                 { name: 'SQLite Database', color: 'bg-slate-100 text-slate-800', border: 'border-slate-200' },
               ].map((component, index) => (
                 <div key={component.name} className="flex items-center gap-2">
-                  <span className={cn('px-4 py-2 rounded-full font-medium', component.color, component.border, 'border')}>
+                  <span
+                    className={cn(
+                      'px-4 py-2 rounded-full font-medium',
+                      component.color,
+                      component.border,
+                      'border',
+                    )}
+                  >
                     {component.name}
                   </span>
                   {index < 4 && <span className="text-muted">→</span>}

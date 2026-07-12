@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { AlertTriangle, CheckCircle, Brain, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { topics } from '@/data/mockData';
+import { predict } from '@/services/api';
 import { i18nKeys } from '../i18n/keys';
 
 export default function Prediction() {
@@ -14,51 +14,55 @@ export default function Prediction() {
   const [result, setResult] = useState<{
     prediction: 'depression' | 'normal';
     confidence: number;
-    topic: string;
+    topic: string | undefined;
     riskLevel: 'low' | 'medium' | 'high';
-    highlightedText?: string;
     explanation?: string;
+    modelName?: string;
   } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handlePredict = async () => {
     if (!inputText.trim()) return;
 
     setIsLoading(true);
+    setError(null);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Mock result based on input
-    const hasDepressionIndicators = inputText.includes('cô đơn') ||
-      inputText.includes('mệt mỏi') ||
-      inputText.includes('áp lực') ||
-      inputText.includes('vô nghĩa') ||
-      inputText.includes('buồn') ||
-      inputText.includes('không muốn');
-
-    const randomTopic = topics[Math.floor(Math.random() * topics.length)];
-
-    setResult({
-      prediction: hasDepressionIndicators ? 'depression' : 'normal',
-      confidence: hasDepressionIndicators ? 85 + Math.random() * 14 : 90 + Math.random() * 9,
-      topic: randomTopic.name,
-      riskLevel: hasDepressionIndicators ?
-        (Math.random() > 0.5 ? 'high' : 'medium') : 'low',
-      highlightedText: hasDepressionIndicators ? inputText.split(' ')
-        .filter(w => ['cô đơn', 'mệt mỏi', 'áp lực', 'vô nghĩa', 'buồn', 'không muốn'].some(d => w.includes(d)))
-        .join(' ') : undefined,
-      explanation: hasDepressionIndicators ?
-        `Model nhận diện các cụm từ liên quan đến ${randomTopic.name.toLowerCase()}, ` +
-        `một trong những chủ đề phổ biến trong các văn bản thể hiện dấu hiệu trầm cảm.` :
-        'Văn bản không chứa các chỉ báo rõ ràng về trầm cảm.',
-    });
-
-    setIsLoading(false);
+    try {
+      const res = await predict(inputText);
+      setResult({
+        prediction: res.prediction,
+        confidence: res.confidence,
+        topic: res.topic,
+        riskLevel: res.riskLevel,
+        explanation: res.explanation,
+        modelName: res.modelName,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Prediction failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const confidenceBars = [
-    { label: t(i18nKeys.common.normal), value: result ? (result.prediction === 'normal' ? result.confidence : 100 - result.confidence) : 0, color: 'bg-normal' },
-    { label: t(i18nKeys.common.depression), value: result ? (result.prediction === 'depression' ? result.confidence : 100 - result.confidence) : 0, color: 'bg-depression' },
+    {
+      label: t(i18nKeys.common.normal),
+      value: result
+        ? result.prediction === 'normal'
+          ? result.confidence
+          : 100 - result.confidence
+        : 0,
+      color: 'bg-normal',
+    },
+    {
+      label: t(i18nKeys.common.depression),
+      value: result
+        ? result.prediction === 'depression'
+          ? result.confidence
+          : 100 - result.confidence
+        : 0,
+      color: 'bg-depression',
+    },
   ];
 
   return (
@@ -68,10 +72,15 @@ export default function Prediction() {
         <h1 className="font-display text-3xl font-bold text-dark">
           {t(i18nKeys.prediction.title)}
         </h1>
-        <p className="text-muted">
-          {t(i18nKeys.prediction.description)}
-        </p>
+        <p className="text-muted">{t(i18nKeys.prediction.description)}</p>
       </section>
+
+      {/* Error */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
+          {error}
+        </div>
+      )}
 
       {/* Input Section */}
       <Card>
@@ -106,10 +115,12 @@ export default function Prediction() {
       {result && (
         <div className="space-y-6 animate-slide-up">
           {/* Main Result Card */}
-          <Card className={cn(
-            'overflow-hidden',
-            result.prediction === 'depression' ? 'ring-2 ring-depression/20' : 'ring-2 ring-normal/20'
-          )}>
+          <Card
+            className={cn(
+              'overflow-hidden',
+              result.prediction === 'depression' ? 'ring-2 ring-depression/20' : 'ring-2 ring-normal/20',
+            )}
+          >
             <CardContent className="p-8">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
@@ -123,29 +134,46 @@ export default function Prediction() {
                     </div>
                   )}
                   <div>
-                    <h3 className={cn(
-                      'font-display text-3xl font-bold',
-                      result.prediction === 'depression' ? 'text-depression' : 'text-normal'
-                    )}>
-                      {result.prediction === 'depression' ? t(i18nKeys.common.depression) : t(i18nKeys.common.normal)}
+                    <h3
+                      className={cn(
+                        'font-display text-3xl font-bold',
+                        result.prediction === 'depression' ? 'text-depression' : 'text-normal',
+                      )}
+                    >
+                      {result.prediction === 'depression'
+                        ? t(i18nKeys.common.depression)
+                        : t(i18nKeys.common.normal)}
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <TrendingUp className="w-4 h-4 text-muted" />
                       <span className="text-muted">
-                        {t(i18nKeys.common.confidence)}: <span className="font-mono font-semibold text-dark">{result.confidence.toFixed(1)}%</span>
+                        {t(i18nKeys.common.confidence)}:{' '}
+                        <span className="font-mono font-semibold text-dark">
+                          {(result.confidence * 100).toFixed(1)}%
+                        </span>
                       </span>
                     </div>
+                    {result.modelName && (
+                      <p className="text-xs text-muted mt-0.5">{result.modelName}</p>
+                    )}
                   </div>
                 </div>
 
                 {/* Risk Badge */}
-                <div className={cn(
-                  'px-4 py-2 rounded-full font-semibold text-sm',
-                  result.riskLevel === 'high' && 'bg-depression text-white',
-                  result.riskLevel === 'medium' && 'bg-amber-100 text-amber-800',
-                  result.riskLevel === 'low' && 'bg-normal text-white',
-                )}>
-                  {t(i18nKeys.common.risk)}: {result.riskLevel === 'high' ? t(i18nKeys.risk.high) : result.riskLevel === 'medium' ? t(i18nKeys.risk.medium) : t(i18nKeys.risk.low)}
+                <div
+                  className={cn(
+                    'px-4 py-2 rounded-full font-semibold text-sm',
+                    result.riskLevel === 'high' && 'bg-depression text-white',
+                    result.riskLevel === 'medium' && 'bg-amber-100 text-amber-800',
+                    result.riskLevel === 'low' && 'bg-normal text-white',
+                  )}
+                >
+                  {t(i18nKeys.common.risk)}:{' '}
+                  {result.riskLevel === 'high'
+                    ? t(i18nKeys.risk.high)
+                    : result.riskLevel === 'medium'
+                      ? t(i18nKeys.risk.medium)
+                      : t(i18nKeys.risk.low)}
                 </div>
               </div>
 
@@ -155,7 +183,7 @@ export default function Prediction() {
                   <div key={bar.label}>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-muted">{bar.label}</span>
-                      <span className="font-mono font-medium">{bar.value.toFixed(1)}%</span>
+                      <span className="font-mono font-medium">{(bar.value).toFixed(1)}%</span>
                     </div>
                     <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                       <div
@@ -171,50 +199,30 @@ export default function Prediction() {
 
           {/* Topic & Explanation */}
           <div className="grid md:grid-cols-2 gap-6">
-            <Card hover>
-              <CardContent className="p-6">
-                <h4 className="text-sm font-medium text-muted mb-2">{t(i18nKeys.prediction.detectedTopic)}</h4>
-                <p className="font-display text-xl font-semibold text-primary">
-                  {result.topic}
-                </p>
-              </CardContent>
-            </Card>
+            {result.topic && (
+              <Card hover>
+                <CardContent className="p-6">
+                  <h4 className="text-sm font-medium text-muted mb-2">
+                    {t(i18nKeys.prediction.detectedTopic)}
+                  </h4>
+                  <p className="font-display text-xl font-semibold text-primary">
+                    {result.topic}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
-            <Card hover>
-              <CardContent className="p-6">
-                <h4 className="text-sm font-medium text-muted mb-2">{t(i18nKeys.prediction.explanation)}</h4>
-                <p className="text-dark">
-                  {result.explanation}
-                </p>
-              </CardContent>
-            </Card>
+            {result.explanation && (
+              <Card hover>
+                <CardContent className="p-6">
+                  <h4 className="text-sm font-medium text-muted mb-2">
+                    {t(i18nKeys.prediction.explanation)}
+                  </h4>
+                  <p className="text-dark">{result.explanation}</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
-
-          {/* Highlighted Text */}
-          {result.highlightedText && (
-            <Card>
-              <CardContent className="p-6">
-                <h4 className="text-sm font-medium text-muted mb-3">{t(i18nKeys.prediction.keywords)}</h4>
-                <p className="text-lg">
-                  {inputText.split(' ').map((word, i) => {
-                    const isHighlighted = ['cô đơn', 'mệt mỏi', 'áp lực', 'vô nghĩa', 'buồn', 'không muốn']
-                      .some(d => word.includes(d));
-                    return (
-                      <span
-                        key={i}
-                        className={cn(
-                          'mx-0.5',
-                          isHighlighted && 'bg-depression/20 text-depression font-semibold px-1 rounded'
-                        )}
-                      >
-                        {word}{' '}
-                      </span>
-                    );
-                  })}
-                </p>
-              </CardContent>
-            </Card>
-          )}
         </div>
       )}
     </div>

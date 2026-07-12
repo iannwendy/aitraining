@@ -8,39 +8,45 @@ Web demo cho hệ thống **PhoBERT + BERTopic Depression Detection** trên dữ
 ## ✅ Features Implemented (Hoàn thành)
 
 ### Frontend (React + TypeScript + TailwindCSS)
-- [x] **Dashboard** - Hiển thị metrics tổng quan (sử dụng mock data)
-- [x] **Single Prediction** - Phân tích 1 đoạn text (mock logic, chưa gọi API thật)
-- [x] **Batch Prediction** - Upload CSV để phân tích nhiều comments (mock data)
-- [x] **Topic Analysis** - Hiển thị 6 topics từ BERTopic (static data)
-- [x] **Statistics** - Charts với Recharts (pie, bar, word cloud, confusion matrix)
-- [x] **History** - Lịch sử predictions (local state, chưa persist)
-- [x] **Model Comparison** - So sánh 4 models (TF-IDF+SVM, BiLSTM, PhoBERT, PhoBERT+BERTopic)
+- [x] **Dashboard** - Hiển thị metrics tổng quan từ API thật
+- [x] **Single Prediction** - Phân tích 1 đoạn text, gọi PhoBERT inference
+- [x] **Batch Prediction** - Upload CSV để phân tích nhiều comments (gọi API)
+- [x] **Topic Analysis** - Hiển thị topics từ BERTopic (API thật)
+- [x] **Statistics** - Charts từ real data (confusion matrix, class distribution)
+- [x] **History** - Lịch sử predictions từ SQLite database (persist)
+- [x] **Model Comparison** - So sánh 9 models (TF-IDF, BiLSTM, PhoBERT, DAPT, aug)
 - [x] **UI Components** - Layout, Header, Cards, Buttons với Tailwind
 - [x] **Routing** - React Router với 7 routes
+- [x] **i18n** - Hỗ trợ tiếng Việt/tiếng Anh
 
 ### Backend (FastAPI)
-- [x] **API Endpoints** - 6 endpoints được định nghĩa (mock data)
-- [x] **CORS Middleware** - Cho phép cross-origin requests
-- [x] **Pydantic Models** - Request/Response schemas
+- [x] **PhoBERT Engine** - Load và inference round5 best_model thật
+- [x] **BERTopic Engine** - Topic assignment từ trained model
+- [x] **Metrics Loader** - Đọc metrics từ JSON files (baseline, bilstm, phobert, aug)
+- [x] **DAPT Counter-Experiment** - Hiển thị DAPT results với badges
+- [x] **Results Registry** - Auto-update mechanism cho training rounds
+- [x] **SQLite Database** - Prediction history persistence
+- [x] **Auto-save** - Mỗi prediction tự động lưu vào DB
+- [x] **Hot-reload** - POST /api/models/refresh để reload không cần restart
 - [x] **Health Check** - `/api/health` endpoint
+- [x] **CORS Middleware** - Cho phép cross-origin requests
 
 ### Dev Environment
 - [x] **Frontend Dev Server** - Vite chạy trên port 3000
-- [x] **Backend Dev Server** - Uvicorn chạy trên port 8001
-- [x] **Docker Setup** - Dockerfile và docker-compose.yml
+- [x] **Backend Dev Server** - Uvicorn chạy trên port 8000 (đã fix)
+- [x] **Docker Setup** - Multi-stage Dockerfile + docker-compose với volume mounts
+- [x] **GPU Support** - Dockerfile hỗ trợ MPS (Apple Silicon) / CUDA
 
 ---
 
 ## 🔄 In Progress / Partially Implemented (Đang làm dở)
 
 ### Backend
-- [ ] **Model Loading** - Chưa load thực sự PhoBERT model
-- [ ] **Real Prediction** - API `/api/predict` trả về mock data, chưa inference thật
-- [ ] **BERTopic Integration** - Chưa khởi tạo BERTopic service
+- [ ] **BiLSTM Engine** - Chưa có vì heavy (vocab.json + model.pt inference phức tạp)
+- [ ] **TF-IDF Engine** - Chưa cần thiết (PhoBERT đã tốt hơn)
 
 ### Frontend
-- [ ] **API Integration** - Phần lớn pages sử dụng mock data thay vì gọi API
-- [ ] **Vite Proxy Config** - Đang trỏ đến port 8000, cần cập nhật sang 8001
+- [ ] **Scatter Chart** - ModelComparison dùng ScatterChart nhưng chưa vẽ điểm đúng (Recharts Scatter dùng pixel coords chứ không phải data coords)
 
 ---
 
@@ -48,50 +54,32 @@ Web demo cho hệ thống **PhoBERT + BERTopic Depression Detection** trên dữ
 
 ### Critical (Cần thiết cho đề tài)
 
-#### 1. Real Model Integration
-- [ ] Load PhoBERT model từ `models/bilstm/phobert/`
-- [ ] Implement inference pipeline cho depression detection
-- [ ] Integrate data augmentation models (nếu cần)
-- [ ] Handle GPU/CPU device selection
-
-#### 2. BERTopic Integration
-- [ ] Load BERTopic model đã train
-- [ ] Topic inference cho new texts
-- [ ] Dynamic topic visualization
-
-#### 3. Real Data Integration
-- [ ] Connect với YouTube crawler data (comments đã crawl)
-- [ ] Database schema cho predictions history (SQLite/PostgreSQL)
-- [ ] Batch processing với dữ liệu thật từ YouTube
-
-#### 4. API Backend Enhancement
-- [ ] Fix proxy config (port 8001 thay vì 8000)
-- [ ] Real-time prediction endpoint
-- [ ] Batch prediction với file upload thật
-- [ ] Export results sang CSV/Excel
-
-### Important (Nâng cao trải nghiệm)
-
-#### 5. YouTube Integration
+#### 1. YouTube Integration
 - [ ] Paste YouTube video URL để fetch comments
 - [ ] Analyze all comments từ 1 video
 - [ ] Display video metadata (title, channel, view count)
 
-#### 6. Enhanced Statistics
-- [ ] Real-time metrics từ model evaluation
-- [ ] Interactive charts (filter by date range, topic)
-- [ ] Export statistics report
+#### 2. Error Handling
+- [ ] Loading states cho tất cả pages (đã có skeleton nhưng chưa hoàn chỉnh)
+- [ ] Error boundaries / retry logic
+- [ ] API timeout handling
 
-#### 7. User Features
-- [ ] Save predictions to database
-- [ ] User authentication (optional)
-- [ ] Share prediction results
-
-#### 8. Deployment
-- [ ] Environment variables configuration
-- [ ] Production build optimization
-- [ ] Docker deployment với GPU support
+#### 3. Deployment
+- [ ] GPU support trong Docker (CUDA base image)
 - [ ] CI/CD pipeline
+- [ ] Production build optimization
+
+### Important (Nâng cao trải nghiệm)
+
+#### 4. Interactive Features
+- [ ] Date range filter cho charts
+- [ ] Topic filter cho batch prediction results
+- [ ] Prediction sharing (copy link / share to social)
+
+#### 5. User Features
+- [ ] User authentication
+- [ ] Multi-user prediction history
+- [ ] Export statistics report as PDF
 
 ---
 
@@ -99,61 +87,36 @@ Web demo cho hệ thống **PhoBERT + BERTopic Depression Detection** trên dữ
 
 Để web demo bám sát đề tài nghiên cứu:
 
-### Research Components → Demo Features
 | Research Component | Demo Feature | Status |
-|-------------------|--------------|--------|
+|-------------------|-------------|--------|
 | PhoBERT + BERTopic Model | Model Comparison | ✅ Done |
-| Vietnamese YouTube Comments | Batch Prediction + YouTube Integration | ❌ Need real data |
-| Active Learning (Round 4) | Model training status | ❌ Not shown |
-| Data Augmentation | Augmented data indicator | ❌ Not shown |
-| Cross-domain Evaluation | Domain adaptation stats | ❌ Not shown |
+| Vietnamese YouTube Comments | Batch Prediction | ✅ Done |
+| Active Learning (Round 5) | Results Registry + Refresh | ✅ Done |
+| Data Augmentation | Model Comparison (+aug variants) | ✅ Done |
+| Cross-domain Evaluation (VSMEC) | Cross-Domain F1 column | ✅ Done |
+| DAPT Counter-Experiment | DAPT badge + note | ✅ Done |
 | BERTopic Topics | Topic Analysis Page | ✅ Done |
-| Depression Detection | Prediction Page | 🔄 Mock only |
-
-### Missing Research Elements to Demo
-- [ ] Show active learning rounds progress
-- [ ] Display data augmentation statistics
-- [ ] Cross-domain performance metrics
-- [ ] Model training history
-- [ ] Sample efficiency (labeled vs unlabeled data)
+| Depression Detection | Prediction Page | ✅ Done |
+| History Persistence | SQLite DB | ✅ Done |
 
 ---
 
 ## 🛠 Technical Debt
 
-1. **Port mismatch**: Vite proxy → 8000, Backend → 8001
-2. **Mock data leakage**: Nhiều components dùng mock thay vì API
-3. **No persistence**: History không được lưu vào database
-4. **No error handling**: Chưa có loading states, error boundaries
-5. **No caching**: API responses không được cache
+1. ~~**Port mismatch**~~ ✅ Fixed: Vite proxy → 8000, Backend → 8000
+2. ~~**Mock data leakage**~~ ✅ Fixed: Tất cả pages gọi API thật
+3. ~~**No persistence**~~ ✅ Fixed: SQLite database cho history
+4. ~~**No auto-update**~~ ✅ Fixed: Results Registry + hot-reload endpoint
+5. **BiLSTM inference** - Chưa implement (heavy, cần vocab + model.pt loading)
+6. **YouTube crawler integration** - Chưa có endpoint fetch comments từ URL
 
 ---
 
-## 🚀 Priority Tasks
+## 🚀 Next Steps (Sau khi Round 5 merge xong)
 
-### Week 1: Core Functionality
-1. [ ] Fix Vite proxy config (port 8001)
-2. [ ] Connect frontend to real backend API
-3. [ ] Load và serve PhoBERT model
-4. [ ] Implement real single prediction endpoint
-
-### Week 2: Data Pipeline
-5. [ ] Integrate YouTube data source
-6. [ ] Implement batch prediction với real data
-7. [ ] Add SQLite database cho history
-8. [ ] Implement BERTopic topic inference
-
-### Week 3: Research Integration
-9. [ ] Add active learning round indicator
-10. [ ] Display data augmentation stats
-11. [ ] Show cross-domain evaluation results
-12. [ ] Add model training timeline
-
-### Week 4: Polish
-13. [ ] Error handling và loading states
-14. [ ] Performance optimization
-15. [ ] Documentation
-16. [ ] Deployment setup
+1. Chạy `scripts/merge_round5_active_learning.py` sau khi có labels từ Label Studio
+2. Train lại models với dataset mới (6,079 → ~8,000+ rows)
+3. Gọi `POST /api/models/refresh` — dashboard tự update mà không cần code change
 
 ---
 
@@ -161,34 +124,50 @@ Web demo cho hệ thống **PhoBERT + BERTopic Depression Detection** trên dữ
 
 ```
 web_demo/
-├── frontend/
-│   ├── src/
-│   │   ├── pages/
-│   │   │   ├── Dashboard.tsx      # Metrics overview
-│   │   │   ├── Prediction.tsx     # Single text analysis (MOCK)
-│   │   │   ├── BatchPrediction.tsx # CSV upload (MOCK)
-│   │   │   ├── Topics.tsx         # BERTopic topics
-│   │   │   ├── Statistics.tsx     # Charts
-│   │   │   ├── History.tsx        # Prediction history
-│   │   │   └── ModelComparison.tsx # Model comparison
-│   │   ├── services/api.ts        # API client (not fully used)
-│   │   └── data/mockData.ts       # Mock data (needs real integration)
-│   └── vite.config.ts             # Proxy config (needs fix)
 ├── backend/
-│   ├── main.py                    # FastAPI app (MOCK endpoints)
-│   └── requirements.txt
-└── TODO.md                        # This file
+│   ├── main.py                    # FastAPI app với real inference
+│   ├── database.py                # SQLite CRUD
+│   ├── requirements.txt           # ML dependencies
+│   ├── Dockerfile                # Multi-stage build
+│   └── inference/
+│       ├── phobert_engine.py     # PhoBERT classification
+│       ├── bertopic_engine.py    # BERTopic topic assignment
+│       ├── metrics_loader.py      # Parse metrics JSON files
+│       └── registry.py           # Results registry reader/writer
+├── src/
+│   ├── pages/
+│   │   ├── Dashboard.tsx         # Stats từ API
+│   │   ├── Prediction.tsx        # Single prediction
+│   │   ├── BatchPrediction.tsx  # CSV batch prediction
+│   │   ├── Topics.tsx           # BERTopic topics
+│   │   ├── Statistics.tsx        # Confusion matrix + distribution
+│   │   ├── History.tsx          # SQLite-backed history
+│   │   └── ModelComparison.tsx   # 9 models + DAPT + scatter
+│   ├── services/api.ts           # API client
+│   └── types/index.ts            # TypeScript interfaces
+├── vite.config.ts                # Proxy → localhost:8000
+└── docker-compose.yml            # Volume mounts: models/, data/, backend/
 ```
 
 ---
 
-## 🔗 External Resources
+## 🔗 Model Paths (Docker)
 
-- PhoBERT Model: `models/bilstm/phobert/model.pt`
-- Random Init Model: `models/bilstm/random/model.pt`
-- Active Learning Data: `docs/label_studio_round4_active_learning_*.csv`
-- Research Paper: Báo cáo trong repo
+```
+/app/models/                       ← mounted from project/models/
+  round5_predictions/best_model/   ← PhoBERT fine-tuned (latest)
+  phobert_base_local/            ← PhoBERT tokenizer
+  bertopic/bertopic_model.pkl    ← BERTopic trained model
+  bilstm/                        ← BiLSTM checkpoints
+  tfidf_*.joblib                ← TF-IDF baseline models
+
+/app/data/                        ← mounted from project/data/
+  gold_review.csv                ← 3,020 human-labeled
+  final_dataset.csv              ← 6,079 total
+  cleaned_comments.csv           ← 125,329 comments
+  predictions.db                 ← SQLite history (created at runtime)
+```
 
 ---
 
-*Last Updated: 2026-07-03*
+*Last Updated: 2026-07-11*

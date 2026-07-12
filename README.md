@@ -19,21 +19,16 @@ worth the compute cost for a low-resource downstream task?
 
 ## Headline Results
 
-**Table 1 — Five-model comparison (multi-seed for BiLSTM and PhoBERT).**
+**Table 1 — PhoBERT results (post-round-4 dataset, 3 seeds: 42, 123, 2024).**
 
-| Model variant               | In-domain F1-macro | Cross-domain F1-macro |
-|-----------------------------|--------------------|----------------------|
-| TF-IDF + LogReg             | 0.8415             | 0.3780               |
-| TF-IDF + LinearSVC          | 0.8799             | 0.3574               |
-| BiLSTM (random embedding)   | 0.8145 ± 0.0244   | 0.4690 ± 0.0601     |
-| BiLSTM (PhoBERT-frozen)     | 0.8244 ± 0.0044   | 0.4344 ± 0.0008     |
-| **PhoBERT (original)**      | **0.8417 ± 0.0220** | **0.3850 ± 0.0219** |
-| BERTopic-only               | 0.5599             | 0.5030               |
-| PhoBERT + BERTopic          | 0.8497             | 0.4406               |
+| Model               | In-domain F1-macro | Cross-domain F1-macro |
+|---------------------|--------------------|----------------------|
+| **PhoBERT (original)** | **0.8417 ± 0.0220** | **0.3850 ± 0.0219** |
 
-_TF-IDF baselines are single-seed; BiLSTM and PhoBERT are mean ± std over three seeds (42, 123, 2024).
-Numbers are from post-round-4 dataset (6,079 rows: 4,255 train / 912 val / 912 test).
-DAPT counter-experiment below adds the missing statistical rigor for PhoBERT._
+_Results are mean ± std over three seeds. Evaluated on post-round-4 dataset
+(6,079 rows: 4,255 train / 912 val / 912 test). Cross-domain test: VSMEC (3,084 rows).
+Baseline models (TF-IDF, BiLSTM) and BERTopic results from pre-round-4 evaluation
+remain in [`docs/paper_report.html`](docs/paper_report.html)._
 
 **Table 2 — Domain-adaptive pretraining counter-experiment (3 seeds: 42, 123, 2024).**
 
@@ -83,15 +78,15 @@ checkpoint differs. Numbers reproduce verbatim from
 |------------------------------------------------|-------------|----------------------------------------|
 | `data/cleaned_comments.csv`                    | 125,329 rows | Cleaned YouTube comments              |
 | `data/auto_labeled_comments.csv`               | 125,329 rows | Weak labels via keyword scoring      |
-| `data/gold_review.csv`                         | 2,515 rows   | Blind human-reviewed subset (post round-3) |
-| `data/train_gold.csv`                          | 3,020 rows   | Merged gold set (post round-4)         |
-| `data/final_dataset.csv`                       | 6,079 rows   | Gold + weak_high_conf (post round-4)  |
+| `data/gold_review.csv`                         | 3,020 rows   | Blind human-reviewed gold set (post round-4) |
+| `data/final_dataset.csv`                       | 6,079 rows   | Gold + weak_high_conf + pseudo-label (post round-4) |
 | `data/final_train.csv`                         | 4,255 rows   | Training set (post round-4)            |
-| `data/final_val.csv`                           | 912 rows     | Validation split (post round-4)      |
-| `data/final_test.csv`                          | 912 rows     | In-domain test (post round-4)        |
+| `data/final_val.csv`                           | 913 rows     | Validation split (post round-4)      |
+| `data/final_test.csv`                          | 913 rows     | In-domain test (post round-4)        |
 | `data_unified/cross_domain_test.csv`           | 3,084 rows   | VSMEC cross-domain test (held out)    |
 | `data_unified/corpus_text_all.csv`             | 316,401 rows | YouTube + 8 external Vietnamese sets |
 | `results/domain_adapted_eval_<ts>/`            | 12 runs      | DAPT counter-experiment metrics (3 seeds × 2 models × 2 test sets) |
+| `results/round4_final_eval_<ts>/`             | 6 runs       | PhoBERT multi-seed evaluation (3 seeds × 2 test sets) |
 
 The `weight` column in `final_train.csv` (values 1/2/3 for
 phobert_v2_confident / weak_high_conf / human_gold) is consumed by
@@ -115,6 +110,36 @@ single command in the next section before re-running the DAPT
 evaluation. Adding a classification head and fine-tuning follows the
 same procedure as for the base checkpoint; no further adaptation is
 performed at inference.
+
+## Web Demo
+
+A React + FastAPI web demo is available in [`web_demo/`](web_demo/) for
+live depression detection and model comparison.
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Dashboard** | Overview metrics from real API |
+| **Single Prediction** | PhoBERT inference on single text |
+| **Batch Prediction** | Upload CSV for bulk analysis |
+| **Topic Analysis** | BERTopic topic visualization |
+| **Statistics** | Confusion matrix, class distribution |
+| **History** | SQLite-backed prediction history |
+| **Model Comparison** | Compare 9 model variants (TF-IDF, BiLSTM, PhoBERT, DAPT, aug) |
+
+### Running the Demo
+
+```bash
+# Development (two terminals)
+cd web_demo/backend && uvicorn main:app --reload --port 8000
+cd web_demo && npm run dev
+
+# Docker (all-in-one)
+cd web_demo && docker-compose up --build
+```
+
+Demo runs on http://localhost:3000 (frontend) with API at http://localhost:8000.
 
 ## Pipeline Layout
 

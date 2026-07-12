@@ -20,8 +20,13 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
-      - ../../models:/app/models  # Mount trained models
-      - ../../docs:/app/docs      # Mount docs (for CSV data)
+      - ../models:/app/models             # Trained model weights
+      - ../data:/app/data                 # CSV datasets (gold_review, final_dataset, etc.)
+      - ../data_unified:/app/data_unified  # VSMEC cross-domain test
+      - ./backend/data:/app/backend/data  # SQLite database
+    environment:
+      - PHOBERT_DEVICE=mps                # or cuda, cpu
+      - HF_HUB_OFFLINE=1
     networks:
       - app-network
 
