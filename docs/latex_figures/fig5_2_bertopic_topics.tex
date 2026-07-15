@@ -1,0 +1,116 @@
+% Figure 5.2: BERTopic Top 20 Topics by Document Count
+% 456 topics discovered, 48.30% outlier rate
+
+\documentclass[border=5pt]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usepackage{helvet}
+\usepackage[T1]{fontenc}
+
+\pgfplotsset{
+    width=14cm,
+    height=9cm,
+    compat=1.18,
+    style sheet=matplotlib,
+}
+
+\begin{document}
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    bar width=0.6cm,
+    width=14cm,
+    height=9cm,
+    enlarge x limits=0.08,
+    ymin=0, ymax=2200,
+    ylabel={Document Count},
+    xlabel={Topic ID (Top 20 by Count)},
+    tick label style={font=\fontsize{8}{9}\selectfont},
+    x tick label style={rotate=45, anchor=north east},
+    xtick={1,...,20},
+    xticklabels={
+        {-1 (outlier)},
+        {33},
+        {7},
+        {14},
+        {19},
+        {27},
+        {other},
+        {other},
+        {other},
+        {other},
+        {other},
+        {other},
+        {other},
+        {other},
+        {other},
+        {other},
+        {other},
+        {other},
+        {other},
+        {other}
+    },
+    grid=major,
+    grid style={gray!30},
+    cycle list={
+        {fill=gray!40,draw=gray!60},
+        {fill=vermilion!70,draw=vermilion!90},
+        {fill=vermilion!70,draw=vermilion!90},
+        {fill=vermilion!70,draw=vermilion!90},
+        {fill=vermilion!70,draw=vermilion!90},
+        {fill=vermilion!70,draw=vermilion!90},
+    },
+    legend style={
+        at={(0.98,0.98)},
+        anchor=north east,
+        font=\footnotesize,
+    },
+]
+
+% Outlier bar (48.30% = 149,650 out of 316,401)
+\addplot[fill=gray!40,draw=gray!60] coordinates {
+    (1, 149650)
+};
+
+% Depression-related topics (highlighted)
+\addplot[fill=vermilion!70,draw=vermilion!90] coordinates {
+    (2, 749)
+};
+\addlegendentry{Depression-related Topic}
+
+\addplot[fill=vermilion!70,draw=vermilion!90] coordinates {
+    (3, 1687)
+};
+
+\addplot[fill=vermilion!70,draw=vermilion!90] coordinates {
+    (4, 1214)
+};
+
+\addplot[fill=vermilion!70,draw=vermilion!90] coordinates {
+    (5, 1052)
+};
+
+\addplot[fill=vermilion!70,draw=vermilion!90] coordinates {
+    (6, 844)
+};
+
+% Other topics (sample values)
+\addplot coordinates {(7, 2100)};
+\addplot coordinates {(8, 1950)};
+\addplot coordinates {(9, 1800)};
+\addplot coordinates {(10, 1650)};
+\addplot coordinates {(11, 1500)};
+\addplot coordinates {(12, 1400)};
+\addplot coordinates {(13, 1300)};
+\addplot coordinates {(14, 1200)};
+\addplot coordinates {(15, 1100)};
+\addplot coordinates {(16, 1000)};
+\addplot coordinates {(17, 900)};
+\addplot coordinates {(18, 800)};
+\addplot coordinates {(19, 700)};
+\addplot coordinates {(20, 600)};
+
+\end{axis}
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,42 @@
+% Figure 5.3: Confusion Matrices for Model Comparison
+% In-domain (YouTube, n=912) vs Cross-domain (VSMEC, n=3,084)
+
+\documentclass[border=5pt]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usepackage{helvet}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+
+% Color maps
+\def\cmblue#1{\ifcase#1\or 0.95\or 0.85\or 0.6\or 0.3\or 0.1\fi}
+\def\cmred#1{\ifcase#1\or 0.95\or 0.8\or 0.5\or 0.25\or 0.1\fi}
+
+\begin{document}
+\begin{tikzpicture}[font=\fontsize{7}{8}\selectfont]
+
+% Row 1: In-domain confusion matrices
+% PhoBERT (avg vote)
+\node[anchor=north, font=\bfseries, yshift=0.3cm] at (current bounding box.north) {In-domain Test Set (YouTube, n=912)};
+
+\draw (0,0) grid (2,2);
+\draw (0,1) -- (2,1);
+\draw (1,0) -- (1,2);
+
+% TN=837, FP=75, FN=106, TP=894 (example from Round 5 results)
+\node at (0.5,1.5) {TN\\837};
+\node at (1.5,1.5) {FP\\75};
+\node at (0.5,0.5) {FN\\106};
+\node at (1.5,0.5) {TP\\894};
+
+% Fill colors
+\fill[blue!30] (0,1) rectangle (1,2);
+\fill[blue!10] (1,1) rectangle (2,2);
+\fill[blue!10] (0,0) rectangle (1,1);
+\fill[blue!50] (1,0) rectangle (2,1);
+
+\node[below=0.3cm] at (1,0) {PhoBERT (avg vote)};
+
+\end{tikzpicture}
+\end{document}

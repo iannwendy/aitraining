@@ -1,0 +1,90 @@
+% Figure 1.1: Conceptual Framework
+% Three-layer diagram linking clinical screening to social media signal to ML pipeline
+
+\documentclass[border=5pt]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, calc, shadows.blur}
+
+\begin{document}
+\begin{tikzpicture}[
+    node distance=1.2cm and 0.8cm,
+    box/.style={
+        rectangle,
+        rounded corners=3pt,
+        draw=#1,
+        fill=#1!15,
+        line width=1pt,
+        minimum width=4cm,
+        minimum height=1cm,
+        align=center,
+        font=\footnotesize
+    },
+    arrow/.style={
+        ->,
+        >=stealth,
+        line width=1.5pt
+    },
+    layer/.style={
+        rectangle,
+        rounded corners=5pt,
+        draw=#1!60,
+        fill=#1!10,
+        line width=1.5pt,
+        minimum width=14cm,
+        minimum height=2.5cm,
+        align=center,
+        font=\large\bfseries
+    }
+]
+
+% Layer 1: Clinical Reality (vermillion)
+\node[layer=vermilion, label={[vermilion!80!black]north:Layer 1: Clinical Reality (DSM-5, PHQ-9)}]
+    (layer1) at (0,0) {
+        \begin{tabular}{ccc}
+            \node[box=vermilion] {Major Depressive\\Disorder} &
+            \node[box=vermilion] {Structural Barriers:\\Stigma, Workforce Shortage} &
+            \node[box=vermilion] {PHQ-9 Self-Report\\Requirement} \\
+        \end{tabular}
+    };
+
+% Layer 2: Social Media Signal (blue)
+\node[layer=blue, yshift=-4cm, label={[blue!80!black]north:Layer 2: Social Media Signal (YouTube)}]
+    (layer2) at (0,0) {
+        \begin{tabular}{c}
+            \node[box=blue] {125,329 Vietnamese YouTube Comments} \\
+            \node[box=blue!70!green] {Ecologically Valid Linguistic Behavior} \\
+        \end{tabular}
+    };
+
+% Layer 3: ML Pipeline (green)
+\node[layer=green!70!black, yshift=-8cm, label={[green!70!black]north:Layer 3: Machine Learning Pipeline (This Work)}]
+    (layer3) at (0,0) {
+        \begin{tabular}{ccccc}
+            \node[box=green] {Weak\\Labeling} &
+            $\rightarrow$ &
+            \node[box=green] {Blind\\Annotation} &
+            $\rightarrow$ &
+            \node[box=green] {PhoBERT\\Training} \\
+        \end{tabular}
+    };
+
+% Evaluation boxes (highlighted)
+\node[layer=orange!80!red, yshift=-11.5cm, label={[orange!80!black]north:Evaluation Scope (This Work)}]
+    (eval) at (0,0) {
+        \begin{tabular}{ccc}
+            \node[box=orange, draw=orange, line width=2pt] {In-domain\\YouTube (n=912)} &
+            \node{$\Delta F1$} &
+            \node[box=orange, draw=orange, line width=2pt] {Cross-domain\\VSMEC (n=3,084)} \\
+        \end{tabular}
+    };
+
+% Arrows between layers
+\draw[arrow, vermillion] (layer1) -- (layer2)
+    node[midway, right, font=\tiny] {0.2 psychiatrists per 100,000 population};
+\draw[arrow, blue] (layer2) -- (layer3);
+\draw[arrow, orange!80!red] (layer3) -- (eval)
+    node[midway, right, font=\tiny] {$\Delta F1 \approx 0.37$ (Round 5)};
+
+\end{tikzpicture}
+\end{document}

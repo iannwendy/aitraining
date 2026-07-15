@@ -1,0 +1,91 @@
+% Figure 4.1: Model Training and Evaluation Phase
+% Pipeline overview within overall research pipeline
+
+\documentclass[border=5pt]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, calc, shadows.blur,fit}
+
+\begin{document}
+\begin{tikzpicture}[
+    node distance=0.8cm and 0.5cm,
+    box/.style={
+        rectangle,
+        rounded corners=3pt,
+        draw=#1,
+        fill=#1!15,
+        line width=1pt,
+        minimum width=2.2cm,
+        minimum height=0.9cm,
+        align=center,
+        font=\tiny
+    },
+    step/.style={
+        rectangle,
+        rounded corners=3pt,
+        draw=#1,
+        fill=#1!20,
+        line width=1.5pt,
+        minimum width=3cm,
+        minimum height=1cm,
+        align=center,
+        font=\tiny\bfseries
+    },
+    arrow/.style={
+        ->,
+        >=stealth,
+        line width=1pt,
+        #1
+    },
+    layer/.style={
+        rectangle,
+        rounded corners=5pt,
+        draw=#1!60,
+        fill=#1!8,
+        line width=1.5pt,
+        inner sep=0.3cm
+    }
+]
+
+% Chapter 3 Layer
+\node[layer=blue, minimum width=15cm] (ch3) {
+    \begin{tabular}{p{2cm}p{11cm}}
+        \node[anchor=east, font=\large\bfseries, blue!80!black, rotate=90] {Ch. 3}; &
+        \begin{tikzpicture}[node distance=0.3cm and 0.2cm]
+            \node[box=blue] (crawl) {Crawl};
+            \node[box=blue, right=of crawl] (clean) {Clean};
+            \node[box=blue, right=of clean] (external) {External Data};
+            \node[box=blue, right=of external] (corpus) {Unified Corpus};
+            \node[box=blue, below=of crawl] (weak) {Weak Label};
+            \node[box=blue, below=of weak] (annotate) {Annotation};
+            \draw[arrow=blue] (crawl) -- (clean);
+            \draw[arrow=blue] (clean) -- (external);
+            \draw[arrow=blue] (external) -- (corpus);
+            \draw[arrow=blue] (corpus) -- ++(1.5,0) |- (weak);
+            \draw[arrow=blue] (weak) -- (annotate);
+        \end{tikzpicture}
+    \end{tabular}
+};
+
+% Chapter 4 Layer
+\node[layer=green!70!black, below=2cm of ch3, minimum width=15cm] (ch4) {
+    \begin{tabular}{p{2cm}p{11cm}}
+        \node[anchor=east, font=\large\bfseries, green!70!black, rotate=90] {Ch. 4}; &
+        \begin{tikzpicture}[node distance=0.5cm and 0.3cm]
+            \node[step=green!60!black, fill=green!15] (final) {Step 11: Build final\_dataset.csv\\(6,080 samples, multi-source)};
+            \node[step=green!60!black, below=of final] (train) {Step 12-13: Train 5 models + BERTopic};
+            \node[step=green!60!black, fill=orange!20, draw=orange, line width=2pt, right=of final] (eval1) {Step 14: In-domain Test\\(YouTube, n=912)};
+            \node[step=green!60!black, fill=orange!20, draw=orange, line width=2pt, right=of train] (eval2) {Step 15: Cross-domain Test\\(VSMEC, n=3,084)};
+            \draw[arrow=green] (final) -- (train);
+            \draw[arrow=green] (train) -- ++(1.5,0) |- (eval1);
+            \draw[arrow=green] (train) -- ++(1.5,0) |- (eval2);
+        \end{tikzpicture}
+    \end{tabular}
+};
+
+% Connecting arrow
+\draw[arrow=black, line width=2pt] (ch3) -- (ch4)
+    node[midway, right, font=\tiny] {15-step pipeline};
+
+\end{tikzpicture}
+\end{document}

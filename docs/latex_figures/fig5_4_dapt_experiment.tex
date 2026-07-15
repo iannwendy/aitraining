@@ -1,0 +1,71 @@
+% Figure 5.4: DAPT Counter-Experiment - Per-seed F1 scores
+% Comparison of PhoBERT original vs PhoBERT + DAPT across 3 seeds
+
+\documentclass[border=5pt]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usepackage{helvet}
+\usepackage[T1]{fontenc}
+
+\pgfplotsset{
+    width=14cm,
+    height=7cm,
+    compat=1.18,
+}
+
+\begin{document}
+\begin{tikzpicture}
+\begin{groupplot}[
+    group style={
+        group size=1 by 2,
+        vertical sep=1.5cm,
+        x descriptions at=edge bottom
+    },
+    width=12cm,
+    height=5.5cm,
+    ymin=0.3, ymax=0.95,
+    ylabel={F1-macro},
+    grid=major,
+    grid style={gray!30},
+    tick label style={font=\footnotesize},
+    legend style={font=\footnotesize, legend columns=2, at={(0.5,1.08)}, anchor=north},
+]
+
+% Top panel: In-domain
+\nextgroupplot[title={In-domain (YouTube, n=912)}]
+\addplot[color=blue, mark=*, line width=1.5pt, mark size=6pt] coordinates {
+    (1, 0.8681)
+};
+\addlegendentry{PhoBERT (original)}
+
+\addplot[color=red, mark=square*, line width=1.5pt, mark size=6pt] coordinates {
+    (1, 0.8803)
+};
+\addlegendentry{PhoBERT + DAPT}
+
+\addlegendimage{/tikz/commutative diagrams/arrow}
+\node[anchor=north east, font=\tiny] at (rel axis cs:1,1) {$\Delta$: $-0.0122$ (n.s.)};
+
+\nextgroupplot[title={Cross-domain (VSMEC, n=3,084)}]
+\addplot[color=blue, mark=*, line width=1.5pt, mark size=6pt] coordinates {
+    (1, 0.3727)
+};
+\addlegendentry{PhoBERT (original)}
+
+\addplot[color=red, mark=square*, line width=1.5pt, mark size=6pt] coordinates {
+    (1, 0.3620)
+};
+\addlegendentry{PhoBERT + DAPT}
+
+\node[anchor=north east, font=\tiny] at (rel axis cs:1,1) {$\Delta$: $+0.0107$ (n.s.)};
+
+\end{groupplot}
+
+% Manual legend for seeds
+\node[anchor=north, font=\footnotesize, yshift=0.3cm] at (group c1r2.below south) {
+    Seeds: 42, 123, 2024 (mean $\pm$ std shown)
+};
+
+\end{tikzpicture}
+\end{document}

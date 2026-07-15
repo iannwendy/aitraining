@@ -1,0 +1,72 @@
+% Figure 2.1: Methodological Taxonomy
+% Three-branch taxonomy of NLP approaches to depression detection
+
+\documentclass[border=5pt]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, calc, shadows.blur}
+
+\begin{document}
+\begin{tikzpicture}[
+    level distance=2cm,
+    growth parent anchor=south,
+    edge from parent fork down,
+    sibling distance=3cm,
+    node distance=1cm,
+    every node/.style={
+        rectangle,
+        rounded corners=3pt,
+        draw,
+        fill=#1!15,
+        line width=1pt,
+        minimum width=2.5cm,
+        minimum height=0.8cm,
+        align=center,
+        font=\tiny
+    },
+    level 1/.style={level distance=2.5cm},
+    level 2/.style={level distance=2cm},
+    arrow/.style={
+        ->,
+        >=stealth,
+        line width=1pt,
+        draw=gray!60
+    }
+]
+
+\node[fill=gray!20, minimum width=4cm, font=\footnotesize\bfseries] (root) {NLP Approaches to\\Depression Detection}
+child {
+    node[fill=gray!30] {Lexicon-based\\LIWC, ANEW}
+    child { node[fill=gray!20] {Context-blind} edge from parent[arrow] }
+    child { node[fill=gray!20] {Language-specific} edge from parent[arrow] }
+}
+child {
+    node[fill=blue!20] {Traditional ML\\TF-IDF + SVM/LR/RF}
+    child { node[fill=blue!15] {Feature engineering} edge from parent[arrow] }
+    child { node[fill=blue!15] {Shallow semantics} edge from parent[arrow] }
+}
+child {
+    node[fill=blue!40] {Deep Learning\\BERT, RoBERTa}
+    child {
+        node[fill=blue!25] {Generic Pretrained\\BERT, RoBERTa}
+        child { node[fill=blue!15, green!20] {MentalBERT, PsychBERT} edge from parent[arrow] }
+    }
+    child {
+        node[fill=green!30, draw=green, line width=2pt, minimum width=3cm] {PhoBERT (This Work)\\F1: 0.8596 / 0.4937}
+    }
+};
+
+% Legend box
+\node[anchor=north west, draw, fill=white, font=\tiny] at (-5,2) {
+    \begin{tabular}{l}
+        \textbf{This Work (Round 5):} \\
+        PhoBERT F1-macro: 0.8596 (in-domain) \\
+        Cross-domain F1: 0.4937 (+0.1210) \\
+        Dataset: 6,080 samples \\
+        Active Learning: 5 rounds \\
+        Generalization Gap: $\Delta$0.37 \\
+    \end{tabular}
+};
+
+\end{tikzpicture}
+\end{document}
