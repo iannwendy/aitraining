@@ -1,11 +1,14 @@
 % Figure 5.4: DAPT Counter-Experiment
-% PhoBERT Original vs PhoBERT + DAPT
 
-\documentclass[border=5pt]{standalone}
+\documentclass[border=5pt,convert={density=300}]{standalone}
 \usepackage[utf8]{inputenc}
 \usepackage{pgfplots}
 \usepackage{helvet}
 \usepackage[T1]{fontenc}
+
+% Define colors
+\definecolor{myblue}{RGB}{59,130,246}
+\definecolor{myred}{RGB}{239,68,68}
 
 \pgfplotsset{
     width=13cm,
@@ -18,12 +21,12 @@
 \begin{axis}[
     width=13cm,
     height=7cm,
-    ybar=0.3cm,
-    bar width=0.8cm,
+    ybar=0.2cm,
+    bar width=0.6cm,
     enlarge x limits=0.4,
     ymin=0, ymax=1,
     ylabel={F1-macro},
-    title={DAPT Counter-Experiment: PhoBERT Original vs. PhoBERT + DAPT},
+    title={DAPT Counter-Experiment},
     title style={font=\footnotesize},
     tick label style={font=\tiny},
     grid=major,
@@ -37,36 +40,32 @@
         {Cross-domain\\+ DAPT}
     },
     x tick label style={rotate=0, anchor=north, yshift=-0.5cm},
-    cycle list={
-        {fill=blue!60,draw=blue!80},
-        {fill=red!60,draw=red!80},
-    },
     legend style={
-        at={(0.5,1.08)},
+        at={(0.5,1.1)},
         anchor=north,
         legend columns=2,
         font=\tiny
     },
 ]
 
-% Original models (blue)
-\addplot coordinates {
+% Original (blue)
+\addplot[fill=myblue,draw=myblue!80] coordinates {
     (1, 0.8681)
     (3, 0.3727)
 };
 \addlegendentry{PhoBERT (Original)}
 
-% DAPT models (red)
-\addplot coordinates {
+% DAPT (red)
+\addplot[fill=myred,draw=myred!80] coordinates {
     (2, 0.8803)
     (4, 0.3620)
 };
 \addlegendentry{PhoBERT + DAPT}
 
 % Annotations
-\node[anchor=south, font=\tiny, blue!70!black] at (axis cs:1,0.88) {$\Delta = -0.0122$};
-\node[anchor=south, font=\tiny, red!70!black] at (axis cs:2,0.90) {(n.s.)};
-\node[anchor=north, font=\tiny, red!70!black] at (axis cs:3,0.38) {$\Delta = +0.0107$};
+\node[anchor=south, font=\tiny, myblue!80!black] at (axis cs:1,0.88) {$\Delta$=-0.012};
+\node[anchor=north, font=\tiny, myred!80!black] at (axis cs:2,0.38) {(n.s.)};
+\node[anchor=south, font=\tiny, myblue!80!black] at (axis cs:3,0.38) {$\Delta$=+0.011};
 
 \end{axis}
 \end{tikzpicture}

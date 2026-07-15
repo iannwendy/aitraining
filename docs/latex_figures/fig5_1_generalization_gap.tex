@@ -1,18 +1,19 @@
-% Figure 5.1: Generalization Gap - In-domain vs Cross-domain F1-macro
-% Data from Round 5 Final Results
+% Figure 5.1: Generalization Gap
 
-\documentclass[border=5pt]{standalone}
+\documentclass[border=5pt,convert={density=300}]{standalone}
 \usepackage[utf8]{inputenc}
 \usepackage{pgfplots}
-\usepackage{tikz}
 \usepackage{helvet}
 \usepackage[T1]{fontenc}
 
+% Define colors
+\definecolor{myblue}{RGB}{59,130,246}
+\definecolor{myred}{RGB}{239,68,68}
+
 \pgfplotsset{
-    width=14cm,
-    height=8cm,
+    width=13cm,
+    height=7cm,
     compat=1.18,
-    style sheet=matplotlib,
 }
 
 \begin{document}
@@ -42,12 +43,10 @@
     },
     grid=major,
     grid style={gray!30},
-    major grid style={gray!50},
-    ytick distance=0.1,
-    xtick distance=1,
+    ytick distance=0.2,
     cycle list={
-        {fill=blue!60,draw=blue!80},
-        {fill=red!60,draw=red!80},
+        {fill=myblue,draw=myblue!80},
+        {fill=myred,draw=myred!80},
     },
 ]
 
@@ -59,7 +58,7 @@
     (4, 0.8049)
     (5, 0.7868)
 };
-\addlegendentry{In-domain (YouTube, n=912)}
+\addlegendentry{In-domain (n=912)}
 
 % Cross-domain (red)
 \addplot coordinates {
@@ -69,14 +68,14 @@
     (4, 0.4549)
     (5, 0.4501)
 };
-\addlegendentry{Cross-domain (VSMEC, n=3,084)}
+\addlegendentry{Cross-domain (n=3,084)}
 
 % Delta annotations
-\node at (axis cs:1,0.68) {\small $\Delta$0.366};
-\node at (axis cs:2,0.66) {\small $\Delta$0.450};
-\node at (axis cs:3,0.65) {\small $\Delta$0.400};
-\node at (axis cs:4,0.63) {\small $\Delta$0.350};
-\node at (axis cs:5,0.62) {\small $\Delta$0.337};
+\node at (axis cs:1,0.60) {\small $\Delta$=0.366};
+\node at (axis cs:2,0.58) {\small $\Delta$=0.450};
+\node at (axis cs:3,0.58) {\small $\Delta$=0.400};
+\node at (axis cs:4,0.55) {\small $\Delta$=0.350};
+\node at (axis cs:5,0.55) {\small $\Delta$=0.337};
 
 \end{axis}
 \end{tikzpicture}

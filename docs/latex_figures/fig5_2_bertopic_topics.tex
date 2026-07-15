@@ -1,11 +1,14 @@
-% Figure 5.2: BERTopic Top Topics by Document Count
-% 456 topics discovered, 48.30% outlier rate
+% Figure 5.2: BERTopic Top Topics
 
-\documentclass[border=5pt]{standalone}
+\documentclass[border=5pt,convert={density=300}]{standalone}
 \usepackage[utf8]{inputenc}
 \usepackage{pgfplots}
 \usepackage{helvet}
 \usepackage[T1]{fontenc}
+
+% Define colors
+\definecolor{vermillion}{RGB}{227,66,52}
+\definecolor{mygray}{RGB}{156,163,175}
 
 \pgfplotsset{
     width=13cm,
@@ -23,19 +26,11 @@
     enlarge x limits=0.12,
     ymin=0, ymax=2100,
     ylabel={Document Count},
-    xlabel={Topic ID (Top 10 by Count)},
+    xlabel={Topic ID (Top 10)},
     tick label style={font=\fontsize{8}{9}\selectfont},
     x tick label style={rotate=45, anchor=north east},
     grid=major,
     grid style={gray!30},
-    cycle list={
-        {fill=gray!40,draw=gray!60},
-        {fill=vermilion!70,draw=vermilion!90},
-        {fill=vermilion!70,draw=vermilion!90},
-        {fill=vermilion!70,draw=vermilion!90},
-        {fill=vermilion!70,draw=vermilion!90},
-        {fill=vermilion!70,draw=vermilion!90},
-    },
     legend style={
         at={(0.98,0.98)},
         anchor=north east,
@@ -43,28 +38,25 @@
     },
 ]
 
-% Outlier (Topic -1) - gray
-\addplot[fill=gray!40,draw=gray!60] coordinates {(1, 149650)};
+% Outlier - gray
+\addplot[fill=mygray,draw=mygray!60] coordinates {(1, 149650)};
 
-% Depression-related topics - vermillion
-\addplot[fill=vermilion!70,draw=vermilion!90] coordinates {(2, 1687)}; % Topic 7
-\addlegendentry{Depression-related Topic}
+% Depression-related - vermillion
+\addplot[fill=vermillion,draw=vermillion!80] coordinates {(2, 1687)};
+\addlegendentry{Depression Topic}
 
-\addplot[fill=vermilion!70,draw=vermilion!90] coordinates {(3, 1214)}; % Topic 14
+\addplot[fill=vermillion,draw=vermillion!80] coordinates {(3, 1214)};
+\addplot[fill=vermillion,draw=vermillion!80] coordinates {(4, 1052)};
+\addplot[fill=vermillion,draw=vermillion!80] coordinates {(5, 844)};
+\addplot[fill=vermillion,draw=vermillion!80] coordinates {(6, 749)};
 
-\addplot[fill=vermilion!70,draw=vermilion!90] coordinates {(4, 1052)}; % Topic 19
-
-\addplot[fill=vermilion!70,draw=vermilion!90] coordinates {(5, 844)};  % Topic 27
-
-\addplot[fill=vermilion!70,draw=vermilion!90] coordinates {(6, 749)};  % Topic 33
-
-% Other topics (sample)
+% Other topics
 \addplot coordinates {(7, 1800)};
 \addplot coordinates {(8, 1600)};
 \addplot coordinates {(9, 1400)};
 \addplot coordinates {(10, 1200)};
 
-% Legend
+% Legend box
 \node[anchor=north west, font=\tiny, fill=white, draw] at (axis cs:0,2050) {
     \begin{tabular}{l}
         \textbf{Key Topics:}\\
@@ -72,7 +64,8 @@
         Topic 14: Sadness, music\\
         Topic 19: Burnout, work\\
         Topic 27: Loneliness\\
-        Topic 33: Clinical depression
+        Topic 33: Clinical depression\\
+        Outlier: 149,650 (48.3\%)\\
     \end{tabular}
 };
 

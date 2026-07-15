@@ -1,25 +1,29 @@
 % Figure 2.1: Methodological Taxonomy
-% Three-branch taxonomy of NLP approaches
 
-\documentclass[border=5pt]{standalone}
+\documentclass[border=5pt,convert={density=300}]{standalone}
 \usepackage[utf8]{inputenc}
 \usepackage{tikz}
-\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning}
+
+% Define colors
+\definecolor{myblue}{RGB}{59,130,246}
+\definecolor{mygreen}{RGB}{34,197,94}
+\definecolor{mygray}{RGB}{156,163,175}
 
 \begin{document}
 \begin{tikzpicture}[
     node distance=0.4cm,
-    level 1/.style={sibling distance=5cm},
-    level 2/.style={sibling distance=3cm},
-    level 3/.style={sibling distance=2.5cm},
+    level 1/.style={sibling distance=4.5cm},
+    level 2/.style={sibling distance=2.5cm},
+    level 3/.style={sibling distance=2cm},
     box/.style={
         rectangle,
         rounded corners=2pt,
-        draw=#1,
-        fill=#1!15,
+        draw=#1!60!black,
+        fill=#1!20,
         line width=0.5pt,
-        minimum width=2.2cm,
-        minimum height=0.55cm,
+        minimum width=2cm,
+        minimum height=0.5cm,
         align=center,
         font=\fontsize{7}{8}\selectfont
     },
@@ -29,45 +33,43 @@
         draw=gray!50,
         fill=gray!10,
         line width=1pt,
-        minimum width=3cm,
-        minimum height=0.7cm,
+        minimum width=2.8cm,
+        minimum height=0.6cm,
         align=center,
         font=\fontsize{8}{9}\selectfont\bfseries
     },
-    edge from parent/.style={draw, ->, >=Stealth, line width=0.6pt, gray!60},
 ]
 
 % Root
-\node[root] (root) {NLP Approaches to\\Depression Detection}
+\node[root] (root) {NLP Approaches}
 child {
-    node[box=gray!50] {Lexicon-based\\LIWC, ANEW}
-    child { node[box=gray!40] {Context-blind} }
-    child { node[box=gray!40] {Language-specific} }
+    node[box=mygray] {Lexicon-based}
+    child { node[box=mygray!70] {Context-blind} }
+    child { node[box=mygray!70] {Language-specific} }
 }
 child {
-    node[box=blue!60] {Traditional ML\\TF-IDF + SVM}
-    child { node[box=blue!40] {Feature engineering} }
-    child { node[box=blue!40] {Shallow semantics} }
+    node[box=myblue] {Traditional ML}
+    child { node[box=myblue!70] {Feature Eng.} }
+    child { node[box=myblue!70] {Shallow Sem.} }
 }
 child {
-    node[box=blue!80] {Deep Learning\\BERT, RoBERTa}
+    node[box=myblue!70] {Deep Learning}
     child {
-        node[box=blue!60] {Generic Pretrained}
-        child { node[box=green!50] {MentalBERT} }
-        child { node[box=green!50] {PsychBERT} }
+        node[box=myblue!50] {Generic BERT}
+        child { node[box=mygreen!70] {MentalBERT} }
     }
     child {
-        node[box=green!60, draw=green!70, line width=1.5pt] (phobert) {PhoBERT\\This Work}
+        node[box=mygreen, draw=mygreen, line width=1.5pt] {PhoBERT (This)}
     }
 };
 
-% Legend box
-\node[anchor=north west, draw, fill=white, font=\tiny, inner sep=4pt, xshift=0.3cm] at (root.north west) {
+% Legend
+\node[anchor=north west, draw, fill=white, font=\tiny, inner sep=3pt] at (-4,1.8) {
     \begin{tabular}{l}
-        \textbf{This Work (Round 5):} \\
-        PhoBERT F1: 0.8596 (in) / 0.4937 (cross) \\
-        Active Learning: 5 rounds \\
-        Dataset: 6,080 samples \\
+        \textbf{Round 5 Results:}\\
+        PhoBERT F1: 0.8596 (in)\\
+        Cross-domain: 0.4937\\
+        Dataset: 6,080 samples\\
     \end{tabular}
 };
 

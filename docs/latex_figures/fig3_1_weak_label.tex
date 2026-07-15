@@ -1,11 +1,17 @@
 % Figure 3.1: Weak-Label Distribution
-% Distribution of 125,329 YouTube comments
 
-\documentclass[border=5pt]{standalone}
+\documentclass[border=5pt,convert={density=300}]{standalone}
 \usepackage[utf8]{inputenc}
 \usepackage{pgfplots}
+\usepackage[表格}{CJKutf8}
 \usepackage{helvet}
 \usepackage[T1]{fontenc}
+
+% Define colors
+\definecolor{vermillion}{RGB}{227,66,52}
+\definecolor{myblue}{RGB}{59,130,246}
+\definecolor{mygray}{RGB}{156,163,175}
+\definecolor{myorange}{RGB}{249,115,22}
 
 \pgfplotsset{
     width=12cm,
@@ -24,7 +30,7 @@
     ymin=0, ymax=100,
     ylabel={Percentage (\% of 125,329)},
     xlabel={Weak Label Category},
-    tick label style={font=\fontsize{7}{8}\selectfont},
+    tick label style={font=\fontsize{8}{9}\selectfont},
     grid=major,
     grid style={gray!30},
     ytick distance=20,
@@ -36,10 +42,10 @@
         {need\_review}
     },
     cycle list={
-        {fill=vermilion!70,draw=vermilion!90},
-        {fill=gray!40,draw=gray!60},
-        {fill=blue!60,draw=blue!80},
-        {fill=orange!60,draw=orange!80},
+        {fill=vermillion,draw=vermillion!80},
+        {fill=mygray,draw=mygray!60},
+        {fill=myblue,draw=myblue!80},
+        {fill=myorange,draw=myorange!80},
     },
 ]
 
@@ -51,7 +57,7 @@
 };
 
 % Data labels
-\node[anchor=south, font=\tiny] at (axis cs:1,2.8) {2.57\%\\n=3,223};
+\node[anchor=south, font=\tiny] at (axis cs:1,3) {2.57\%\\n=3,223};
 \node[anchor=north, font=\tiny] at (axis cs:2,79) {78.52\%\\n=98,410};
 \node[anchor=south, font=\tiny] at (axis cs:3,19.2) {18.91\%\\n=23,695};
 \node[anchor=north, font=\tiny] at (axis cs:4,96.3) {96.01\%\\n=120,334};

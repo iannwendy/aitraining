@@ -1,47 +1,60 @@
 % Figure 5.3: Confusion Matrices
-% In-domain vs Cross-domain for PhoBERT
 
-\documentclass[border=5pt]{standalone}
+\documentclass[border=5pt,convert={density=300}]{standalone}
 \usepackage[utf8]{inputenc}
 \usepackage{pgfplots}
-\usepackage{tikz}
 \usepackage{helvet}
 \usepackage[T1]{fontenc}
 
 \begin{document}
-\begin{tikzpicture}[font=\fontsize{8}{9}\selectfont]
+\begin{tikzpicture}[font=\fontsize{9}{10}\selectfont]
 
-% ===== PHOBERT AVG VOTE =====
-\node[below=0.2cm, font=\footnotesize\bfseries] at (0,0) {PhoBERT (avg vote, 3 seeds)};
+% Title
+\node[font=\footnotesize\bfseries] at (6.5,6.5) {Confusion Matrices (Round 5 Results)};
 
-% In-domain matrix
-\node[anchor=north west] at (-3,0.5) {\textbf{In-domain (n=912)}};
-\draw[fill=blue!30] (0,0) rectangle ++(1,1) rectangle ++(1,1);
-\draw (0,1) -- ++(2,0) (1,0) -- ++(0,2);
-\node at (0.5,1.5) {TN};
-\node at (1.5,1.5) {FP};
-\node at (0.5,0.5) {FN};
-\node at (1.5,0.5) {TP};
+% ===== PHOBERT =====
+\node[below=0.3cm, font=\tiny\bfseries] at (3,6) {PhoBERT (avg vote, 3 seeds)};
+
+% In-domain label
+\node[anchor=south east, font=\tiny] at (0.5,5.5) {\textbf{In-domain (n=912)}};
+
+% Draw grids
+\draw[fill=blue!20] (0,0) rectangle ++(1.5,1.5);
+\draw[fill=blue!40] (0,1.5) rectangle ++(1.5,1.5);
+\draw[fill=blue!40] (1.5,0) rectangle ++(1.5,1.5);
+\draw[fill=blue!10] (1.5,1.5) rectangle ++(1.5,1.5);
+
+% Grid lines
+\draw (0,1.5) -- ++(3,0);
+\draw (1.5,0) -- ++(0,3);
 
 % Labels
-\node[anchor=east] at (-3,1.5) {Actual};
-\node[anchor=south] at (1,2) {Predicted};
-\node[anchor=south, font=\tiny] at (-2,1.5) {Normal};
-\node[anchor=south, font=\tiny] at (-2,0.5) {Depr.};
-\node[anchor=west, font=\tiny] at (0,1.5) {Normal};
-\node[anchor=west, font=\tiny] at (0,0.5) {Depr.};
+\node at (0.75,2.25) {TN};
+\node at (2.25,2.25) {FP};
+\node at (0.75,0.75) {FN};
+\node at (2.25,0.75) {TP};
 
-% Cross-domain matrix
-\node[anchor=north west] at (4,0.5) {\textbf{Cross-domain (n=3,084)}};
-\draw[fill=blue!30] (7,0) rectangle ++(1,1) rectangle ++(1,1);
-\draw (7,1) -- ++(2,0) (8,0) -- ++(0,2);
-\node at (7.5,1.5) {TN};
-\node at (8.5,1.5) {FP};
-\node at (7.5,0.5) {FN};
-\node at (8.5,0.5) {TP};
+% Cross-domain label
+\node[anchor=south east, font=\tiny] at (6,5.5) {\textbf{Cross-domain (n=3,084)}};
 
-% Labels for cross-domain
-\node[anchor=south] at (8,2) {Predicted};
+% Cross-domain grid
+\draw[fill=blue!30] (5.5,0) rectangle ++(1.5,1.5);
+\draw[fill=blue!10] (5.5,1.5) rectangle ++(1.5,1.5);
+\draw[fill=blue!10] (7,0) rectangle ++(1.5,1.5);
+\draw[fill=blue!10] (7,1.5) rectangle ++(1.5,1.5);
+\draw (5.5,1.5) -- ++(3,0);
+\draw (7,0) -- ++(0,3);
+
+\node at (6.25,2.25) {TN};
+\node at (7.75,2.25) {FP};
+\node at (6.25,0.75) {FN};
+\node at (7.75,0.75) {TP};
+
+% Legend
+\node[anchor=north west, font=\tiny] at (0, -1.5) {
+    TN = True Negative, TP = True Positive\\
+    FN = False Negative, FP = False Positive
+};
 
 \end{tikzpicture}
 \end{document}
