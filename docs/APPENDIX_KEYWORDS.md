@@ -6,7 +6,7 @@ This appendix documents all Vietnamese-language keywords used in the project for
 
 ## A.1 YouTube Search Keywords (`DEFAULT_KEYWORDS`)
 
-These 275 keywords are used to search for relevant YouTube videos. They cover a broad range of depression, anxiety, loneliness, academic/work stress, heartbreak, and mental health topics in Vietnamese.
+These 264 unique keywords are used to search for relevant YouTube videos. They cover a broad range of depression, anxiety, loneliness, academic/work stress, heartbreak, and mental health topics in Vietnamese. Note: entries 265-275 in the table below are duplicates of earlier keywords and should be disregarded; the authoritative count is 264 unique keywords from `keywords.py`.
 
 | # | Keyword (Vietnamese) |
 |---|----------------------|
@@ -286,7 +286,7 @@ These 275 keywords are used to search for relevant YouTube videos. They cover a 
 | 274 | chán nản |
 | 275 | mệt mỏi |
 
-**Total: 275 keywords**
+**Total: 264 unique keywords** (from `DEFAULT_KEYWORDS` in `keywords.py`)
 
 ---
 

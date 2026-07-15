@@ -1,6 +1,11 @@
 # Appendix C: Error Examples
 
-This appendix presents characteristic error examples from model evaluation, organized into False Positive (FP) and False Negative (FN) categories. Each example includes the Vietnamese text, English translation, the model's prediction, and analysis of why the error occurred.
+This appendix presents characteristic error examples from model evaluation on the Round 5 dataset (912 test samples), organized into False Positive (FP) and False Negative (FN) categories. Each example includes the Vietnamese text, English translation, the model's prediction, and analysis of why the error occurred.
+
+**Summary Statistics (Round 5, PhoBERT avg vote):**
+- Total Errors: 75 (8.2%)
+- False Positives: 44 (58.7%)
+- False Negatives: 31 (41.3%)
 
 ---
 
@@ -10,7 +15,77 @@ False positives occur when the model predicts **depression** but the true label 
 
 ---
 
-### FP Example 1: Lexical Ambiguity of "buồn"
+### FP Example 1: Third-Person Depression Discussion
+
+| Attribute | Value |
+|-----------|-------|
+| **Vietnamese** | "Lúc này tôi biết rằng a ấy cũng đang rất đau khổ. Tôi biết mà. Hai chúng tôi đang rất đau khổ." |
+| **English Translation** | "Now I know that he is also suffering a lot. I know. Both of us are suffering a lot." |
+| **Model Prediction** | depression |
+| **True Label** | normal |
+| **Error Type** | FP: discussing another person's depression |
+
+**Analysis:** The commenter is describing another person's suffering ("a ấy" - he/she), not their own personal distress. The model cannot distinguish first-person from third-person depression expression, leading to false classification.
+
+---
+
+### FP Example 2: Self-Awareness About Stress
+
+| Attribute | Value |
+|-----------|-------|
+| **Vietnamese** | "Em thường hay overthinking và đôi lúc nó làm ảnh hưởng tới cuộc sống của em, khiến em rất mệt mỏi và bất lực. Em vừa mới thử phương pháp đầu của anh và thấy khá hiệu quả, em sẽ cố gắng làm nhiều hơn." |
+| **English Translation** | "I often overthink and sometimes it affects my life, making me very tired and helpless. I just tried the first method and found it quite effective, I will try harder." |
+| **Model Prediction** | depression |
+| **True Label** | normal |
+| **Error Type** | FP: self-aware stress discussion misclassified |
+
+**Analysis:** This commenter demonstrates healthy self-awareness about stress, is actively seeking solutions, and reports positive outcomes. The mention of "bất lực" (helplessness) here refers to a situational, transient feeling related to stress—not the pervasive helplessness of clinical depression.
+
+---
+
+### FP Example 3: Nostalgia and Melancholy (Not Depression)
+
+| Attribute | Value |
+|-----------|-------|
+| **Vietnamese** | "Hôm nay 21.02.2021 nhằm ngày mùng 9 tết. Sau khi tiễn ba mẹ về quê, 1 mình ở lại Saigon trời thì se lạnh lòng thì buồn man mác, nhìn lại mọi thứ đã trôi qua nhanh quá. Lớn rồi chỉ muốn quay lại..." |
+| **English Translation** | "Today is the 9th day of Tet. After sending parents to the countryside, staying alone in Saigon feeling cold and melancholic, looking back at how fast everything has passed. Growing up, just want to go back..." |
+| **Model Prediction** | depression |
+| **True Label** | normal |
+| **Error Type** | FP: nostalgia/melancholy misclassified as depression |
+
+**Analysis:** This is normal nostalgia and melancholy during a festive holiday (Tet), not clinical depression. The transient sadness is situational and culturally appropriate, but the model flags keywords like "buồn" without understanding context.
+
+---
+
+### FP Example 4: Emotional Response to Content
+
+| Attribute | Value |
+|-----------|-------|
+| **Vietnamese** | "Cảm động quá mức mà tôi muốn khóc quá" |
+| **English Translation** | "So moved that I want to cry" |
+| **Model Prediction** | depression |
+| **True Label** | normal |
+| **Error Type** | FP: emotional response misclassified |
+
+**Analysis:** This is a positive emotional response (being moved by content), not depression. The model incorrectly associates crying with depression, failing to recognize that crying can be a sign of happiness, empathy, or catharsis.
+
+---
+
+### FP Example 5: Family Pressure (Not Personal Depression)
+
+| Attribute | Value |
+|-----------|-------|
+| **Vietnamese** | "Em đã từng có tư duy phát triển và em luôn muốn nổ lực để đạt được những thành công nhất định mà e muốn vươn đến. Nhưng đôi khi gia đình khiến e thật sự áp lực và vùi dập điều đó, ép e học giỏi..." |
+| **English Translation** | "I had growth mindset and always wanted to effort to achieve certain successes I wanted to reach. But sometimes family puts pressure on me and crushes that, forcing me to study hard..." |
+| **Model Prediction** | depression |
+| **True Label** | normal |
+| **Error Type** | FP: situational stress from family pressure |
+
+**Analysis:** This is discussing external stressors (family pressure) while maintaining a positive, growth-oriented mindset. The person is not expressing personal helplessness or depression—they are describing an external obstacle.
+
+---
+
+### FP Example 6: Lexical Ambiguity of "buồn"
 
 | Attribute | Value |
 |-----------|-------|
@@ -86,7 +161,49 @@ False negatives occur when the model predicts **normal** but the true label is *
 
 ---
 
-### FN Example 1: Implicit Anhedonia
+### FN Example 1: Implicit Distress (Round 5)
+
+| Attribute | Value |
+|-----------|-------|
+| **Vietnamese** | "TOI NHIEU AP LUC ,CAM THAY MET MOI .MUON TIM CACH THOAT KHOI MUON PHIEN. NHUNG KHONG BIET BANG CACH NAO." |
+| **English Translation** | "I have a lot of pressure, feeling tired. Want to find a way to escape from this cycle. But don't know how." |
+| **Model Prediction** | normal |
+| **True Label** | depression |
+| **Error Type** | FN: implicit distress without explicit depression keywords |
+
+**Analysis:** Despite the text containing "áp lực" (pressure), "mệt mỏi" (tired), and expressing a desire to escape, the model fails to classify this as depression. The text uses informal spelling and lacks typical depression keywords, making it harder for the model to detect.
+
+---
+
+### FN Example 2: Poetic/Melancholic Expression
+
+| Attribute | Value |
+|-----------|-------|
+| **Vietnamese** | "Có đôi lúc, đầu óc của mik mơ màng, mik cảm thấy mik đang đứng trên vách núi, có thảo nguyên, đồi núi, rừng rậm, bầu trời xanh ngát..." |
+| **English Translation** | "Sometimes, my mind wanders, I feel like I'm standing on a cliff, with prairies, hills, forests, vast blue sky..." |
+| **Model Prediction** | normal |
+| **True Label** | depression |
+| **Error Type** | FN: poetic expression of existential distress |
+
+**Analysis:** This text uses poetic imagery to express dissociation and existential distress. The imagery of standing on a cliff with emptiness below (implied) suggests emotional fragility. The metaphorical expression diverges from explicit depression language, making detection challenging.
+
+---
+
+### FN Example 3: Third-Person Depression Reference
+
+| Attribute | Value |
+|-----------|-------|
+| **Vietnamese** | "Ba của đồng nghiệp tôi bị trầm cảm. Chú có nói đến chuyện tự tử trong một buổi tiệc..." |
+| **English Translation** | "My colleague's father has depression. He mentioned suicide at a party..." |
+| **Model Prediction** | normal |
+| **True Label** | depression |
+| **Error Type** | FN: third-person depression reference |
+
+**Analysis:** The model fails to recognize that discussing a family member's depression and suicide ideation may indicate personal distress or exposure to mental health issues. Third-person references can sometimes reflect personal experience or concern.
+
+---
+
+### FN Example 4: Implicit Anhedonia
 
 | Attribute | Value |
 |-----------|-------|
@@ -96,11 +213,11 @@ False negatives occur when the model predicts **normal** but the true label is *
 | **True Label** | depression |
 | **Error Type** | FN: anhedonic subtext, no lexical signal |
 
-**Analysis:** This brief statement carries strong anhedonic undertones—the commenter describes time passing with emotional flatness, detachment, and absence of meaning or engagement. A human reader perceives the existential exhaustion and lack of pleasure implicit in "trôi qua" (passing by without significance). However, the comment contains no depression keywords from the lexicon, making it invisible to keyword-based approaches. This example exemplifies the fundamental limitation of lexical detection: depression is often expressed implicitly through figurative language, understatement, and emotional tone rather than explicit vocabulary.
+**Analysis:** This brief statement carries strong anhedonic undertones—the commenter describes time passing with emotional flatness, detachment, and absence of meaning. However, the comment contains no depression keywords, making it invisible to keyword-based approaches.
 
 ---
 
-### FN Example 2: Implicit Helplessness Without Keywords
+### FN Example 5: Implicit Helplessness Without Keywords
 
 | Attribute | Value |
 |-----------|-------|
@@ -110,39 +227,33 @@ False negatives occur when the model predicts **normal** but the true label is *
 | **True Label** | depression |
 | **Error Type** | FN: implicit distress, no strong keyword |
 
-**Analysis:** This comment expresses hopelessness about recovery ("chẳng biết bao giờ" - don't know when) and a sense of persistent distress ("mới ổn" - will be okay). The combination of uncertainty about the future and implied current suffering is a hallmark of depressive rumination. However, the comment contains no explicit depression vocabulary, making it indistinguishable from normal uncertainty for the model. This error highlights the need for implicit depression detection methods that capture pragmatic meaning beyond keyword matching.
+**Analysis:** This comment expresses hopelessness about recovery and persistent distress without explicit depression vocabulary. This highlights the need for implicit depression detection methods that capture pragmatic meaning beyond keyword matching.
 
 ---
 
-### FN Example 3: Metaphorical Depression Expression
+### FN Example 6: Metaphorical Depression Expression
 
 | Attribute | Value |
 |-----------|-------|
-| **Vietnamese** | "Với e, trầm cảm có màu xanh nước biển. Màu xanh này đậm dần khi biển sâu dần, cũng giống như e lớn dần lại thấy xung quanh lạnh lẽo dần..." |
-| **English Translation** | "For me, depression has the color of ocean blue. This blue deepens as the sea grows deeper, just like as I grow older, I feel the surroundings grow colder..." |
-| **Model Prediction** | normal (prob: 0.58) |
+| **Vietnamese** | "Với e, trầm cảm có màu xanh nước biển. Màu xanh này đậm dần khi biển sâu dần..." |
+| **English Translation** | "For me, depression has the color of ocean blue. This blue deepens as the sea grows deeper..." |
+| **Model Prediction** | normal |
 | **True Label** | depression |
-| **Error Type** | FN: metaphorical depression expression, no explicit symptom keywords |
+| **Error Type** | FN: metaphorical expression |
 
-**Analysis:** This comment is a sophisticated metaphorical expression of depression—the commenter uses ocean imagery to describe the deepening of depressive symptoms over time. The metaphor conveys hopelessness, isolation, and inability to call for help ("cũng không thể mở miệng kêu cứu trong làn nước xanh đậm dần đó" - cannot even open mouth to call for help). Despite the explicit mention of "trầm cảm" (depression), the model assigns only 0.42 probability of depression, likely because the metaphorical framing diverges from the training distribution of explicit symptom descriptions.
-
----
-
-### FN Example 4: Chronic Suicidal Ideation Without Explicit Keywords
-
-| Attribute | Value |
-|-----------|-------|
-| **Vietnamese** | "Mình luôn nghĩ tới tự tử như nghĩ tới con luôn bỏ qua cái tự tử. Liệu có phải mình bị trầm cảm rồi hay không nhỉ" |
-| **English Translation** | "I always think about suicide like thinking about my child, I set suicide aside. Do you think I might have depression already?" |
-| **Model Prediction** | normal (prob: 0.998) |
-| **True Label** | depression |
-| **Error Type** | FN: chronic suicidal ideation expressed indirectly |
+**Analysis:** This sophisticated metaphorical expression uses ocean imagery to describe deepening depressive symptoms. The metaphorical framing diverges from explicit symptom descriptions, making detection challenging for the model.
 
 **Analysis:** This commenter describes persistent suicidal thoughts ("luôn nghĩ tới tự tử" - always think about suicide) that they actively suppress ("bỏ qua cái tự tử" - set suicide aside), possibly due to parental responsibility. They are questioning whether they have depression ("có phải mình bị trầm cảm rồi hay không"). This represents chronic, covert suicidal ideation that the model completely misses. The error may stem from the question format ("Liệu có phải... hay không nhỉ") being interpreted as uncertainty rather than distress, or from the model failing to recognize that suppressing suicidal thoughts for one's child is itself a marker of severe depression.
 
 ---
 
-### FN Example 5: Complex Emotional Suppression
+## C.3 True Positive Examples
+
+True positives demonstrate cases where the model correctly identifies depression. These examples serve as positive controls, showing that explicit emotional language and symptom descriptions are correctly classified when present.
+
+---
+
+### TP Example 1: Complex Emotional Suppression
 
 | Attribute | Value |
 |-----------|-------|
@@ -150,13 +261,13 @@ False negatives occur when the model predicts **normal** but the true label is *
 | **English Translation** | "When listening to this postcard, I cried without knowing why. Normally I'm a person who smiles a lot... but they don't know that when alone, I always think negatively even about small things... I feel so weak and fragile..." |
 | **Model Prediction** | depression (prob: 0.998) |
 | **True Label** | depression |
-| **Error Type** | Correct (TP) |
+| **Classification** | Correct (TP) |
 
-**Analysis:** This example illustrates a **true positive** where the model correctly identifies depression. The comment combines: (1) crying without understanding why (alexithymia), (2) hiding emotional distress behind a cheerful exterior (smiling depression), (3) constant negative thinking even about trivial matters, and (4) self-criticism ("yếu đuối" - weak/fragile). The model successfully detects these depression markers. This example serves as a positive control, demonstrating that explicit emotional language and symptom descriptions are correctly classified when present.
+**Analysis:** This example illustrates a **true positive** where the model correctly identifies depression. The comment combines: (1) crying without understanding why (alexithymia), (2) hiding emotional distress behind a cheerful exterior (smiling depression), (3) constant negative thinking even about trivial matters, and (4) self-criticism ("yếu đuối" - weak/fragile). The model successfully detects these depression markers. This example demonstrates that explicit emotional language and symptom descriptions are correctly classified when present.
 
 ---
 
-## C.3 Summary of Error Patterns
+## C.4 Summary of Error Patterns
 
 | Error Type | Count (n=912) | Percentage | Primary Cause |
 |------------|---------------|------------|---------------|
@@ -175,7 +286,7 @@ False negatives occur when the model predicts **normal** but the true label is *
 
 ---
 
-## C.4 Recommendations for Error Reduction
+## C.5 Recommendations for Error Reduction
 
 1. **Expand lexicon with polysemy-aware disambiguation.** Add context rules for "buồn" (require "buồn" + additional emotional context words to trigger depression), "mệt mỏi" (require co-occurrence with hopelessness or duration qualifiers).
 
