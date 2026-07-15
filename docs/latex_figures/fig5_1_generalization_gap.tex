@@ -6,29 +6,13 @@
 \usepackage{pgfplots}
 \usepackage{tikz}
 \usepackage{helvet}
-\usepackage[scaled]{uarial}
 \usepackage[T1]{fontenc}
-
-% Reset fonts
-renewcommand*{
-
-families}{}
-}
-
-% Set Arial as default sans-serif
-\def\familydefault{\sfdefault}
 
 \pgfplotsset{
     width=14cm,
     height=8cm,
     compat=1.18,
     style sheet=matplotlib,
-    /pgfplots/ybar legend/.style={
-        /pgfplots/legend image code/.code={%
-            \draw[##1,/tikz/.cd,bar width=6pt,bar shift=0pt]
-                plot coordinates {(0cm,0.3em)};%
-        },
-    },
 }
 
 \begin{document}
@@ -55,9 +39,7 @@ families}{}
         anchor=north,
         legend columns=2,
         font=\footnotesize,
-       /cells/anchor=center
     },
-    legend image post style={xscale=0.5},
     grid=major,
     grid style={gray!30},
     major grid style={gray!50},
@@ -70,32 +52,30 @@ families}{}
 ]
 
 % In-domain (blue)
-\addplot[fill=blue!60,draw=blue!80,error bars/.cd,y explicit,]
-    coordinates {
-        (1, 0.8596) +- (0, 0.0086)
-        (2, 0.8629) +- (0, 0.005)
-        (3, 0.8504) +- (0, 0.005)
-        (4, 0.8049) +- (0, 0.012)
-        (5, 0.7868) +- (0, 0.01)
-    };
+\addplot coordinates {
+    (1, 0.8596)
+    (2, 0.8629)
+    (3, 0.8504)
+    (4, 0.8049)
+    (5, 0.7868)
+};
 \addlegendentry{In-domain (YouTube, n=912)}
 
 % Cross-domain (red)
-\addplot[fill=red!60,draw=red!80,error bars/.cd,y explicit,]
-    coordinates {
-        (1, 0.4937) +- (0, 0.01)
-        (2, 0.45) +- (0, 0.01)
-        (3, 0.45) +- (0, 0.01)
-        (4, 0.45) +- (0, 0.01)
-        (5, 0.4501) +- (0, 0.01)
-    };
+\addplot coordinates {
+    (1, 0.4937)
+    (2, 0.4129)
+    (3, 0.4504)
+    (4, 0.4549)
+    (5, 0.4501)
+};
 \addlegendentry{Cross-domain (VSMEC, n=3,084)}
 
 % Delta annotations
 \node at (axis cs:1,0.68) {\small $\Delta$0.366};
-\node at (axis cs:2,0.66) {\small $\Delta$0.413};
+\node at (axis cs:2,0.66) {\small $\Delta$0.450};
 \node at (axis cs:3,0.65) {\small $\Delta$0.400};
-\node at (axis cs:4,0.63) {\small $\Delta$0.355};
+\node at (axis cs:4,0.63) {\small $\Delta$0.350};
 \node at (axis cs:5,0.62) {\small $\Delta$0.337};
 
 \end{axis}

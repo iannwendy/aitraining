@@ -1,91 +1,91 @@
-% Figure 4.1: Model Training and Evaluation Phase
-% Pipeline overview within overall research pipeline
+% Figure 4.1: Pipeline Overview
+% Model training and evaluation phase within overall research pipeline
 
 \documentclass[border=5pt]{standalone}
 \usepackage[utf8]{inputenc}
 \usepackage{tikz}
-\usetikzlibrary{shapes.geometric, arrows, positioning, calc, shadows.blur,fit}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, backgrounds}
 
 \begin{document}
 \begin{tikzpicture}[
-    node distance=0.8cm and 0.5cm,
+    node distance=0.3cm and 0.4cm,
     box/.style={
         rectangle,
-        rounded corners=3pt,
+        rounded corners=2pt,
         draw=#1,
         fill=#1!15,
-        line width=1pt,
-        minimum width=2.2cm,
-        minimum height=0.9cm,
+        line width=0.5pt,
+        minimum width=1.6cm,
+        minimum height=0.5cm,
         align=center,
-        font=\tiny
+        font=\fontsize{6}{7}\selectfont
     },
     step/.style={
         rectangle,
-        rounded corners=3pt,
+        rounded corners=2pt,
         draw=#1,
         fill=#1!20,
-        line width=1.5pt,
-        minimum width=3cm,
-        minimum height=1cm,
+        line width=0.8pt,
+        minimum width=2.2cm,
+        minimum height=0.6cm,
         align=center,
-        font=\tiny\bfseries
+        font=\fontsize{7}{8}\selectfont\bfseries
     },
-    arrow/.style={
-        ->,
-        >=stealth,
-        line width=1pt,
-        #1
-    },
-    layer/.style={
-        rectangle,
-        rounded corners=5pt,
-        draw=#1!60,
-        fill=#1!8,
-        line width=1.5pt,
-        inner sep=0.3cm
-    }
+    arrow/.style={->, >=Stealth, line width=0.6pt, draw=#1},
 ]
 
-% Chapter 3 Layer
-\node[layer=blue, minimum width=15cm] (ch3) {
-    \begin{tabular}{p{2cm}p{11cm}}
-        \node[anchor=east, font=\large\bfseries, blue!80!black, rotate=90] {Ch. 3}; &
-        \begin{tikzpicture}[node distance=0.3cm and 0.2cm]
-            \node[box=blue] (crawl) {Crawl};
-            \node[box=blue, right=of crawl] (clean) {Clean};
-            \node[box=blue, right=of clean] (external) {External Data};
-            \node[box=blue, right=of external] (corpus) {Unified Corpus};
-            \node[box=blue, below=of crawl] (weak) {Weak Label};
-            \node[box=blue, below=of weak] (annotate) {Annotation};
-            \draw[arrow=blue] (crawl) -- (clean);
-            \draw[arrow=blue] (clean) -- (external);
-            \draw[arrow=blue] (external) -- (corpus);
-            \draw[arrow=blue] (corpus) -- ++(1.5,0) |- (weak);
-            \draw[arrow=blue] (weak) -- (annotate);
+% ============ CHAPTER 3 LAYER ============
+\node[rectangle, rounded corners=3pt, draw=blue!50, fill=blue!8, line width=1pt,
+      minimum width=14cm, minimum height=2.2cm, align=left] (CH3) {
+    \begin{tabular}{p{1.2cm}p{11.5cm}}
+        \rotatebox{90}{\fontsize{9}{10}\selectfont\bfseries\color{blue!70!black}Chapter 3} &
+        \begin{tikzpicture}[node distance=0.2cm and 0.3cm]
+            % Row 1
+            \node[box=blue] (c1) {1. Crawl};
+            \node[box=blue, right=of c1] (c2) {2. Clean};
+            \node[box=blue, right=of c2] (c3) {3. External Data};
+            \node[box=blue, right=of c3] (c4) {4. Unified Corpus};
+            % Row 2
+            \node[box=blue, below=of c1] (c5) {5. Weak Label};
+            \node[box=blue, below=of c5] (c6) {6. Annotation};
+            \node[box=blue, below=of c6] (c7) {7. Gold Set};
+            % Arrows
+            \draw[arrow=blue] (c1) -- (c2);
+            \draw[arrow=blue] (c2) -- (c3);
+            \draw[arrow=blue] (c3) -- (c4);
+            \draw[arrow=blue] (c4) -- ++(0.3,0) |- (c5);
+            \draw[arrow=blue] (c5) -- (c6);
+            \draw[arrow=blue] (c6) -- (c7);
         \end{tikzpicture}
     \end{tabular}
 };
 
-% Chapter 4 Layer
-\node[layer=green!70!black, below=2cm of ch3, minimum width=15cm] (ch4) {
-    \begin{tabular}{p{2cm}p{11cm}}
-        \node[anchor=east, font=\large\bfseries, green!70!black, rotate=90] {Ch. 4}; &
-        \begin{tikzpicture}[node distance=0.5cm and 0.3cm]
-            \node[step=green!60!black, fill=green!15] (final) {Step 11: Build final\_dataset.csv\\(6,080 samples, multi-source)};
-            \node[step=green!60!black, below=of final] (train) {Step 12-13: Train 5 models + BERTopic};
-            \node[step=green!60!black, fill=orange!20, draw=orange, line width=2pt, right=of final] (eval1) {Step 14: In-domain Test\\(YouTube, n=912)};
-            \node[step=green!60!black, fill=orange!20, draw=orange, line width=2pt, right=of train] (eval2) {Step 15: Cross-domain Test\\(VSMEC, n=3,084)};
-            \draw[arrow=green] (final) -- (train);
-            \draw[arrow=green] (train) -- ++(1.5,0) |- (eval1);
-            \draw[arrow=green] (train) -- ++(1.5,0) |- (eval2);
+% ============ CHAPTER 4 LAYER ============
+\node[rectangle, rounded corners=3pt, draw=green!50, fill=green!8, line width=1pt,
+      minimum width=14cm, minimum height=2.2cm, align=left, below=0.5cm of CH3] (CH4) {
+    \begin{tabular}{p{1.2cm}p{11.5cm}}
+        \rotatebox{90}{\fontsize{9}{10}\selectfont\bfseries\color{green!60!black}Chapter 4} &
+        \begin{tikzpicture}[node distance=0.3cm and 0.4cm]
+            % Step 11
+            \node[step=green!60!black] (s11) {11. Final Dataset\\(6,080 samples)};
+            % Step 12-13
+            \node[step=green!60!black, right=of s11] (s12) {12-13. Train 5 Models\\+ BERTopic};
+            % Step 14 (highlighted)
+            \node[step=orange!60, fill=orange!15, draw=orange, line width=1.5pt, right=of s12] (s14) {14. In-domain Test\\(YouTube, n=912)};
+            % Step 15 (highlighted)
+            \node[step=orange!60, fill=orange!15, draw=orange, line width=1.5pt, right=of s14] (s15) {15. Cross-domain Test\\(VSMEC, n=3,084)};
+            % Arrows
+            \draw[arrow=green!60!black] (s11) -- (s12);
+            \draw[arrow=green!60!black] (s12) -- ++(0.3,0) |- (s14);
+            \draw[arrow=green!60!black] (s12) -- ++(0.3,0) |- (s15);
         \end{tikzpicture}
     \end{tabular}
 };
 
-% Connecting arrow
-\draw[arrow=black, line width=2pt] (ch3) -- (ch4)
-    node[midway, right, font=\tiny] {15-step pipeline};
+% ============ CONNECTING ARROW ============
+\draw[->, >=Stealth, line width=1.5pt, draw=gray!60]
+    (CH3) -- (CH4)
+    node[midway, right, font=\tiny, fill=white] {15-step pipeline};
 
 \end{tikzpicture}
 \end{document}

@@ -4,87 +4,78 @@
 \documentclass[border=5pt]{standalone}
 \usepackage[utf8]{inputenc}
 \usepackage{tikz}
-\usetikzlibrary{shapes.geometric, arrows, positioning, calc, shadows.blur}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, backgrounds}
 
 \begin{document}
 \begin{tikzpicture}[
-    node distance=1.2cm and 0.8cm,
+    node distance=0.6cm,
     box/.style={
         rectangle,
-        rounded corners=3pt,
+        rounded corners=2pt,
         draw=#1,
         fill=#1!15,
-        line width=1pt,
-        minimum width=4cm,
-        minimum height=1cm,
+        line width=0.5pt,
+        minimum width=2.8cm,
+        minimum height=0.6cm,
         align=center,
-        font=\footnotesize
+        font=\fontsize{7}{8}\selectfont
     },
-    arrow/.style={
-        ->,
-        >=stealth,
-        line width=1.5pt
-    },
-    layer/.style={
+    layer box/.style={
         rectangle,
-        rounded corners=5pt,
-        draw=#1!60,
-        fill=#1!10,
-        line width=1.5pt,
-        minimum width=14cm,
-        minimum height=2.5cm,
+        rounded corners=3pt,
+        draw=#1!50,
+        fill=#1!8,
+        line width=1pt,
+        minimum width=12cm,
+        minimum height=1.8cm,
         align=center,
-        font=\large\bfseries
-    }
+    },
+    every edge/.style={draw, ->, >=Stealth, line width=0.8pt},
 ]
 
-% Layer 1: Clinical Reality (vermillion)
-\node[layer=vermilion, label={[vermilion!80!black]north:Layer 1: Clinical Reality (DSM-5, PHQ-9)}]
-    (layer1) at (0,0) {
-        \begin{tabular}{ccc}
-            \node[box=vermilion] {Major Depressive\\Disorder} &
-            \node[box=vermilion] {Structural Barriers:\\Stigma, Workforce Shortage} &
-            \node[box=vermilion] {PHQ-9 Self-Report\\Requirement} \\
-        \end{tabular}
-    };
+% ============ LAYER 1: Clinical Reality ============
+\node[layer box=vermilion, label={[vermilion!80!black, font=\fontsize{8}{9}\selectfont\bfseries]north:Layer 1: Clinical Reality}] (L1) {
+    \begin{tabular}{ccc}
+        \node[box=vermillion] (md) {Major Depressive\\Disorder (DSM-5)}; &
+        \node[box=vermillion] (bar) {Structural Barriers:\\Stigma, Workforce}; &
+        \node[box=vermillion] (phq) {PHQ-9\\Self-Report}; \\
+    \end{tabular}
+};
 
-% Layer 2: Social Media Signal (blue)
-\node[layer=blue, yshift=-4cm, label={[blue!80!black]north:Layer 2: Social Media Signal (YouTube)}]
-    (layer2) at (0,0) {
-        \begin{tabular}{c}
-            \node[box=blue] {125,329 Vietnamese YouTube Comments} \\
-            \node[box=blue!70!green] {Ecologically Valid Linguistic Behavior} \\
-        \end{tabular}
-    };
+% ============ LAYER 2: Social Media ============
+\node[layer box=blue, below=2.5cm of L1, label={[blue!80!black, font=\fontsize{8}{9}\selectfont\bfseries]north:Layer 2: Social Media Signal}] (L2) {
+    \begin{tabular}{c}
+        \node[box=blue] {125,329 Vietnamese YouTube Comments}; \\
+        \node[box=blue!60!green] {Ecologically Valid Linguistic Behavior}; \\
+    \end{tabular}
+};
 
-% Layer 3: ML Pipeline (green)
-\node[layer=green!70!black, yshift=-8cm, label={[green!70!black]north:Layer 3: Machine Learning Pipeline (This Work)}]
-    (layer3) at (0,0) {
-        \begin{tabular}{ccccc}
-            \node[box=green] {Weak\\Labeling} &
-            $\rightarrow$ &
-            \node[box=green] {Blind\\Annotation} &
-            $\rightarrow$ &
-            \node[box=green] {PhoBERT\\Training} \\
-        \end{tabular}
-    };
+% ============ LAYER 3: ML Pipeline ============
+\node[layer box=green!60!black, below=2.5cm of L2, label={[green!60!black, font=\fontsize{8}{9}\selectfont\bfseries]north:Layer 3: Machine Learning Pipeline (This Work)}] (L3) {
+    \begin{tabular}{ccccc}
+        \node[box=green] (wl) {Weak\\Labeling}; &
+        $\rightarrow$ &
+        \node[box=green] (ann) {Blind\\Annotation}; &
+        $\rightarrow$ &
+        \node[box=green] (train) {PhoBERT\\Training}; \\
+    \end{tabular}
+};
 
-% Evaluation boxes (highlighted)
-\node[layer=orange!80!red, yshift=-11.5cm, label={[orange!80!black]north:Evaluation Scope (This Work)}]
-    (eval) at (0,0) {
-        \begin{tabular}{ccc}
-            \node[box=orange, draw=orange, line width=2pt] {In-domain\\YouTube (n=912)} &
-            \node{$\Delta F1$} &
-            \node[box=orange, draw=orange, line width=2pt] {Cross-domain\\VSMEC (n=3,084)} \\
-        \end{tabular}
-    };
+% ============ EVALUATION ============
+\node[layer box=orange!80!red, below=2.5cm of L3, label={[orange!80!black, font=\fontsize{8}{9}\selectfont\bfseries]north:Evaluation Scope}] (Eval) {
+    \begin{tabular}{ccc}
+        \node[box=orange, draw=orange, line width=1.5pt] (in) {In-domain\\YouTube (n=912)}; &
+        \node[font=\tiny] {$\Delta F1 \approx 0.37$}; &
+        \node[box=orange, draw=orange, line width=1.5pt] (out) {Cross-domain\\VSMEC (n=3,084)}; \\
+    \end{tabular}
+};
 
-% Arrows between layers
-\draw[arrow, vermillion] (layer1) -- (layer2)
-    node[midway, right, font=\tiny] {0.2 psychiatrists per 100,000 population};
-\draw[arrow, blue] (layer2) -- (layer3);
-\draw[arrow, orange!80!red] (layer3) -- (eval)
-    node[midway, right, font=\tiny] {$\Delta F1 \approx 0.37$ (Round 5)};
+% ============ CONNECTIONS ============
+\draw[vermillion!70!black] (L1) -- (L2)
+    node[midway, right, font=\tiny, fill=white] {0.2 psychiatrists\\per 100,000};
+\draw[blue!70!black] (L2) -- (L3);
+\draw[orange!80!black] (L3) -- (Eval)
+    node[midway, right, font=\tiny, fill=white] {Round 5 Results};
 
 \end{tikzpicture}
 \end{document}

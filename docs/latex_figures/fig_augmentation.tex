@@ -4,12 +4,11 @@
 \documentclass[border=5pt]{standalone}
 \usepackage[utf8]{inputenc}
 \usepackage{pgfplots}
-\usepackage{tikz}
 \usepackage{helvet}
 \usepackage[T1]{fontenc}
 
 \pgfplotsset{
-    width=14cm,
+    width=13cm,
     height=7cm,
     compat=1.18,
 }
@@ -18,10 +17,10 @@
 \begin{tikzpicture}
 \begin{axis}[
     width=13cm,
-    height=7cm,
-    ybar=0.2cm,
+    height=6.5cm,
+    ybar=0.15cm,
     bar width=0.4cm,
-    enlarge x limits=0.25,
+    enlarge x limits=0.35,
     ymin=0, ymax=1.1,
     ylabel={F1-macro},
     ylabel style={font=\footnotesize},
@@ -30,10 +29,10 @@
     grid style={gray!30},
     ytick distance=0.2,
     legend style={
-        at={(0.5,1.08)},
+        at={(0.5,1.12)},
         anchor=north,
-        legend columns=2,
-        font=\footnotesize
+        legend columns=4,
+        font=\tiny
     },
     cycle list={
         {fill=blue!50,draw=blue!70},
@@ -47,9 +46,10 @@
         {BERTopic-\\only},
         {PhoBERT +\\BERTopic}
     },
+    x tick label style={rotate=0, anchor=north, yshift=-0.6cm},
 ]
 
-% In-domain before
+% In-domain before (medium blue)
 \addplot coordinates {
     (1, 0.8681)
     (2, 0.5599)
@@ -57,7 +57,7 @@
 };
 \addlegendentry{In-domain (before)}
 
-% In-domain after
+% In-domain after (dark blue)
 \addplot coordinates {
     (1, 0.9619)
     (2, 0.5864)
@@ -65,7 +65,7 @@
 };
 \addlegendentry{In-domain (after)}
 
-% Cross-domain before
+% Cross-domain before (medium red)
 \addplot coordinates {
     (1, 0.3727)
     (2, 0.5030)
@@ -73,7 +73,7 @@
 };
 \addlegendentry{Cross-domain (before)}
 
-% Cross-domain after
+% Cross-domain after (dark red)
 \addplot coordinates {
     (1, 0.3993)
     (2, 0.5022)
@@ -81,11 +81,11 @@
 };
 \addlegendentry{Cross-domain (after)}
 
-% Annotations for improvements
-\node[anchor=north, font=\tiny, blue!80!black] at (axis cs:1,0.99) {$+\;9.38\%$};
-\node[anchor=north, font=\tiny, red!80!black] at (axis cs:1,0.42) {$+\;2.66\%$};
+% Annotations
+\node[anchor=south, font=\tiny, blue!70!black] at (axis cs:1,0.98) {$+9.38\%$};
+\node[anchor=north, font=\tiny, red!70!black] at (axis cs:1,0.38) {$+2.66\%$};
 
-\node[anchor=north, font=\tiny, red!80!black] at (axis cs:3,0.54) {$+\;12.85\%$};
+\node[anchor=south, font=\tiny, red!70!black] at (axis cs:3,0.53) {$+12.85\%$};
 
 \end{axis}
 \end{tikzpicture}

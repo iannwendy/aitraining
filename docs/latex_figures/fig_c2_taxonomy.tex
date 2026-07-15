@@ -1,70 +1,73 @@
 % Figure 2.1: Methodological Taxonomy
-% Three-branch taxonomy of NLP approaches to depression detection
+% Three-branch taxonomy of NLP approaches
 
 \documentclass[border=5pt]{standalone}
 \usepackage[utf8]{inputenc}
 \usepackage{tikz}
-\usetikzlibrary{shapes.geometric, arrows, positioning, calc, shadows.blur}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
 
 \begin{document}
 \begin{tikzpicture}[
-    level distance=2cm,
-    growth parent anchor=south,
-    edge from parent fork down,
-    sibling distance=3cm,
-    node distance=1cm,
-    every node/.style={
+    node distance=0.4cm,
+    level 1/.style={sibling distance=5cm},
+    level 2/.style={sibling distance=3cm},
+    level 3/.style={sibling distance=2.5cm},
+    box/.style={
+        rectangle,
+        rounded corners=2pt,
+        draw=#1,
+        fill=#1!15,
+        line width=0.5pt,
+        minimum width=2.2cm,
+        minimum height=0.55cm,
+        align=center,
+        font=\fontsize{7}{8}\selectfont
+    },
+    root/.style={
         rectangle,
         rounded corners=3pt,
-        draw,
-        fill=#1!15,
+        draw=gray!50,
+        fill=gray!10,
         line width=1pt,
-        minimum width=2.5cm,
-        minimum height=0.8cm,
+        minimum width=3cm,
+        minimum height=0.7cm,
         align=center,
-        font=\tiny
+        font=\fontsize{8}{9}\selectfont\bfseries
     },
-    level 1/.style={level distance=2.5cm},
-    level 2/.style={level distance=2cm},
-    arrow/.style={
-        ->,
-        >=stealth,
-        line width=1pt,
-        draw=gray!60
-    }
+    edge from parent/.style={draw, ->, >=Stealth, line width=0.6pt, gray!60},
 ]
 
-\node[fill=gray!20, minimum width=4cm, font=\footnotesize\bfseries] (root) {NLP Approaches to\\Depression Detection}
+% Root
+\node[root] (root) {NLP Approaches to\\Depression Detection}
 child {
-    node[fill=gray!30] {Lexicon-based\\LIWC, ANEW}
-    child { node[fill=gray!20] {Context-blind} edge from parent[arrow] }
-    child { node[fill=gray!20] {Language-specific} edge from parent[arrow] }
+    node[box=gray!50] {Lexicon-based\\LIWC, ANEW}
+    child { node[box=gray!40] {Context-blind} }
+    child { node[box=gray!40] {Language-specific} }
 }
 child {
-    node[fill=blue!20] {Traditional ML\\TF-IDF + SVM/LR/RF}
-    child { node[fill=blue!15] {Feature engineering} edge from parent[arrow] }
-    child { node[fill=blue!15] {Shallow semantics} edge from parent[arrow] }
+    node[box=blue!60] {Traditional ML\\TF-IDF + SVM}
+    child { node[box=blue!40] {Feature engineering} }
+    child { node[box=blue!40] {Shallow semantics} }
 }
 child {
-    node[fill=blue!40] {Deep Learning\\BERT, RoBERTa}
+    node[box=blue!80] {Deep Learning\\BERT, RoBERTa}
     child {
-        node[fill=blue!25] {Generic Pretrained\\BERT, RoBERTa}
-        child { node[fill=blue!15, green!20] {MentalBERT, PsychBERT} edge from parent[arrow] }
+        node[box=blue!60] {Generic Pretrained}
+        child { node[box=green!50] {MentalBERT} }
+        child { node[box=green!50] {PsychBERT} }
     }
     child {
-        node[fill=green!30, draw=green, line width=2pt, minimum width=3cm] {PhoBERT (This Work)\\F1: 0.8596 / 0.4937}
+        node[box=green!60, draw=green!70, line width=1.5pt] (phobert) {PhoBERT\\This Work}
     }
 };
 
 % Legend box
-\node[anchor=north west, draw, fill=white, font=\tiny] at (-5,2) {
+\node[anchor=north west, draw, fill=white, font=\tiny, inner sep=4pt, xshift=0.3cm] at (root.north west) {
     \begin{tabular}{l}
         \textbf{This Work (Round 5):} \\
-        PhoBERT F1-macro: 0.8596 (in-domain) \\
-        Cross-domain F1: 0.4937 (+0.1210) \\
-        Dataset: 6,080 samples \\
+        PhoBERT F1: 0.8596 (in) / 0.4937 (cross) \\
         Active Learning: 5 rounds \\
-        Generalization Gap: $\Delta$0.37 \\
+        Dataset: 6,080 samples \\
     \end{tabular}
 };
 

@@ -1,16 +1,15 @@
 % Figure 3.1: Weak-Label Distribution
-% Distribution of 125,329 YouTube comments by weak label
+% Distribution of 125,329 YouTube comments
 
 \documentclass[border=5pt]{standalone}
 \usepackage[utf8]{inputenc}
 \usepackage{pgfplots}
-\usepackage{tikz}
 \usepackage{helvet}
 \usepackage[T1]{fontenc}
 
 \pgfplotsset{
-    width=14cm,
-    height=8cm,
+    width=12cm,
+    height=7cm,
     compat=1.18,
 }
 
@@ -18,48 +17,44 @@
 \begin{tikzpicture}
 \begin{axis}[
     ybar,
-    bar width=1.2cm,
+    bar width=0.8cm,
     width=12cm,
-    height=7cm,
-    enlarge x limits=0.2,
+    height=6.5cm,
+    enlarge x limits=0.15,
     ymin=0, ymax=100,
     ylabel={Percentage (\% of 125,329)},
     xlabel={Weak Label Category},
-    tick label style={font=\footnotesize},
+    tick label style={font=\fontsize{7}{8}\selectfont},
     grid=major,
     grid style={gray!30},
     ytick distance=20,
-    xtick={1,2,3,4,5,6,7},
+    xtick={1,2,3,4},
     xticklabels={
-        {depression\_auto\\($n=3,223$, 2.57\%)},
-        {\quad\quad\quad\quad high confidence\\($n=779$, 0.62\%)},
-        {uncertain\\($n=98,410$, 78.52\%)},
-        {normal\_auto\\($n=23,695$, 18.91\%)},
-        {\quad\quad\quad\quad high confidence\\($n=3,449$, 2.75\%)},
-        {need\_review flagged\\($n=120,334$, 96.01\%)},
-        {Total\\($n=125,329$, 100\%)}
+        {depression\_auto},
+        {uncertain},
+        {normal\_auto},
+        {need\_review}
     },
-    x tick label style={rotate=25, anchor=north east, yshift=-0.5cm},
     cycle list={
         {fill=vermilion!70,draw=vermilion!90},
-        {fill=vermilion!40,draw=vermilion!60},
-        {fill=gray!30,draw=gray!50},
+        {fill=gray!40,draw=gray!60},
         {fill=blue!60,draw=blue!80},
-        {fill=blue!30,draw=blue!50},
         {fill=orange!60,draw=orange!80},
-        {fill=gray!60,draw=gray!80},
     },
 ]
 
 \addplot coordinates {
-    (1, 2.57)
-    (2, 0.62)
-    (3, 78.52)
-    (4, 18.91)
-    (5, 2.75)
-    (6, 96.01)
-    (7, 100)
+    (1, 2.57)  % depression_auto
+    (2, 78.52) % uncertain
+    (3, 18.91) % normal_auto
+    (4, 96.01) % need_review
 };
+
+% Data labels
+\node[anchor=south, font=\tiny] at (axis cs:1,2.8) {2.57\%\\n=3,223};
+\node[anchor=north, font=\tiny] at (axis cs:2,79) {78.52\%\\n=98,410};
+\node[anchor=south, font=\tiny] at (axis cs:3,19.2) {18.91\%\\n=23,695};
+\node[anchor=north, font=\tiny] at (axis cs:4,96.3) {96.01\%\\n=120,334};
 
 \end{axis}
 \end{tikzpicture}
