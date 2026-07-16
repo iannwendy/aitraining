@@ -1047,7 +1047,7 @@ Three patterns emerge from Table 5.1. <strong>First</strong>, on the post-round-
 </p>
 
 <p>
-<strong>Augmented results (Section&nbsp;5.6).</strong> Data augmentation yields substantial in-domain improvements for all classical and transformer models: TF-IDF + LinearSVC rises from 0.8286 to 0.9678 (+13.9 pp), TF-IDF + LogReg from 0.8347 to 0.9525 (+11.8 pp), PhoBERT from 0.8681 to 0.9619 (+9.4 pp), and PhoBERT + BERTopic from 0.8497 to 0.9377 (+8.8 pp). The cross-domain effects are more selective: PhoBERT + BERTopic benefits most substantially (+8.6 pp, 0.3977 &rarr; 0.5262), suggesting that augmentation breaks the model's reliance on domain-specific shortcuts and forces it to learn more robust representations. TF-IDF models show marginal cross-domain gains (+1&ndash;4 pp), while BiLSTM exhibits high variance (seed&nbsp;42 collapses to near-random, seed&nbsp;123/2024 achieve 0.83/0.79 in-domain). The high variance in BiLSTM indicates that recurrent architectures are less suited to augmented data than feed-forward or attention-based models&mdash;the random initialization interacts unpredictably with the augmented distribution, leading to unstable convergence. BERTopic-only remains essentially unchanged (+0.03 pp in-domain), confirming that the two-feature bottleneck (topic ID + probability) is data-independent.
+<strong>Augmented results (Section&nbsp;5.5).</strong> Data augmentation yields substantial in-domain improvements for all classical and transformer models: TF-IDF + LinearSVC rises from 0.8286 to 0.9678 (+13.9 pp), TF-IDF + LogReg from 0.8347 to 0.9525 (+11.8 pp), PhoBERT from 0.8681 to 0.9619 (+9.4 pp), and PhoBERT + BERTopic from 0.8497 to 0.9377 (+8.8 pp). The cross-domain effects are more selective: PhoBERT + BERTopic benefits most substantially (+8.6 pp, 0.3977 &rarr; 0.5262), suggesting that augmentation breaks the model's reliance on domain-specific shortcuts and forces it to learn more robust representations. TF-IDF models show marginal cross-domain gains (+1&ndash;4 pp), while BiLSTM exhibits high variance (seed&nbsp;42 collapses to near-random, seed&nbsp;123/2024 achieve 0.83/0.79 in-domain). The high variance in BiLSTM indicates that recurrent architectures are less suited to augmented data than feed-forward or attention-based models&mdash;the random initialization interacts unpredictably with the augmented distribution, leading to unstable convergence. BERTopic-only remains essentially unchanged (+0.03 pp in-domain), confirming that the two-feature bottleneck (topic ID + probability) is data-independent.
 </p>
 
 <h3>5.2. Analysis of the Generalization Gap</h3>
@@ -1073,11 +1073,6 @@ The 0.53 F1 gap between in-domain and cross-domain performance constitutes the m
 
 <h3>5.3. BERTopic Results</h3>
 
-<figure>
-<img src="figures_new/fig5_2_bertopic_topics.png" alt="Horizontal bar chart showing the top 20 BERTopic topics in the 316K-document Vietnamese corpus, color-coded by depression-relevance" />
-<figcaption><strong>Figure 5.2.</strong> Top 20 BERTopic topics by document count in the 316,401-document Vietnamese corpus (125,329 YouTube + 191,072 external). Bars highlighted in vermillion correspond to the five depression-related clusters identified in Table 5.2; grey bars represent other non-outlier topics. Document counts and corpus share are annotated to the right of each bar. Outlier documents (topic -1: 149,650, 48.30% of the corpus) are not shown individually but are reported in the footer; this high outlier rate is characteristic of social-media corpora with long-tail content diversity. Topic labels are formed from the top-4 words of each topic and interpreted through manual inspection of representative documents.</figcaption>
-</figure>
-
 <p>
 BERTopic was trained on the full 316,401-document corpus (embedding model: <code>paraphrase-multilingual-MiniLM-L12-v2</code>; UMAP: n_neighbors=15, min_dist=0.0, n_components=5; HDBSCAN: min_cluster_size=50, min_samples=10). The model discovered 456 non-outlier topics, with 48.30% of documents classified as outliers (topic &minus;1). The high outlier rate is characteristic of social media corpora with long-tail content diversity. The number of topics (456) and outlier rate (48.30%) are reproduced from <code>models/bertopic/bertopic_metrics.json</code> (verified against the run-time artifacts, June&nbsp;2026); minor drift from earlier draft numbers (461 / 46.68%) reflects a different random seed in HDBSCAN clustering rather than a model change.
 
@@ -1098,7 +1093,7 @@ BERTopic was trained on the full 316,401-document corpus (embedding model: <code
 
 <figure>
 <img src="figures_new/fig5_3_confusion_matrices.png" alt="2-column × 7-row panel of confusion matrix heatmaps for seven model variants on in-domain and cross-domain test sets" />
-<figcaption><strong>Figure 5.3.</strong> Confusion matrices for the seven model variants on the in-domain (YouTube, n=912) and cross-domain (VSMEC, n=3,084) test sets. Each cell shows the raw count with the row-normalized percentage. The diagonal represents correct predictions (TN, TP); the off-diagonal cells are false positives (FP, top-right) and false negatives (FN, bottom-left). The pattern is consistent across supervised architectures: in-domain confusion matrices concentrate mass on the diagonal, whereas cross-domain matrices are dominated by the true-normal column — every supervised model predicts "normal" for almost all VSMEC distress sentences. BERTopic-only is the lone architecture with non-trivial depression recall on VSMEC (its F1-depression of 0.5566 is the highest of any model) despite near-random overall accuracy. Cross-domain rows for PhoBERT and PhoBERT+BERTopic are illustrative placeholders because the source JSON files do not persist the full confusion matrix; the underlying F1 numbers in Table 5.1 remain authoritative.</figcaption>
+<figcaption><strong>Figure 5.2.</strong> Confusion matrices for the seven model variants on the in-domain (YouTube, n=912) and cross-domain (VSMEC, n=3,084) test sets. Each cell shows the raw count with the row-normalized percentage. The diagonal represents correct predictions (TN, TP); the off-diagonal cells are false positives (FP, top-right) and false negatives (FN, bottom-left). The pattern is consistent across supervised architectures: in-domain confusion matrices concentrate mass on the diagonal, whereas cross-domain matrices are dominated by the true-normal column — every supervised model predicts "normal" for almost all VSMEC distress sentences. BERTopic-only is the lone architecture with non-trivial depression recall on VSMEC (its F1-depression of 0.5566 is the highest of any model) despite near-random overall accuracy. Cross-domain rows for PhoBERT and PhoBERT+BERTopic are illustrative placeholders because the source JSON files do not persist the full confusion matrix; the underlying F1 numbers in Table 5.1 remain authoritative.</figcaption>
 </figure>
 
 <p>
@@ -1117,15 +1112,15 @@ Manual inspection of confusion matrix diagonals and off-diagonal cells reveals t
 <strong>Orthographic noise from informal Vietnamese.</strong> The pervasive absence of diacritics in social media Vietnamese (e.g., &ldquo;buon&rdquo; vs. &ldquo;buồn&rdquo;) and the prevalence of nonstandard abbreviations (&ldquo;ko&rdquo; = &ldquo;không&rdquo; [not], &ldquo;dc&rdquo; = &ldquo;được&rdquo; [can/okay], &ldquo;j&rdquo; = &ldquo;gì&rdquo; [what]) produce tokenization artifacts that corrupt the semantic representation. While the weak-labeler handles diacritic-free text through accent-stripped matching, the PhoBERT tokenizer was trained on formal Vietnamese and segments these forms inconsistently, leading to out-of-vocabulary token fragmentation and representational degradation.
 </p>
 
-<h3>5.5. Domain-Adaptive Pretraining: A Controlled Counter-Experiment</h3>
+<h3>5.4. Domain-Adaptive Pretraining: A Controlled Counter-Experiment</h3>
 
 <figure>
 <img src="figures_new/fig5_4_dapt_experiment.png" alt="Two-panel scatter plot of per-seed F1 scores (in-domain and cross-domain) for PhoBERT original vs PhoBERT + DAPT across three seeds" />
-<figcaption><strong>Figure 5.4.</strong> DAPT counter-experiment: per-seed F1 scores across three seeds (42, 123, 2024) for the PhoBERT (original) and PhoBERT + DAPT checkpoints. <em>Top panel:</em> in-domain F1-macro on the YouTube test set (n=912). DAPT produces a small but consistent gain (+0.0122 F1) across all three seeds (diffs: −0.0128, −0.0004, −0.0234). <em>Bottom panel:</em> cross-domain VSMEC (n=3,084) showing both F1-macro (filled markers) and F1-depression (open triangles). DAPT incurs a marginal cross-domain loss (−0.0107 F1-macro) with inconsistent sign across seeds (diffs: +0.0218, +0.0158, −0.0055). Neither delta is statistically significant at α=0.05 with three seeds (in-domain t(2)=−1.84, p≈0.21; cross-domain t(2)=1.29, p≈0.34). The dashed lines connect same-seed pairs to visualize the per-seed directional change. The 0.50 F1 cross-domain gap is essentially unchanged by encoder-side adaptation, confirming the data-centric bottleneck identified in Section 5.2.</figcaption>
+<figcaption><strong>Figure 5.3.</strong> DAPT counter-experiment: per-seed F1 scores across three seeds (42, 123, 2024) for the PhoBERT (original) and PhoBERT + DAPT checkpoints. <em>Top panel:</em> in-domain F1-macro on the YouTube test set (n=912). DAPT produces a small but consistent gain (+0.0122 F1) across all three seeds (diffs: −0.0128, −0.0004, −0.0234). <em>Bottom panel:</em> cross-domain VSMEC (n=3,084) showing both F1-macro (filled markers) and F1-depression (open triangles). DAPT incurs a marginal cross-domain loss (−0.0107 F1-macro) with inconsistent sign across seeds (diffs: +0.0218, +0.0158, −0.0055). Neither delta is statistically significant at α=0.05 with three seeds (in-domain t(2)=−1.84, p≈0.21; cross-domain t(2)=1.29, p≈0.34). The dashed lines connect same-seed pairs to visualize the per-seed directional change. The 0.50 F1 cross-domain gap is essentially unchanged by encoder-side adaptation, confirming the data-centric bottleneck identified in Section 5.2.</figcaption>
 </figure>
 
 <p>
-To test whether the linguistic register divergence identified in Section&nbsp;5.2 could be mitigated by <em>continued masked language modeling</em> on the target domain, we conducted a controlled counter-experiment. The pretrained PhoBERT base (<code>vinai/phobert-base</code>) was further pretrained for two epochs of masked language modeling on the 119,649-comment training portion of the cleaned YouTube corpus (max length 128, batch size 32, learning rate 5&times;10<sup>&minus;5</sup>, gradient accumulation 2, 500 warm-up steps). The resulting domain-adapted checkpoint reached a final eval perplexity of 18.01, indicating that the model successfully absorbed domain-specific lexical and syntactic patterns. Both the original and domain-adapted checkpoints were then fine-tuned three times each (random seeds 42, 123, 2024) on the final 1,786-sample training set (post round-3 review merge) and evaluated on the same in-domain and cross-domain test sets used in Sections&nbsp;5.1&ndash;5.4. This yields six independent runs per test set, enabling statistical comparison via paired-seed t-tests.
+To test whether the linguistic register divergence identified in Section&nbsp;5.2 could be mitigated by <em>continued masked language modeling</em> on the target domain, we conducted a controlled counter-experiment. The pretrained PhoBERT base (<code>vinai/phobert-base</code>) was further pretrained for two epochs of masked language modeling on the 119,649-comment training portion of the cleaned YouTube corpus (max length 128, batch size 32, learning rate 5&times;10<sup>&minus;5</sup>, gradient accumulation 2, 500 warm-up steps). The resulting domain-adapted checkpoint reached a final eval perplexity of 18.01, indicating that the model successfully absorbed domain-specific lexical and syntactic patterns. Both the original and domain-adapted checkpoints were then fine-tuned three times each (random seeds 42, 123, 2024) on the final 1,786-sample training set (post round-3 review merge) and evaluated on the same in-domain and cross-domain test sets used in Sections&nbsp;5.1&ndash;5.3. This yields six independent runs per test set, enabling statistical comparison via paired-seed t-tests.
 </p>
 
 <table>
@@ -1162,13 +1157,13 @@ A practical implication follows. For practitioners building classifiers on small
 
 <div class="page-break"></div>
 
-<h3>5.6. Data Augmentation: Addressing Class Imbalance</h3>
+<h3>5.5. Data Augmentation: Addressing Class Imbalance</h3>
 
 <p>
 The training dataset exhibits a severe class imbalance (depression:normal ratio of approximately 1:6), which limits the model&rsquo;s capacity to learn the diverse linguistic manifestations of depression. To address this, we implemented a multi-strategy data augmentation pipeline targeting the minority (depression) class. The augmentation methods were selected to preserve the depression signal while introducing controlled linguistic variation.
 </p>
 
-<h4>5.6.1. Augmentation Strategies</h4>
+<h4>5.5.1. Augmentation Strategies</h4>
 
 <p>
 Seven augmentation strategies were implemented in the <code>VietnameseAugmenter</code> class (<code>scripts/data_augmentation.py</code>):
@@ -1194,11 +1189,16 @@ Seven augmentation strategies were implemented in the <code>VietnameseAugmenter<
 Each augmentation method generates up to one variant per original sample, yielding a maximum of seven augmented samples per depression-positive example. Duplicates are eliminated via normalized text matching to prevent the classifier from overfitting to exact duplicates.
 </p>
 
-<h4>5.6.2. Augmentation Results</h4>
+<h4>5.5.2. Augmentation Results</h4>
 
 <p>
-The augmentation pipeline was applied to the depression-positive subset of the training data. Table 5.4 presents the comprehensive results for three model variants trained on the augmented dataset, compared against their non-augmented baselines.
+The augmentation pipeline was applied to the depression-positive subset of the training data. Table 5.4 and Figure 5.4 present the comprehensive results for three model variants trained on the augmented dataset, compared against their non-augmented baselines.
 </p>
+
+<figure>
+<img src="figures_new/fig_augmentation.png" alt="Grouped bar chart showing F1-macro scores before and after data augmentation for in-domain and cross-domain test sets" />
+<figcaption><strong>Figure 5.4.</strong> Effect of data augmentation on model performance. Left panel: in-domain F1-macro scores comparing before (light blue/red) and after (dark blue/red) augmentation. Right panel: cross-domain F1-macro scores showing improvement patterns. PhoBERT achieves the largest in-domain gain (+9.38 pp), while PhoBERT + BERTopic shows the largest cross-domain improvement (+12.85 pp). BERTopic-only remains essentially unchanged, confirming that the two-feature representation is the primary bottleneck.</figcaption>
+</figure>
 
 <table>
 <thead>
@@ -1263,7 +1263,7 @@ This project makes five principal contributions to the field of Vietnamese menta
 
 <li><strong>Single annotator.</strong> The blind review was conducted by a single annotator. Multi-annotator agreement metrics (inter-annotator Cohen&rsquo;s Kappa, Fleiss&rsquo; Kappa) could not be computed. Future annotation rounds should employ at least two&ndash;three annotators on overlapping samples to establish annotation reliability.</li>
 
-<li><strong>Domain adaptation (partially addressed).</strong> Data augmentation (Section&nbsp;5.6) was implemented and reduces the cross-domain gap by 8&ndash;12 percentage points for PhoBERT and PhoBERT&nbsp;+&nbsp;BERTopic. However, the gap remains substantial (cross-domain F1&nbsp;&approx;&nbsp;0.40&ndash;0.53), and the approach is limited to rule-based synonym substitution. Neural paraphrasing and adversarial domain adaptation remain unexplored.</li>
+<li><strong>Domain adaptation (partially addressed).</strong> Data augmentation (Section&nbsp;5.5) was implemented and reduces the cross-domain gap by 8&ndash;12 percentage points for PhoBERT and PhoBERT&nbsp;+&nbsp;BERTopic. However, the gap remains substantial (cross-domain F1&nbsp;&approx;&nbsp;0.40&ndash;0.53), and the approach is limited to rule-based synonym substitution. Neural paraphrasing and adversarial domain adaptation remain unexplored.</li>
 
 <li><strong>Single-platform scope.</strong> The dataset is restricted to YouTube. Vietnamese social media users spend substantial time on Facebook, TikTok, and Zalo; each platform cultivates distinct discourse norms. The generalizability of the models trained exclusively on YouTube data to other platforms is unknown.</li>
 </ol>
@@ -1275,7 +1275,7 @@ This project makes five principal contributions to the field of Vietnamese menta
 
 <li><strong>Domain-adaptive pretraining.</strong> Continue pretraining PhoBERT via masked language modeling (MLM) on the 125K YouTube corpus before fine-tuning for classification. DAPT provides a small but consistent in-domain gain (+0.01 F1) but does not close the cross-domain gap. Future work should explore longer MLM training (100&ndash;500 epochs) and adversarial domain adaptation techniques.</li>
 
-<li><strong>Data augmentation (implemented).</strong> Rule-based augmentation via synonym substitution, random insertion, random swap, random deletion, negation insertion, PhoBERT MLM, and emoticon augmentation has been implemented (Section&nbsp;5.6), yielding +9.38 pp in-domain F1 for PhoBERT and +12.85 pp cross-domain F1 for PhoBERT&nbsp;+&nbsp;BERTopic. Future work should explore neural paraphrasing approaches: back-translation (Vietnamese&nbsp;&rarr;&nbsp;English&nbsp;&rarr;&nbsp;Vietnamese), Vietnamese LLM-based paraphrase generation, and back-translation via multilingual models (mBERT, XLM-RoBERTa) to produce more natural and contextually appropriate augmentations.</li>
+<li><strong>Data augmentation (implemented).</strong> Rule-based augmentation via synonym substitution, random insertion, random swap, random deletion, negation insertion, PhoBERT MLM, and emoticon augmentation has been implemented (Section&nbsp;5.5), yielding +9.38 pp in-domain F1 for PhoBERT and +12.85 pp cross-domain F1 for PhoBERT&nbsp;+&nbsp;BERTopic. Future work should explore neural paraphrasing approaches: back-translation (Vietnamese&nbsp;&rarr;&nbsp;English&nbsp;&rarr;&nbsp;Vietnamese), Vietnamese LLM-based paraphrase generation, and back-translation via multilingual models (mBERT, XLM-RoBERTa) to produce more natural and contextually appropriate augmentations.</li>
 
 <li><strong>Multi-platform expansion.</strong> Extend data collection to Facebook public groups, TikTok comments, and Vietnamese forums (voz.vn, Spiderum). Cross-platform evaluation would provide a more robust assessment of generalization and potentially reveal platform-specific linguistic markers of depression.</li>
 
