@@ -197,7 +197,7 @@ This project addresses these gaps by constructing a complete pipeline for Vietna
 </p>
 
 <figure>
-<img src="figures_new/fig_c1_framework.png" alt="Three-layer conceptual framework diagram linking clinical depression screening (DSM-5, PHQ-9) to ecological social-media signal (YouTube Vietnamese comments) and the project's ML pipeline (weak-label → blind annotation → train → in-domain/cross-domain evaluation), with the in-domain/cross-domain evaluation scope highlighted" />
+<img src="figures_new/fig1_1_framework.png" alt="Three-layer conceptual framework diagram linking clinical depression screening (DSM-5, PHQ-9) to ecological social-media signal (YouTube Vietnamese comments) and the project's ML pipeline (weak-label → blind annotation → train → in-domain/cross-domain evaluation), with the in-domain/cross-domain evaluation scope highlighted" />
 <figcaption><strong>Figure 1.1.</strong> Three-layer conceptual framework linking clinical reality to social media signals and the ML pipeline. Layer 1 (vermillion): MDD prevalence and structural screening barriers (stigma, 0.2 psychiatrists per 100,000 population in Vietnam, PHQ-9 self-report requirement). Layer 2 (blue): 125,329 Vietnamese YouTube comments as ecological linguistic signal. Layer 3 (green, this work): end-to-end pipeline (weak-labeling → blind annotation → model training → two-domain evaluation). Evaluation boxes quantify the generalization gap (ΔF1 ≈ 0.37) between in-domain (n=912) and cross-domain (VSMEC, n=3,084) test sets.</figcaption>
 </figure>
 
@@ -329,7 +329,7 @@ Research on automated depression detection from user-generated text has progress
 </p>
 
 <figure>
-<img src="figures_new/fig_c2_taxonomy.png" alt="Three-branch taxonomy tree of NLP approaches to depression detection: lexicon-based (LIWC, ANEW), traditional machine learning (TF-IDF + SVM/LR/RF), and deep learning (generic pretrained BERT/RoBERTa, domain-adapted MentalBERT/PsychBERT, Vietnamese PhoBERT which is the architecture of this work), with pros and cons annotated per branch and PhoBERT leaf highlighted" />
+<img src="figures_new/fig2_1_taxonomy.png" alt="Three-branch taxonomy tree of NLP approaches to depression detection: lexicon-based (LIWC, ANEW), traditional machine learning (TF-IDF + SVM/LR/RF), and deep learning (generic pretrained BERT/RoBERTa, domain-adapted MentalBERT/PsychBERT, Vietnamese PhoBERT which is the architecture of this work), with pros and cons annotated per branch and PhoBERT leaf highlighted" />
 <figcaption><strong>Figure 2.1.</strong> Methodological taxonomy of NLP approaches to depression detection from social media text. Branch 1 (grey): lexicon-based methods (LIWC, ANEW) — context-blind and language-specific. Branch 2 (blue): traditional ML (TF-IDF + SVM/LR/RF) — requires manual feature engineering, shallow semantics. Branch 3 (blue): deep learning — generic BERT/RoBERTa, domain-adapted variants (MentalBERT, PsychBERT), and PhoBERT for Vietnamese (this work, highlighted green). PhoBERT achieves in-domain F1 of 0.8686 ± 0.0086 with a cross-domain gap of 0.3727 ± 0.0242.</figcaption>
 </figure>
 
@@ -939,7 +939,7 @@ The model training and evaluation phase comprises the final five steps (Steps 11
 </p>
 
 <figure>
-<img src="figures_new/fig_c4_pipeline.png" alt="15-step pipeline overview showing data acquisition (Chapter 3) and model training and evaluation (Chapter 4) phases" />
+<img src="figures_new/fig4_1_pipeline.png" alt="15-step pipeline overview showing data acquisition (Chapter 3) and model training and evaluation (Chapter 4) phases" />
 <figcaption><strong>Figure 4.1.</strong> 15-step research pipeline spanning Chapter 3 (data acquisition: crawl, clean, external datasets, corpus construction, weak-labeling, blind annotation, gold set) and Chapter 4 (model training on 6,080 samples and two-domain evaluation: in-domain n=912, cross-domain n=3,084).</figcaption>
 </figure>
 
@@ -1096,7 +1096,7 @@ Manual inspection of confusion matrix diagonals and off-diagonal cells reveals t
 <h3>5.4. Domain-Adaptive Pretraining: A Controlled Counter-Experiment</h3>
 
 <figure>
-<img src="figures_new/fig5_3_dapt_experiment.png" alt="DAPT counter-experiment: F1-macro comparison between PhoBERT (original) and PhoBERT + DAPT on in-domain and cross-domain test sets" />
+<img src="figures_new/fig5_3_dapt.png" alt="DAPT counter-experiment: F1-macro comparison between PhoBERT (original) and PhoBERT + DAPT on in-domain and cross-domain test sets" />
 <figcaption><strong>Figure 5.3.</strong> DAPT counter-experiment comparing PhoBERT (original) vs PhoBERT + DAPT. In-domain (n=912): 0.8681 vs 0.8803 (Δ=−0.012, n.s.). Cross-domain (n=3,084): 0.3727 vs 0.3620 (Δ=+0.011, n.s.). Neither delta is statistically significant (paired bootstrap, p>0.05). The cross-domain gap remains essentially unchanged, confirming that encoder-side adaptation alone does not address the data-centric bottleneck.</figcaption>
 </figure>
 
