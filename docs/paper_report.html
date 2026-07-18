@@ -197,7 +197,7 @@ This project addresses these gaps by constructing a complete pipeline for Vietna
 </p>
 
 <figure>
-<img src="figures_new/fig1_1_framework.png" alt="Three-layer conceptual framework diagram linking clinical depression screening (DSM-5, PHQ-9) to ecological social-media signal (YouTube Vietnamese comments) and the project's ML pipeline (weak-label → blind annotation → train → in-domain/cross-domain evaluation), with the in-domain/cross-domain evaluation scope highlighted" />
+<img src="final_fig/fig1_1_framework.png" alt="Three-layer conceptual framework diagram linking clinical depression screening (DSM-5, PHQ-9) to ecological social-media signal (YouTube Vietnamese comments) and the project's ML pipeline (weak-label → blind annotation → train → in-domain/cross-domain evaluation), with the in-domain/cross-domain evaluation scope highlighted" />
 <figcaption><strong>Figure 1.1.</strong> Three-layer conceptual framework linking clinical reality to social media signals and the ML pipeline. Layer 1 (vermillion): MDD prevalence and structural screening barriers (stigma, 0.2 psychiatrists per 100,000 population in Vietnam, PHQ-9 self-report requirement). Layer 2 (blue): 125,329 Vietnamese YouTube comments as ecological linguistic signal. Layer 3 (green, this work): end-to-end pipeline (weak-labeling → blind annotation → model training → two-domain evaluation). Evaluation boxes quantify the generalization gap (ΔF1 ≈ 0.37) between in-domain (n=912) and cross-domain (VSMEC, n=3,084) test sets.</figcaption>
 </figure>
 
@@ -329,7 +329,7 @@ Research on automated depression detection from user-generated text has progress
 </p>
 
 <figure>
-<img src="figures_new/fig2_1_taxonomy.png" alt="Three-branch taxonomy tree of NLP approaches to depression detection: lexicon-based (LIWC, ANEW), traditional machine learning (TF-IDF + SVM/LR/RF), and deep learning (generic pretrained BERT/RoBERTa, domain-adapted MentalBERT/PsychBERT, Vietnamese PhoBERT which is the architecture of this work), with pros and cons annotated per branch and PhoBERT leaf highlighted" />
+<img src="final_fig/fig2_1_taxonomy.png" alt="Three-branch taxonomy tree of NLP approaches to depression detection: lexicon-based (LIWC, ANEW), traditional machine learning (TF-IDF + SVM/LR/RF), and deep learning (generic pretrained BERT/RoBERTa, domain-adapted MentalBERT/PsychBERT, Vietnamese PhoBERT which is the architecture of this work), with pros and cons annotated per branch and PhoBERT leaf highlighted" />
 <figcaption><strong>Figure 2.1.</strong> Methodological taxonomy of NLP approaches to depression detection from social media text. Branch 1 (grey): lexicon-based methods (LIWC, ANEW) — context-blind and language-specific. Branch 2 (blue): traditional ML (TF-IDF + SVM/LR/RF) — requires manual feature engineering, shallow semantics. Branch 3 (blue): deep learning — generic BERT/RoBERTa, domain-adapted variants (MentalBERT, PsychBERT), and PhoBERT for Vietnamese (this work, highlighted green). PhoBERT achieves in-domain F1 of 0.8686 ± 0.0086 with a cross-domain gap of 0.3727 ± 0.0242.</figcaption>
 </figure>
 
@@ -746,7 +746,7 @@ Application of the weak-labeler to the 125,329 cleaned YouTube comments produced
 <p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.8: Weak-label distribution on the YouTube dataset. The overwhelming majority of comments (78.52%) fall into the uncertain category, reflecting the empirical reality that most YouTube comments do not contain strong, unambiguous affective lexical signals. The high <code>need_review</code> rate (96.01%) reflects the conservative design of the review-flagging heuristics.</p>
 
 <figure>
-<img src="figures_new/fig3_1_weak_label.png" alt="Stacked horizontal bar chart and pie chart of weak-label distribution on the 125,329-comment YouTube corpus, split by depression_auto, normal_auto, and uncertain categories and by high/medium confidence" />
+<img src="final_fig/fig4_1_weak_label.png" alt="Stacked horizontal bar chart and pie chart of weak-label distribution on the 125,329-comment YouTube corpus, split by depression_auto, normal_auto, and uncertain categories and by high/medium confidence" />
 <figcaption><strong>Figure 3.1.</strong> Weak-label distribution on 125,329 cleaned YouTube comments. The majority (78.52%, n=98,410) fall into the uncertain category, reflecting the absence of strong lexical signals in most comments. Only 2.57% (n=3,223) are auto-labeled as depression and 18.91% (n=23,695) as normal. This extreme class imbalance motivates blind human annotation (Section 3.6).</figcaption>
 </figure>
 
@@ -939,7 +939,7 @@ The model training and evaluation phase comprises the final five steps (Steps 11
 </p>
 
 <figure>
-<img src="figures_new/fig4_1_pipeline.png" alt="15-step pipeline overview showing data acquisition (Chapter 3) and model training and evaluation (Chapter 4) phases" />
+<img src="final_fig/fig3_1_pipeline.png" alt="15-step pipeline overview showing data acquisition (Chapter 3) and model training and evaluation (Chapter 4) phases" />
 <figcaption><strong>Figure 4.1.</strong> 15-step research pipeline spanning Chapter 3 (data acquisition: crawl, clean, external datasets, corpus construction, weak-labeling, blind annotation, gold set) and Chapter 4 (model training on 6,080 samples and two-domain evaluation: in-domain n=912, cross-domain n=3,084).</figcaption>
 </figure>
 
@@ -1034,7 +1034,7 @@ Three patterns emerge from Table 5.1. <strong>First</strong>, on the post-round-
 <h3>5.2. Analysis of the Generalization Gap</h3>
 
 <figure>
-<img src="figures_new/fig5_1_generalization_gap.png" alt="Grouped bar chart comparing in-domain vs cross-domain F1-macro for seven model variants with error bars" />
+<img src="final_fig/fig5_1_generalization_gap.png" alt="Grouped bar chart comparing in-domain vs cross-domain F1-macro for seven model variants with error bars" />
 <figcaption><strong>Figure 5.1.</strong> In-domain vs cross-domain F1-macro comparison across model variants. Error bars: ±1 SD over three seeds (42, 123, 2024). PhoBERT achieves the best in-domain F1 (0.8596) with a generalization gap (ΔF1) of 0.3661. The consistent gap across supervised models (0.35–0.50) confirms the data-centric bottleneck. BERTopic-only is the only model with higher cross-domain than in-domain F1.</figcaption>
 </figure>
 
@@ -1073,7 +1073,7 @@ BERTopic was trained on the full 316,401-document corpus (embedding model: <code
 <h3>5.4. Qualitative Error Analysis</h3>
 
 <figure>
-<img src="figures_new/fig5_2_confusion_matrices.png" alt="Confusion matrices for PhoBERT model on in-domain and cross-domain test sets" />
+<img src="final_fig/fig5_2_confusion_matrices.png" alt="Confusion matrices for PhoBERT model on in-domain and cross-domain test sets" />
 <figcaption><strong>Figure 5.2.</strong> Confusion matrices for PhoBERT on in-domain (n=912) and cross-domain (n=3,084) test sets. Left: in-domain shows strong performance (TN=342, FP=89, FN=52, TP=429; F1-macro=0.8596). Right: cross-domain shows complete negative bias — TN=1,847, FP=412, FN=825, TP=0, F1-macro=0.0000. The model predicts "normal" for all 825 VSMEC distress sentences, indicating severe domain shift.</figcaption>
 </figure>
 
@@ -1096,7 +1096,7 @@ Manual inspection of confusion matrix diagonals and off-diagonal cells reveals t
 <h3>5.4. Domain-Adaptive Pretraining: A Controlled Counter-Experiment</h3>
 
 <figure>
-<img src="figures_new/fig5_3_dapt.png" alt="DAPT counter-experiment: F1-macro comparison between PhoBERT (original) and PhoBERT + DAPT on in-domain and cross-domain test sets" />
+<img src="final_fig/fig5_3_dapt.png" alt="DAPT counter-experiment: F1-macro comparison between PhoBERT (original) and PhoBERT + DAPT on in-domain and cross-domain test sets" />
 <figcaption><strong>Figure 5.3.</strong> DAPT counter-experiment comparing PhoBERT (original) vs PhoBERT + DAPT. In-domain (n=912): 0.8681 vs 0.8803 (Δ=−0.012, n.s.). Cross-domain (n=3,084): 0.3727 vs 0.3620 (Δ=+0.011, n.s.). Neither delta is statistically significant (paired bootstrap, p>0.05). The cross-domain gap remains essentially unchanged, confirming that encoder-side adaptation alone does not address the data-centric bottleneck.</figcaption>
 </figure>
 
@@ -1177,7 +1177,7 @@ The augmentation pipeline was applied to the depression-positive subset of the t
 </p>
 
 <figure>
-<img src="figures_new/fig5_4_augmentation.png" alt="Data augmentation experiment results: F1-macro before vs after augmentation for in-domain and cross-domain test sets" />
+<img src="final_fig/fig5_4_augmentation.png" alt="Data augmentation experiment results: F1-macro before vs after augmentation for in-domain and cross-domain test sets" />
 <figcaption><strong>Figure 5.4.</strong> Effect of data augmentation on F1-macro performance. In-domain: PhoBERT gains +9.38 pp (0.8681 → 0.9619). Cross-domain: PhoBERT + BERTopic shows the largest improvement (+12.85 pp, 0.3977 → 0.5262). BERTopic-only remains essentially unchanged, confirming the two-feature bottleneck.</figcaption>
 </figure>
 
