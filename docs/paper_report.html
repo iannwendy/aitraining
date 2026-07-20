@@ -808,7 +808,7 @@ Annotation was conducted using Label Studio, an open-source data labeling platfo
 </p>
 
 <p>
-For the blind protocol, Label Studio import files were prepared with only the <code>comment_text</code> and a sequential <code>row_id</code> column. All metadata columns that could reveal the machine&rsquo;s suggested label were excluded from the import file. The annotation interface presented four options: <code>depression</code> (the comment exhibits personal distress indicative of depression), <code>normal</code> (no depression signs), <code>uncertain</code> (insufficient information to decide), and <code>exclude</code> (non-Vietnamese, spam, or otherwise unusable). An accompanying annotation guide (<code>docs/HUONG_DAN_REVIEW_LABEL_STUDIO.md</code>) defined decision criteria with illustrative examples for each label category.
+For the blind protocol, Label Studio import files were prepared with only the <code>comment_text</code> and a sequential <code>row_id</code> column. All metadata columns that could reveal the machine&rsquo;s suggested label were excluded from the import file. The annotation interface presented four options: <code>depression</code> (the comment exhibits personal distress indicative of depression), <code>normal</code> (no depression signs), <code>uncertain</code> (insufficient information to decide), and <code>exclude</code> (non-Vietnamese, spam, or otherwise unusable). An accompanying annotation guide (<code>appendices/manual_review/HUONG_DAN_REVIEW_LABEL_STUDIO.md</code>) defined decision criteria with illustrative examples for each label category.
 </p>
 
 <h4>3.6.3. Annotation Batches</h4>
@@ -876,7 +876,7 @@ The gold set serves three functions in the project: (1)&nbsp;as the evaluation b
 <h4>3.7.1. Multi-Source Integration with Source Weighting</h4>
 
 <p>
-The final training dataset (<code>final_dataset.csv</code>) was constructed by integrating labeled data from four sources, each assigned a weight reflecting the reliability of its labels. The integration is performed by <code>docs/phase2_build_final_dataset.py</code>:
+The final training dataset (<code>final_dataset.csv</code>) was constructed by integrating labeled data from four sources, each assigned a weight reflecting the reliability of its labels. The integration is performed by <code>scripts/phase2_build_final_dataset.py</code>:
 
 <table>
 <thead><tr><th>Source</th><th>Label Provenance</th><th>Weight</th><th>Description</th></tr></thead>
