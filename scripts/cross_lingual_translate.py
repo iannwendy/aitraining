@@ -5,9 +5,9 @@ Cross-lingual Translation Pipeline - Step 1: Download and Filter Reddit Depressi
 Downloads English Reddit depression data from HuggingFace, filters off-topic posts,
 and balances the dataset for cross-lingual augmentation (Vietnamese).
 
-Dataset: hugginglearners/reddit-depression-cleaned
+Dataset: ShreyaR/DepressionDetection
 Columns: clean_text, is_depression (binary 0/1)
-Output: data/translated/reddit_dep_en.csv with columns: text, label
+Output: data/translated/reddit_dep_en.csv with columns: clean_text, is_depression
 """
 
 import pandas as pd
@@ -108,14 +108,14 @@ def filter_dataset(df: pd.DataFrame) -> pd.DataFrame:
     # Combine and create output format
     result_df = pd.concat([depression_filtered, normal_sampled], ignore_index=True)
 
-    # Rename columns to output format
+    # Rename columns to output format (matching spec: clean_text, is_depression)
     result_df = result_df.rename(columns={
-        text_col: 'text',
-        label_col: 'label'
+        text_col: 'clean_text',
+        label_col: 'is_depression'
     })
 
     # Select only required columns
-    result_df = result_df[['text', 'label']]
+    result_df = result_df[['clean_text', 'is_depression']]
 
     # Shuffle
     result_df = result_df.sample(frac=1, random_state=42).reset_index(drop=True)
@@ -144,8 +144,8 @@ def main():
     print(f"Output saved to: {OUTPUT_PATH}")
     print(f"Total samples: {len(filtered_df)}")
     print(f"Label distribution:")
-    print(filtered_df['label'].value_counts())
-    print(f"Ratio (normal:depression): {filtered_df['label'].value_counts()[0] / filtered_df['label'].value_counts()[1]:.2f}:1")
+    print(filtered_df['is_depression'].value_counts())
+    print(f"Ratio (normal:depression): {filtered_df['is_depression'].value_counts()[0] / filtered_df['is_depression'].value_counts()[1]:.2f}:1")
     print(f"{'=' * 60}")
 
     # Verify output
