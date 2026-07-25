@@ -11,6 +11,9 @@ Usage:
 
 from __future__ import annotations
 
+# This is an executable smoke-test utility, not part of the unit-test suite.
+__test__ = False
+
 import logging
 import time
 

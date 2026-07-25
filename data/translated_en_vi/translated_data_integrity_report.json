@@ -1,0 +1,100 @@
+{
+  "generated_at": "2026-07-24T19:09:37.257497+00:00",
+  "protocol": "fixed licensed English source; balanced source-length-matched pairs; local machine translation; complete-pair automatic quality gate; train only",
+  "source": {
+    "dataset_id": "hugginglearners/reddit-depression-cleaned",
+    "revision": "c71fde85d3a85330916731069ebbb3461816404b",
+    "license": "CC0-1.0",
+    "url": "https://huggingface.co/datasets/hugginglearners/reddit-depression-cleaned/resolve/c71fde85d3a85330916731069ebbb3461816404b/depression_dataset_reddit_cleaned.csv",
+    "file_sha256": "bc5fc11e77b4388c6484f580824900484c2b58f8ed4dce32c6d1cb78c48ed7e9",
+    "label_caveat": "source/subreddit-derived weak labels; not expert or clinical diagnosis"
+  },
+  "translation": {
+    "model_id": "facebook/nllb-200-distilled-600M",
+    "revision": "f8d333a098d19b4fd9a8b18f94170487ad3f821d",
+    "license": "CC-BY-NC-4.0",
+    "execution": "local; no source text sent to an external translation API",
+    "similarity_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "similarity_model_revision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+    "similarity_model_license": "Apache-2.0"
+  },
+  "selection": {
+    "source_rows": 7731,
+    "rejected": {
+      "blank": 0,
+      "invalid_label": 0,
+      "pii_pattern": 1,
+      "too_short": 238,
+      "duplicate_normalized_source": 81,
+      "source_label_conflict_rows": 0,
+      "clipped_label_conflict_keys": 0,
+      "duplicate_after_clipping": 28
+    },
+    "eligible_after_filters": 7390,
+    "available_length_matched_pairs": 1120,
+    "selected_pairs": 1100,
+    "selected_rows": 2200,
+    "selected_label_distribution": {
+      "0": 1100,
+      "1": 1100
+    },
+    "selected_length_bins": {
+      "(119.0, 144.0]": 888,
+      "(18.999, 39.0]": 224,
+      "(39.0, 59.0]": 274,
+      "(59.0, 79.0]": 306,
+      "(79.0, 99.0]": 246,
+      "(99.0, 119.0]": 262
+    }
+  },
+  "quality_audit": {
+    "translated_rows": 2200,
+    "automatic_rejections_by_reason": {
+      "translation_blank": 0,
+      "translation_pii_pattern": 0,
+      "negation_mismatch": 477,
+      "length_ratio_rejected": 18,
+      "similarity_rejected": 29,
+      "duplicate_translation": 0,
+      "translation_label_conflict": 0,
+      "overlap_train": 0,
+      "overlap_validation": 0,
+      "overlap_test": 0,
+      "overlap_cross_domain": 0
+    },
+    "accepted_complete_pairs": 646,
+    "accepted_rows": 1292,
+    "accepted_label_distribution": {
+      "0": 646,
+      "1": 646
+    },
+    "cross_lingual_cosine": {
+      "threshold": 0.45,
+      "min": 0.10563255101442337,
+      "median": 0.8027571439743042,
+      "mean": 0.7833895683288574,
+      "max": 0.99043208360672
+    },
+    "human_translation_audit": "pending; sample exported for human review"
+  },
+  "merged_training_sets": {
+    "clean_plus_translated": {
+      "path": "data/translated_en_vi/final_train_translated_en_vi.csv",
+      "rows": 8628,
+      "labels": {
+        "0": 6799,
+        "1": 1829
+      }
+    },
+    "augmented_plus_translated": {
+      "path": "data/translated_en_vi/final_train_augmented_translated_en_vi.csv",
+      "rows": 11977,
+      "labels": {
+        "0": 6799,
+        "1": 5178
+      }
+    },
+    "human_audit_sample_rows": 220
+  },
+  "integrity_pass": true
+}

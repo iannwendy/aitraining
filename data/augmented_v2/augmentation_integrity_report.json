@@ -1,0 +1,37 @@
+{
+  "protocol": "augment training only; preserve labels/negation; fixed validation/test/VSMEC untouched",
+  "original_train_rows": 7336,
+  "generated_candidate_rows": 3475,
+  "synthetic_rows_added": 3349,
+  "final_augmented_train_rows": 10685,
+  "removed_exact_overlap": 1,
+  "removed_duplicate_synthetic_rows": 0,
+  "quality_filter_rejections": {
+    "missing_parent_provenance": 0,
+    "label_mismatch_with_parent": 0,
+    "negation_signature_changed": 117,
+    "token_length_ratio_outside_0.70_to_1.35": 8
+  },
+  "unique_source_rows_augmented": 1183,
+  "augmentation_methods": {
+    "random_deletion": 646,
+    "random_insertion": 1182,
+    "random_swap": 1165,
+    "synonym_replacement": 356
+  },
+  "label_distribution": {
+    "0": 6153,
+    "1": 4532
+  },
+  "integrity": {
+    "null_or_blank_text": 0,
+    "duplicate_text": 0,
+    "overlap_validation": 0,
+    "overlap_test": 0,
+    "overlap_cross_domain": 0,
+    "missing_synthetic_parent_hash": 0,
+    "missing_synthetic_method": 0,
+    "synthetic_parent_not_in_original_train": 0
+  },
+  "integrity_pass": true
+}

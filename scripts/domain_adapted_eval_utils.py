@@ -9,19 +9,16 @@ def run_finetune(
     model_path: str,
     seed: int,
     output_dir: str,
-    train_csv: str = "data/final_train.csv",
-    val_csv: str = "data/final_val.csv",
-    test_csv: str = "data/final_test.csv",
+    train_csv: str = "data/labeled/final_train.csv",
+    val_csv: str = "data/labeled/final_val.csv",
+    test_csv: str = "data/labeled/final_test.csv",
 ) -> str:
-    """Fine-tune a PhoBERT model on the FINAL dataset (post-Phase-1/2 rebuild).
+    """Fine-tune a PhoBERT model on the repaired Round-5 splits.
 
     Returns path to the best checkpoint directory.
 
-    Earlier versions of this function omitted the CSV path overrides, which
-    caused the trainer to fall back to `TRAIN_FILE`/`VAL_FILE`/`TEST_FILE` in
-    `core/config.py` — those point to the pre-round-3 `data/train.csv` (2,632
-    rows), not the new `data/final_train.csv` (1,786 rows). The defaults here
-    make the new behaviour explicit; callers can override for ablation.
+    The explicit CSV overrides prevent fallback to legacy split files. Callers
+    may still override them for a declared ablation.
 
     The trainer (`phobert_train.train_phobert_first`) saves the best
     checkpoint directly to its `output_dir` argument via
@@ -65,10 +62,18 @@ def run_finetune(
     # Accept either `output_dir` itself or a nested `best_model/` for forward-compat
     # in case the trainer is later refactored to nest.
     candidates = [output_dir, os.path.join(output_dir, "best_model")]
-    expected = next((c for c in candidates if os.path.isdir(c)), None)
+    expected = next((
+        c for c in candidates
+        if os.path.isfile(os.path.join(c, "config.json"))
+        and any(
+            os.path.isfile(os.path.join(c, weights_name))
+            for weights_name in ["model.safetensors", "pytorch_model.bin"]
+        )
+    ), None)
     if expected is None:
         raise RuntimeError(
-            f"Expected checkpoint at one of {candidates} but none exist"
+            f"Expected a complete checkpoint at one of {candidates}, but no "
+            "directory contained config.json plus model weights"
         )
     return expected
 
@@ -172,10 +177,10 @@ def aggregate_results(runs: list, output_dir: str, git_commit: str, timestamp: s
         f"Timestamp: `{timestamp}`",
         "",
         "| Model | Test set | n_seeds | Accuracy (mean+/-std) | "
-        "F1 macro (mean+/-std) | F1 depression (mean+/-std) | "
+        "F1 macro (mean+/-std) | F1 weighted (mean+/-std) | F1 depression (mean+/-std) | "
         "Precision macro (mean+/-std) | Recall macro (mean+/-std) |",
         "|-------|----------|---------|------------------------|"
-        "------------------------|-----------------------------|"
+        "------------------------|---------------------------|-----------------------------|"
         "------------------------------|----------------------------|",
     ]
 
@@ -194,6 +199,7 @@ def aggregate_results(runs: list, output_dir: str, git_commit: str, timestamp: s
             f"| {model_tag} | {test_set} | {n} | "
             f"{fmt([g['accuracy'] for g in group])} | "
             f"{fmt([g['f1_macro'] for g in group])} | "
+            f"{fmt([g['f1_weighted'] for g in group])} | "
             f"{fmt([g['f1_depression'] for g in group])} | "
             f"{fmt([g['precision_macro'] for g in group])} | "
             f"{fmt([g['recall_macro'] for g in group])} |"

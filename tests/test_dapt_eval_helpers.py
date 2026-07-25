@@ -104,6 +104,7 @@ class TestAggregateResults(unittest.TestCase):
             "status": status,
             "accuracy": 0.7,
             "f1_macro": f1,
+            "f1_weighted": f1 + 0.03,
             "f1_depression": f1 - 0.05,
             "precision_macro": 0.75,
             "recall_macro": 0.7,
@@ -164,19 +165,7 @@ class TestAggregateResults(unittest.TestCase):
 
 
 class TestRunFinetuneDataPath(unittest.TestCase):
-    """Regression test for the bug fixed in commit f09fddc.
-
-    Earlier versions of run_finetune() did not override the CSV paths, so
-    the subprocess fell back to TRAIN_FILE/VAL_FILE/TEST_FILE in
-    core/config.py — which still pointed to the pre-Phase-1 splits
-    (data/train.csv, 2,632 rows). The original DAPT evaluation
-    (results/domain_adapted_eval_2026-06-25_123440/) was inadvertently
-    trained on those OLD splits.
-
-    These tests guard against the regression by static-checking both the
-    function body and the default argument values. They do NOT execute
-    run_finetune (which requires GPU/MPS) and are safe to run on CPU.
-    """
+    """Guard the repaired split overrides without executing a heavy run."""
 
     def test_run_finetune_source_references_final_splits(self):
         import inspect
@@ -198,16 +187,16 @@ class TestRunFinetuneDataPath(unittest.TestCase):
 
         sig = inspect.signature(run_finetune)
         self.assertEqual(
-            sig.parameters["train_csv"].default, "data/final_train.csv",
-            "Default train_csv must point at data/final_train.csv",
+            sig.parameters["train_csv"].default, "data/labeled/final_train.csv",
+            "Default train_csv must point at data/labeled/final_train.csv",
         )
         self.assertEqual(
-            sig.parameters["val_csv"].default, "data/final_val.csv",
-            "Default val_csv must point at data/final_val.csv",
+            sig.parameters["val_csv"].default, "data/labeled/final_val.csv",
+            "Default val_csv must point at data/labeled/final_val.csv",
         )
         self.assertEqual(
-            sig.parameters["test_csv"].default, "data/final_test.csv",
-            "Default test_csv must point at data/final_test.csv",
+            sig.parameters["test_csv"].default, "data/labeled/final_test.csv",
+            "Default test_csv must point at data/labeled/final_test.csv",
         )
 
 

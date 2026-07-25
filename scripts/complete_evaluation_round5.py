@@ -36,12 +36,13 @@ warnings.filterwarnings("ignore")
 # ── Config ──────────────────────────────────────────────────────────────────
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_DIR / "data"
+LABELED_DIR = DATA_DIR / "labeled"
 MODEL_DIR = PROJECT_DIR / "models"
 RESULTS_DIR = PROJECT_DIR / "results"
 OUTPUT_DIR = RESULTS_DIR / f"round5_complete_eval_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-TEST_FILE = DATA_DIR / "final_test.csv"
+TEST_FILE = LABELED_DIR / "final_test.csv"
 VSMEC_FILE = DATA_DIR.parent / "data_unified" / "cross_domain_test.csv"
 PHOBERT_DIR = MODEL_DIR / "round5_predictions"
 MODEL_NAME = "vinai/phobert-base"

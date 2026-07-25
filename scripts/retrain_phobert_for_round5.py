@@ -39,12 +39,13 @@ os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 DATA_DIR = PROJECT_DIR / "data"
+LABELED_DIR = DATA_DIR / "labeled"
 MODEL_DIR = PROJECT_DIR / "models"
 OUTPUT_DIR = MODEL_DIR / "round5_predictions"
 PREDICTIONS_FILE = DATA_DIR / "phobert_remaining_predictions.csv"
 
-TRAIN_FILE = DATA_DIR / "final_train.csv"
-VAL_FILE = DATA_DIR / "final_val.csv"
+TRAIN_FILE = LABELED_DIR / "final_train.csv"
+VAL_FILE = LABELED_DIR / "final_val.csv"
 MODEL_NAME = "vinai/phobert-base"
 MAX_LEN = 128
 BATCH_SIZE = 16

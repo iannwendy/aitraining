@@ -7,9 +7,8 @@ This script continues masked language modeling on 125K YouTube comments so the
 model adapts its tokenizer statistics and internal representations to the
 target domain before fine-tuning for depression classification.
 
-Expected impact: reduce the generalization gap (0.53 F1) between in-domain and
-cross-domain evaluation by making the model less reliant on formal-text cues
-that are absent in social media.
+The downstream controlled experiment tests whether this adaptation changes
+performance; no improvement is assumed in advance.
 
 Usage:
   .venv/bin/python scripts/domain_adaptive_pretrain.py                # full corpus
@@ -46,7 +45,7 @@ from yt_depression_crawler.modeling.phobert.phobert_utils import set_seed
 
 # ── Config ────────────────────────────────────────────────────────────
 MODEL_NAME = "vinai/phobert-base"          # Starting checkpoint
-CORPUS_FILE = PROJECT_DIR / "data" / "cleaned_comments.csv"  # 125K YouTube comments
+CORPUS_FILE = PROJECT_DIR / "data" / "raw" / "cleaned_comments.csv"  # 125K YouTube comments
 OUTPUT_DIR = PROJECT_DIR / "models" / "phobert_domain_adapted"
 METRICS_FILE = OUTPUT_DIR / "pretrain_metrics.json"
 

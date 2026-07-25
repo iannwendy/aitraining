@@ -9,6 +9,8 @@ from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_DIR / "data"
+RAW_DIR = DATA_DIR / "raw"
+LABELED_DIR = DATA_DIR / "labeled"
 DOCS_DIR = PROJECT_DIR / "docs"
 
 def main():
@@ -29,7 +31,7 @@ def main():
     valid_labels['label'] = valid_labels['final_label'].map({'normal': 0, 'depression': 1})
 
     # Load existing gold set
-    gold_df = pd.read_csv(DATA_DIR / "train_gold.csv")
+    gold_df = pd.read_csv(LABELED_DIR / "train_gold.csv")
     print(f"\nExisting gold set: {len(gold_df)} samples")
     print(f"Existing gold distribution:\n{gold_df['label'].value_counts()}")
 
@@ -53,7 +55,7 @@ def main():
     print(f"Merged distribution:\n{merged_gold['label'].value_counts()}")
 
     # Save merged gold
-    merged_gold.to_csv(DATA_DIR / "train_gold.csv", index=False)
+    merged_gold.to_csv(LABELED_DIR / "train_gold.csv", index=False)
     print(f"\nSaved: train_gold.csv")
 
     # Now rebuild final dataset with merged gold
@@ -62,7 +64,7 @@ def main():
     print("=" * 60)
 
     # Load weak labels
-    weak_df = pd.read_csv(DATA_DIR / "auto_labeled_comments.csv", dtype=str).fillna("")
+    weak_df = pd.read_csv(RAW_DIR / "auto_labeled_comments.csv", dtype=str).fillna("")
     weak_df['label'] = weak_df['label'].astype(int)
 
     # Combine gold + weak (similar to original logic)
@@ -84,7 +86,7 @@ def main():
     print(f"Distribution:\n{final_df['label'].value_counts()}")
 
     # Save final dataset
-    final_df.to_csv(DATA_DIR / "final_dataset.csv", index=False)
+    final_df.to_csv(LABELED_DIR / "final_dataset.csv", index=False)
     print(f"\nSaved: {DATA_DIR / 'final_dataset.csv'}")
 
     # Stratified split
@@ -97,9 +99,9 @@ def main():
         temp, test_size=0.50, random_state=42, stratify=temp['label']
     )
 
-    train.to_csv(DATA_DIR / "final_train.csv", index=False)
-    val.to_csv(DATA_DIR / "final_val.csv", index=False)
-    test.to_csv(DATA_DIR / "final_test.csv", index=False)
+    train.to_csv(LABELED_DIR / "final_train.csv", index=False)
+    val.to_csv(LABELED_DIR / "final_val.csv", index=False)
+    test.to_csv(LABELED_DIR / "final_test.csv", index=False)
 
     print(f"\nTrain: {len(train)} | Val: {len(val)} | Test: {len(test)}")
     print(f"Saved: final_train.csv, final_val.csv, final_test.csv")

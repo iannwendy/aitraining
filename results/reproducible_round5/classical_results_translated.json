@@ -1,0 +1,56 @@
+{
+  "protocol": "fit train only; fixed human-only validation/test; VSMEC affective proxy holdout",
+  "dataset": {
+    "train_rows": 8628,
+    "evaluated_splits": [
+      "validation"
+    ],
+    "split_rows": {
+      "validation": 241
+    }
+  },
+  "models": {
+    "tfidf_logreg": {
+      "validation": {
+        "accuracy": 0.9128630705394191,
+        "precision_macro": 0.7592926490984744,
+        "recall_macro": 0.8589669738863287,
+        "f1_macro": 0.7972112032696237,
+        "f1_weighted": 0.9198530185612199,
+        "f1_depression": 0.6440677966101694,
+        "confusion_matrix": [
+          [
+            201,
+            16
+          ],
+          [
+            5,
+            19
+          ]
+        ],
+        "score_type": "probability"
+      }
+    },
+    "tfidf_linearsvc": {
+      "validation": {
+        "accuracy": 0.950207468879668,
+        "precision_macro": 0.8537567084078712,
+        "recall_macro": 0.8797043010752688,
+        "f1_macro": 0.866111111111111,
+        "f1_weighted": 0.9510880590133702,
+        "f1_depression": 0.76,
+        "confusion_matrix": [
+          [
+            210,
+            7
+          ],
+          [
+            5,
+            19
+          ]
+        ],
+        "score_type": "sigmoid_decision_function"
+      }
+    }
+  }
+}

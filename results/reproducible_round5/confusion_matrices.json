@@ -1,0 +1,486 @@
+{
+  "augmented": {
+    "tfidf_linearsvc:cross_domain": {
+      "rows": 3084,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          1533,
+          9
+        ],
+        [
+          1497,
+          45
+        ]
+      ],
+      "f1_macro": 0.3634973259921457
+    },
+    "tfidf_linearsvc:in_domain": {
+      "rows": 242,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          207,
+          10
+        ],
+        [
+          9,
+          16
+        ]
+      ],
+      "f1_macro": 0.7917855363854549
+    },
+    "tfidf_logreg:cross_domain": {
+      "rows": 3084,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          1530,
+          12
+        ],
+        [
+          1463,
+          79
+        ]
+      ],
+      "f1_macro": 0.38575318455963714
+    },
+    "tfidf_logreg:in_domain": {
+      "rows": 242,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          200,
+          17
+        ],
+        [
+          4,
+          21
+        ]
+      ],
+      "f1_macro": 0.8083927157561361
+    }
+  },
+  "clean": {
+    "bertopic_only:cross_domain": {
+      "rows": 3084,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          589,
+          953
+        ],
+        [
+          627,
+          915
+        ]
+      ],
+      "f1_macro": 0.4818889968718035
+    },
+    "bertopic_only:in_domain": {
+      "rows": 242,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          93,
+          124
+        ],
+        [
+          13,
+          12
+        ]
+      ],
+      "f1_macro": 0.3624598580851105
+    },
+    "bilstm_phobert:cross_domain": {
+      "rows": 3084,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          1515,
+          27
+        ],
+        [
+          1430,
+          112
+        ]
+      ],
+      "f1_macro": 0.40426908484514784
+    },
+    "bilstm_phobert:in_domain": {
+      "rows": 242,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          204,
+          13
+        ],
+        [
+          12,
+          13
+        ]
+      ],
+      "f1_macro": 0.7260336005071775
+    },
+    "bilstm_random:cross_domain": {
+      "rows": 3084,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          1469,
+          73
+        ],
+        [
+          1312,
+          230
+        ]
+      ],
+      "f1_macro": 0.4644715635220197
+    },
+    "bilstm_random:in_domain": {
+      "rows": 242,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          177,
+          40
+        ],
+        [
+          5,
+          20
+        ]
+      ],
+      "f1_macro": 0.6789031402034498
+    },
+    "phobert_bertopic:cross_domain": {
+      "rows": 3084,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          1535,
+          7
+        ],
+        [
+          1481,
+          61
+        ]
+      ],
+      "f1_macro": 0.3746587121408267
+    },
+    "phobert_bertopic:in_domain": {
+      "rows": 242,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          201,
+          16
+        ],
+        [
+          8,
+          17
+        ]
+      ],
+      "f1_macro": 0.764934434191355
+    },
+    "phobert_majority_vote:cross_domain": {
+      "rows": 3084,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          1541,
+          1
+        ],
+        [
+          1518,
+          24
+        ]
+      ],
+      "f1_macro": 0.35024307997748055
+    },
+    "phobert_majority_vote:in_domain": {
+      "rows": 242,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          207,
+          10
+        ],
+        [
+          10,
+          15
+        ]
+      ],
+      "f1_macro": 0.7769585253456222
+    },
+    "phobert_mean:cross_domain": {
+      "rows": 3084,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          1540,
+          2
+        ],
+        [
+          1501,
+          41
+        ]
+      ],
+      "f1_macro": 0.36189194602739105
+    },
+    "phobert_mean:in_domain": {
+      "rows": 242,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          203,
+          14
+        ],
+        [
+          8,
+          17
+        ]
+      ],
+      "f1_macro": 0.7778704939919894
+    },
+    "tfidf_linearsvc:cross_domain": {
+      "rows": 3084,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          1536,
+          6
+        ],
+        [
+          1511,
+          31
+        ]
+      ],
+      "f1_macro": 0.3543461241057346
+    },
+    "tfidf_linearsvc:in_domain": {
+      "rows": 242,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          205,
+          12
+        ],
+        [
+          7,
+          18
+        ]
+      ],
+      "f1_macro": 0.8051282051282052
+    },
+    "tfidf_logreg:cross_domain": {
+      "rows": 3084,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          1534,
+          8
+        ],
+        [
+          1487,
+          55
+        ]
+      ],
+      "f1_macro": 0.37045024895492185
+    },
+    "tfidf_logreg:in_domain": {
+      "rows": 242,
+      "matrix_order": [
+        [
+          "true_normal",
+          "pred_normal"
+        ],
+        [
+          "true_depression",
+          "pred_depression"
+        ]
+      ],
+      "confusion_matrix": [
+        [
+          197,
+          20
+        ],
+        [
+          5,
+          20
+        ]
+      ],
+      "f1_macro": 0.7778593721314485
+    }
+  }
+}

@@ -99,6 +99,7 @@ def compute_metrics(y_true, y_pred) -> dict:
         "precision_macro": round(float(precision_score(y_true, y_pred, average="macro", zero_division=0)), 4),
         "recall_macro": round(float(recall_score(y_true, y_pred, average="macro", zero_division=0)), 4),
         "f1_macro": round(float(f1_score(y_true, y_pred, average="macro", zero_division=0)), 4),
+        "f1_weighted": round(float(f1_score(y_true, y_pred, average="weighted", zero_division=0)), 4),
         "f1_depression": round(float(f1_score(y_true, y_pred, pos_label=1, zero_division=0)), 4),
         "confusion_matrix": confusion_matrix(y_true, y_pred, labels=[0, 1]).tolist(),
         "classification_report": classification_report(

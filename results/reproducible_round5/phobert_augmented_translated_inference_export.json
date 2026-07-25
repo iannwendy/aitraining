@@ -1,0 +1,115 @@
+{
+  "protocol": "inference only; no fitting or threshold selection",
+  "tag": "augmented_translated",
+  "device": "mps",
+  "per_seed": {
+    "42": {
+      "in_domain": {
+        "accuracy": 0.9173553719008265,
+        "precision_macro": 0.7753660637381568,
+        "recall_macro": 0.7946543778801843,
+        "f1_macro": 0.7845441595441596,
+        "f1_depression": 0.6153846153846154,
+        "confusion_matrix": [
+          [
+            206,
+            11
+          ],
+          [
+            9,
+            16
+          ]
+        ]
+      },
+      "cross_domain": {
+        "accuracy": 0.5084306095979247,
+        "precision_macro": 0.6933076181292188,
+        "recall_macro": 0.5084306095979247,
+        "f1_macro": 0.35396584658377406,
+        "f1_depression": 0.03807106598984772,
+        "confusion_matrix": [
+          [
+            1538,
+            4
+          ],
+          [
+            1512,
+            30
+          ]
+        ]
+      }
+    },
+    "123": {
+      "in_domain": {
+        "accuracy": 0.9256198347107438,
+        "precision_macro": 0.8151994335614822,
+        "recall_macro": 0.7461751152073732,
+        "f1_macro": 0.775,
+        "f1_depression": 0.5909090909090909,
+        "confusion_matrix": [
+          [
+            211,
+            6
+          ],
+          [
+            12,
+            13
+          ]
+        ]
+      },
+      "cross_domain": {
+        "accuracy": 0.5107003891050583,
+        "precision_macro": 0.7256805542004098,
+        "recall_macro": 0.5107003891050583,
+        "f1_macro": 0.35775102259430025,
+        "f1_depression": 0.044331855604813175,
+        "confusion_matrix": [
+          [
+            1540,
+            2
+          ],
+          [
+            1507,
+            35
+          ]
+        ]
+      }
+    },
+    "2024": {
+      "in_domain": {
+        "accuracy": 0.9173553719008265,
+        "precision_macro": 0.779233670835815,
+        "recall_macro": 0.7592626728110599,
+        "f1_macro": 0.768730886850153,
+        "f1_depression": 0.5833333333333334,
+        "confusion_matrix": [
+          [
+            208,
+            9
+          ],
+          [
+            11,
+            14
+          ]
+        ]
+      },
+      "cross_domain": {
+        "accuracy": 0.5090791180285343,
+        "precision_macro": 0.7081774349083896,
+        "recall_macro": 0.5090791180285343,
+        "f1_macro": 0.35481813438511467,
+        "f1_depression": 0.03934010152284264,
+        "confusion_matrix": [
+          [
+            1539,
+            3
+          ],
+          [
+            1511,
+            31
+          ]
+        ]
+      }
+    }
+  }
+}

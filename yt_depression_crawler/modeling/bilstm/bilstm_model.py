@@ -25,7 +25,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from yt_depression_crawler.core.config import PHOBERT_DEVICE
+from yt_depression_crawler.core.config import BASE_DIR, PHOBERT_DEVICE
 from yt_depression_crawler.modeling.bilstm.bilstm_dataset import (
     PAD_IDX,
     UNK_IDX,
@@ -216,7 +216,13 @@ def _get_device() -> torch.device:
     return torch.device("cpu")
 
 
-def _evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> dict:
+def _evaluate(
+    model: nn.Module,
+    loader: DataLoader,
+    device: torch.device,
+    *,
+    return_predictions: bool = False,
+) -> dict:
     from sklearn.metrics import (
         accuracy_score,
         classification_report,
@@ -237,11 +243,12 @@ def _evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> dic
             preds.extend(batch_preds.detach().cpu().tolist())
             labels_all.extend(labels.detach().cpu().tolist())
 
-    return {
+    result = {
         "accuracy": round(float(accuracy_score(labels_all, preds)), 4),
         "precision_macro": round(float(precision_score(labels_all, preds, average="macro", zero_division=0)), 4),
         "recall_macro": round(float(recall_score(labels_all, preds, average="macro", zero_division=0)), 4),
         "f1_macro": round(float(f1_score(labels_all, preds, average="macro", zero_division=0)), 4),
+        "f1_weighted": round(float(f1_score(labels_all, preds, average="weighted", zero_division=0)), 4),
         "f1_depression": round(float(f1_score(labels_all, preds, pos_label=1, zero_division=0)), 4),
         "confusion_matrix": confusion_matrix(labels_all, preds, labels=[0, 1]).tolist(),
         "classification_report": classification_report(
@@ -250,6 +257,10 @@ def _evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> dic
             output_dict=True, zero_division=0,
         ),
     }
+    if return_predictions:
+        result["_labels"] = labels_all
+        result["_predictions"] = preds
+    return result
 
 
 def train_bilstm(
@@ -271,8 +282,6 @@ def train_bilstm(
     Returns a dict with metrics for each split, matching the schema of
     other models in the project so it can be aggregated into Table 5.1.
     """
-    import tempfile
-
     if variant not in {"random", "phobert"}:
         raise ValueError(f"variant must be 'random' or 'phobert', got {variant!r}")
 
@@ -352,21 +361,38 @@ def train_bilstm(
     if best_state is not None:
         model.load_state_dict(best_state)
 
-    test_metrics = _evaluate(model, test_loader, device)
+    test_metrics = _evaluate(model, test_loader, device, return_predictions=True)
+    test_predictions = test_metrics.pop("_predictions")
+    test_labels_out = test_metrics.pop("_labels")
     torch.save({"state_dict": model.state_dict(), "config": cfg.__dict__,
                 "variant": variant, "vocab_size": len(vocab)},
                output_dir / "model.pt")
     vocab.save(output_dir / "vocab.json")  # ensure persistence after retrain
 
     # Cross-domain eval (VSMEC) — same loader works because dataset is text-only
-    from yt_depression_crawler.modeling.bilstm.bilstm_dataset import load_split as _load
     from pandas import read_csv
-    vsmec_df = read_csv(Path("data_unified/cross_domain_test.csv"))
+    vsmec_df = read_csv(BASE_DIR / "data_unified" / "cross_domain_test.csv")
     vsmec_texts = [str(t) for t in vsmec_df["comment_text"].tolist()]
     vsmec_labels = vsmec_df["label"].astype(int).tolist()
     vsmec_ds = BiLSTMDataset(vsmec_texts, vsmec_labels, vocab, max_len=max_len)
     vsmec_loader = DataLoader(vsmec_ds, batch_size=batch_size)
-    vsmec_metrics = _evaluate(model, vsmec_loader, device)
+    vsmec_metrics = _evaluate(model, vsmec_loader, device, return_predictions=True)
+    vsmec_predictions = vsmec_metrics.pop("_predictions")
+    vsmec_labels_out = vsmec_metrics.pop("_labels")
+
+    import pandas as pd
+    in_domain_predictions_file = output_dir / "in_domain_predictions.csv"
+    cross_domain_predictions_file = output_dir / "cross_domain_predictions.csv"
+    pd.DataFrame({
+        "comment_text": test_texts,
+        "label": test_labels_out,
+        "prediction": test_predictions,
+    }).to_csv(in_domain_predictions_file, index=False)
+    pd.DataFrame({
+        "comment_text": vsmec_texts,
+        "label": vsmec_labels_out,
+        "prediction": vsmec_predictions,
+    }).to_csv(cross_domain_predictions_file, index=False)
 
     metrics = {
         "variant": variant,
@@ -380,6 +406,10 @@ def train_bilstm(
         "validation": test_metrics if False else _evaluate(model, val_loader, device),
         "test": test_metrics,
         "cross_domain_vsmec": vsmec_metrics,
+        "prediction_files": {
+            "in_domain": str(in_domain_predictions_file),
+            "cross_domain": str(cross_domain_predictions_file),
+        },
         "settings": {
             "epochs": epochs,
             "batch_size": batch_size,

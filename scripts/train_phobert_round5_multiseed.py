@@ -1,7 +1,4 @@
-"""Round 5 Active Learning: Retrain PhoBERT with multiple seeds.
-
-Trains PhoBERT on the updated final_dataset with multiple random seeds
-for robust evaluation.
+"""Retrain PhoBERT on the repaired Round-5 splits with multiple seeds.
 
 Usage:
     .venv/bin/python scripts/train_phobert_round5_multiseed.py
@@ -15,6 +12,7 @@ os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 import sys
+import argparse
 from pathlib import Path
 from datetime import datetime
 
@@ -29,23 +27,38 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, get_linear_schedule_with_warmup
 from torch.optim import AdamW
-from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, classification_report
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+)
 import warnings
 warnings.filterwarnings("ignore")
 
 # ── Config ──────────────────────────────────────────────────────────────────
 DATA_DIR = PROJECT_DIR / "data"
+LABELED_DIR = DATA_DIR / "labeled"
 MODEL_DIR = PROJECT_DIR / "models"
 OUTPUT_DIR = MODEL_DIR / "round5_predictions"
 RESULTS_DIR = PROJECT_DIR / "results"
 
-TRAIN_FILE = DATA_DIR / "final_train.csv"
-VAL_FILE = DATA_DIR / "final_val.csv"
-TEST_FILE = DATA_DIR / "final_test.csv"
+TRAIN_FILE = LABELED_DIR / "final_train.csv"
+VAL_FILE = LABELED_DIR / "final_val.csv"
+TEST_FILE = LABELED_DIR / "final_test.csv"
+CROSS_DOMAIN_FILE = PROJECT_DIR / "data_unified" / "cross_domain_test.csv"
+EVALUATION_FILES = {
+    "validation": VAL_FILE,
+    "in_domain": TEST_FILE,
+    "cross_domain": CROSS_DOMAIN_FILE,
+}
 
-MODEL_NAME = "vinai/phobert-base"
+MODEL_NAME = str(MODEL_DIR / "phobert_base_local")
 MAX_LEN = 128
-BATCH_SIZE = 16
+TRAIN_BATCH_SIZE = 8
+VALIDATION_BATCH_SIZE = 16
+EVALUATION_BATCH_SIZE = 32
 EPOCHS = 3
 SEEDS = [42, 123, 2024]
 
@@ -90,7 +103,7 @@ class DepressionDataset(Dataset):
         return item
 
 # ── Training function ──────────────────────────────────────────────────────────
-def train_model(seed: int, train_texts, train_labels, val_texts, val_labels):
+def train_model(seed: int, train_texts, train_labels, val_texts, val_labels, output_dir: Path):
     set_seed(seed)
     print(f"\n{'='*60}")
     print(f"TRAINING WITH SEED {seed}")
@@ -106,8 +119,8 @@ def train_model(seed: int, train_texts, train_labels, val_texts, val_labels):
     train_dataset = DepressionDataset(train_texts, train_labels)
     val_dataset = DepressionDataset(val_texts, val_labels)
 
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=TRAIN_BATCH_SIZE, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=VALIDATION_BATCH_SIZE, shuffle=False)
 
     # Optimizer
     optimizer = AdamW(model.parameters(), lr=2e-5, weight_decay=0.01)
@@ -123,6 +136,7 @@ def train_model(seed: int, train_texts, train_labels, val_texts, val_labels):
     criterion = nn.CrossEntropyLoss(weight=torch.tensor([1.0, pos_weight], dtype=torch.float32).to(device))
 
     best_f1 = 0.0
+    seed_dir = output_dir / f"seed_{seed}"
 
     for epoch in range(EPOCHS):
         # Train
@@ -171,15 +185,27 @@ def train_model(seed: int, train_texts, train_labels, val_texts, val_labels):
         # Save best model
         if f1 > best_f1:
             best_f1 = f1
-            seed_dir = OUTPUT_DIR / f"seed_{seed}"
             seed_dir.mkdir(parents=True, exist_ok=True)
             checkpoint_path = seed_dir / "best_model"
             model.save_pretrained(str(checkpoint_path))
+            tokenizer.save_pretrained(str(checkpoint_path))
 
     print(f"Best F1 for seed {seed}: {best_f1:.4f}")
     return best_f1, seed_dir
 
 # ── Evaluation function ────────────────────────────────────────────────────────
+def compute_metrics(labels, predictions):
+    return {
+        "accuracy": float(accuracy_score(labels, predictions)),
+        "precision_macro": float(precision_score(labels, predictions, average="macro", zero_division=0)),
+        "recall_macro": float(recall_score(labels, predictions, average="macro", zero_division=0)),
+        "f1_macro": float(f1_score(labels, predictions, average="macro", zero_division=0)),
+        "f1_weighted": float(f1_score(labels, predictions, average="weighted", zero_division=0)),
+        "f1_depression": float(f1_score(labels, predictions, average="binary", pos_label=1, zero_division=0)),
+        "confusion_matrix": confusion_matrix(labels, predictions, labels=[0, 1]).tolist(),
+    }
+
+
 def evaluate_model(model_dir: Path, test_texts, test_labels, split_name: str = "test"):
     print(f"\n--- Evaluating {split_name} set ---")
 
@@ -188,7 +214,7 @@ def evaluate_model(model_dir: Path, test_texts, test_labels, split_name: str = "
     model.eval()
 
     test_dataset = DepressionDataset(test_texts)
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=EVALUATION_BATCH_SIZE, shuffle=False)
 
     all_preds = []
     all_probs = []
@@ -205,34 +231,44 @@ def evaluate_model(model_dir: Path, test_texts, test_labels, split_name: str = "
             all_preds.extend(preds)
             all_probs.extend(probs[:, 1].cpu().numpy())
 
-    # Calculate metrics
-    acc = accuracy_score(test_labels, all_preds)
-    f1_macro = f1_score(test_labels, all_preds, average="macro")
-    f1_depression = f1_score(test_labels, all_preds, average="binary", pos_label=1)
-    precision = precision_score(test_labels, all_preds, average="macro")
-    recall = recall_score(test_labels, all_preds, average="macro")
+    metrics = compute_metrics(test_labels, all_preds)
 
     print(f"{split_name.capitalize()} Results:")
-    print(f"  Accuracy:  {acc:.4f}")
-    print(f"  F1 (macro): {f1_macro:.4f}")
-    print(f"  F1 (dep):   {f1_depression:.4f}")
-    print(f"  Precision:  {precision:.4f}")
-    print(f"  Recall:     {recall:.4f}")
+    print(f"  Accuracy:  {metrics['accuracy']:.4f}")
+    print(f"  F1 (macro): {metrics['f1_macro']:.4f}")
+    print(f"  F1 (dep):   {metrics['f1_depression']:.4f}")
+    print(f"  Precision:  {metrics['precision_macro']:.4f}")
+    print(f"  Recall:     {metrics['recall_macro']:.4f}")
 
     return {
-        "accuracy": acc,
-        "f1_macro": f1_macro,
-        "f1_depression": f1_depression,
-        "precision": precision,
-        "recall": recall,
+        **metrics,
         "predictions": all_preds,
         "probabilities": all_probs
     }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    results_dir = RESULTS_DIR / f"round5_eval_{timestamp}"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train-file", type=Path, default=TRAIN_FILE)
+    parser.add_argument("--output-dir", type=Path, default=OUTPUT_DIR)
+    parser.add_argument("--result-name", default="phobert_results_clean.json")
+    parser.add_argument("--seeds", type=int, nargs="+", default=SEEDS)
+    parser.add_argument(
+        "--evaluation-splits",
+        nargs="+",
+        choices=sorted(EVALUATION_FILES),
+        default=sorted(EVALUATION_FILES),
+        help="Splits to load after training; candidate selection runs must use validation only",
+    )
+    args = parser.parse_args()
+    seeds = sorted(set(args.seeds))
+    evaluation_splits = list(dict.fromkeys(args.evaluation_splits))
+    if "validation" not in evaluation_splits:
+        raise ValueError("validation must be included because checkpoints are selected on it")
+    result_tag = Path(args.result_name).stem.replace("phobert_results_", "")
+
+    timestamp = datetime.now().isoformat()
+    results_dir = RESULTS_DIR / "reproducible_round5"
     results_dir.mkdir(parents=True, exist_ok=True)
 
     print("="*60)
@@ -241,57 +277,145 @@ def main():
 
     # Load data
     print(f"\nLoading data...")
-    train_df = pd.read_csv(TRAIN_FILE)
+    train_df = pd.read_csv(args.train_file)
     val_df = pd.read_csv(VAL_FILE)
-    test_df = pd.read_csv(TEST_FILE)
+    evaluation_frames = {
+        split_name: (val_df if split_name == "validation" else pd.read_csv(EVALUATION_FILES[split_name]))
+        for split_name in evaluation_splits
+    }
 
-    print(f"Train: {len(train_df):,} | Val: {len(val_df):,} | Test: {len(test_df):,}")
+    print(
+        f"Train: {len(train_df):,} | "
+        + " | ".join(
+            f"{split_name}: {len(frame):,}"
+            for split_name, frame in evaluation_frames.items()
+        )
+    )
 
     train_texts = train_df["comment_text"].values
     train_labels = train_df["label"].values
     val_texts = val_df["comment_text"].values
     val_labels = val_df["label"].values
-    test_texts = test_df["comment_text"].values
-    test_labels = test_df["label"].values
 
     # Train with each seed
     all_results = {}
-    best_seed = None
-    best_f1 = 0.0
 
-    for seed in SEEDS:
-        f1, model_dir = train_model(seed, train_texts, train_labels, val_texts, val_labels)
-        all_results[seed] = {"model_dir": model_dir, "val_f1": f1}
+    for seed in seeds:
+        f1, model_dir = train_model(seed, train_texts, train_labels, val_texts, val_labels, args.output_dir)
+        evaluation_results = {}
+        for split_name, frame in evaluation_frames.items():
+            evaluation_results[split_name] = evaluate_model(
+                model_dir,
+                frame["comment_text"].values,
+                frame["label"].values,
+                split_name,
+            )
+        all_results[seed] = {
+            "model_dir": str(model_dir),
+            "val_f1": float(f1),
+            **evaluation_results,
+        }
 
-        if f1 > best_f1:
-            best_f1 = f1
-            best_seed = seed
+        for split_name, frame in evaluation_frames.items():
+            split_results = evaluation_results[split_name]
+            pd.DataFrame({
+                "comment_text": frame["comment_text"].astype(str),
+                "label": frame["label"].astype(int),
+                "prediction": split_results["predictions"],
+                "probability_depression": split_results["probabilities"],
+            }).to_csv(
+                results_dir / f"phobert_{result_tag}_seed{seed}_{split_name}_predictions.csv",
+                index=False,
+            )
 
-    # Evaluate best model on test set
-    print(f"\n{'='*60}")
-    print(f"BEST MODEL (seed={best_seed}, val_f1={best_f1:.4f})")
-    print(f"{'='*60}")
+    ensemble_predictions = {
+        split_name: (
+            np.asarray([
+                all_results[seed][split_name]["predictions"] for seed in seeds
+            ]).mean(axis=0) >= 0.5
+        ).astype(int)
+        for split_name in evaluation_splits
+    }
 
-    best_model_dir = all_results[best_seed]["model_dir"]
-    test_results = evaluate_model(best_model_dir, test_texts, test_labels, "test")
+    def summarize(split: str) -> dict:
+        keys = ["accuracy", "precision_macro", "recall_macro", "f1_macro", "f1_weighted", "f1_depression"]
+        summary = {}
+        for key in keys:
+            values = [all_results[s][split][key] for s in seeds]
+            summary[key] = {
+                "mean": float(np.mean(values)),
+                "std": float(np.std(values, ddof=1)) if len(values) > 1 else 0.0,
+                "per_seed": {str(seed): float(all_results[seed][split][key]) for seed in seeds},
+            }
+        return summary
 
     # Save results
     results = {
         "timestamp": timestamp,
-        "best_seed": best_seed,
-        "best_val_f1": best_f1,
-        "seeds": SEEDS,
-        "test_results": {k: v for k, v in test_results.items() if k not in ["predictions", "probabilities"]},
-        "per_seed_val_f1": {str(k): v["val_f1"] for k, v in all_results.items()}
+        "protocol": (
+            "fit train only; checkpoint selection on fixed validation; only explicitly "
+            "requested evaluation splits were loaded"
+        ),
+        "seeds": seeds,
+        "dataset": {
+            "train_rows": len(train_df),
+            "validation_rows": len(val_df),
+            "evaluated_splits": evaluation_splits,
+            "split_rows": {
+                split_name: len(frame)
+                for split_name, frame in evaluation_frames.items()
+            },
+            "train_label_distribution": {
+                str(int(k)): int(v)
+                for k, v in train_df["label"].value_counts().sort_index().items()
+            },
+        },
+        "settings": {
+            "base_model": MODEL_NAME,
+            "max_length": MAX_LEN,
+            "train_batch_size": TRAIN_BATCH_SIZE,
+            "validation_batch_size": VALIDATION_BATCH_SIZE,
+            "evaluation_batch_size": EVALUATION_BATCH_SIZE,
+            "epochs": EPOCHS,
+            "learning_rate": 2e-5,
+            "weight_decay": 0.01,
+            "warmup_ratio": 0.06,
+            "loss": "class-weighted cross entropy based on train label counts",
+            "checkpoint_selection": "highest validation macro F1",
+        },
+        "per_seed": {
+            str(seed): {
+                "val_f1": all_results[seed]["val_f1"],
+                **{
+                    split_name: {
+                        key: value
+                        for key, value in all_results[seed][split_name].items()
+                        if key not in ["predictions", "probabilities"]
+                    }
+                    for split_name in evaluation_splits
+                },
+            }
+            for seed in seeds
+        },
+        "mean_std": {
+            split_name: summarize(split_name) for split_name in evaluation_splits
+        },
+        "ensemble_majority_vote": {
+            split_name: compute_metrics(
+                evaluation_frames[split_name]["label"].astype(int).values,
+                ensemble_predictions[split_name],
+            )
+            for split_name in evaluation_splits
+        },
     }
 
     import json
-    results_file = results_dir / "evaluation_results.json"
-    with open(results_file, "w") as f:
-        json.dump(results, f, indent=2)
+    results_file = results_dir / args.result_name
+    with open(results_file, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
 
     print(f"\nResults saved to: {results_file}")
-    print(f"Models saved to: {OUTPUT_DIR}/seed_*/best_model")
+    print(f"Models saved to: {args.output_dir}/seed_*/best_model")
 
     return results
 
