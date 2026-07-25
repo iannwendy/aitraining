@@ -20,12 +20,11 @@ import pandas as pd
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_DIR / "data"
-LABELED_DIR = DATA_DIR / "labeled"
 DOCS_DIR = PROJECT_DIR / "docs"
 
 # ── Inputs ──────────────────────────────────────────────────────────────
 PREDICTIONS_FILE = DATA_DIR / "phobert_remaining_predictions.csv"
-GOLD_FILE = LABELED_DIR / "gold_review.csv"
+GOLD_FILE = DATA_DIR / "gold_review.csv"
 
 # ── Outputs ─────────────────────────────────────────────────────────────
 IMPORT_FILE = DOCS_DIR / "label_studio_round5_active_learning_import.csv"

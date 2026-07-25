@@ -28,9 +28,9 @@ def main() -> None:
     p = argparse.ArgumentParser(description="Train BiLSTM on final_dataset")
     p.add_argument("--variant", choices=["random", "phobert"], default="random",
                    help="Embedding variant: random (paper spec) or phobert-frozen")
-    p.add_argument("--train-file", default="data/labeled/final_train.csv")
-    p.add_argument("--val-file", default="data/labeled/final_val.csv")
-    p.add_argument("--test-file", default="data/labeled/final_test.csv")
+    p.add_argument("--train-file", default="data/final_train.csv")
+    p.add_argument("--val-file", default="data/final_val.csv")
+    p.add_argument("--test-file", default="data/final_test.csv")
     p.add_argument("--output-dir", default="models/bilstm/random")
     p.add_argument("--epochs", type=int, default=8)
     p.add_argument("--batch-size", type=int, default=32)

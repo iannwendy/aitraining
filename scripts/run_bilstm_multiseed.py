@@ -38,26 +38,23 @@ logger = logging.getLogger("bilstm_multiseed")
 
 
 VARIANTS = ["random", "phobert"]
-TRAIN_FILE = PROJECT_DIR / "data" / "labeled" / "final_train.csv"
-VAL_FILE = PROJECT_DIR / "data" / "labeled" / "final_val.csv"
-TEST_FILE = PROJECT_DIR / "data" / "labeled" / "final_test.csv"
+TRAIN_FILE = PROJECT_DIR / "data" / "final_train.csv"
+VAL_FILE = PROJECT_DIR / "data" / "final_val.csv"
+TEST_FILE = PROJECT_DIR / "data" / "final_test.csv"
 PHOBERT_LOCAL_DIR = str(PROJECT_DIR / "models" / "phobert_base_local")
 
 
-def run_variant(
-    variant: str,
-    seeds: list[int],
-    epochs: int = 8,
-    train_file: Path = TRAIN_FILE,
-    tag: str = "clean",
-) -> dict:
+def run_variant(variant: str, seeds: list[int], epochs: int = 8) -> dict:
     """Train BiLSTM-<variant> for each seed, return aggregated metrics."""
-    base_outdir = PROJECT_DIR / "models" / f"bilstm_round5_{tag}" / variant
+    base_outdir = PROJECT_DIR / "models" / "bilstm" / variant
     base_outdir.mkdir(parents=True, exist_ok=True)
 
     seed_metrics: dict[int, dict] = {}
     for seed in seeds:
-        outdir = base_outdir / f"seed_{seed}"
+        # seed=42 uses the canonical naming (bilstm_metrics.json); extra
+        # seeds use bilstm_metrics_seed{seed}.json to avoid clobbering.
+        suffix = "" if seed == 42 else f"_seed{seed}"
+        outdir = base_outdir / f"seed{seed}" if seed != 42 else base_outdir
         outdir.mkdir(parents=True, exist_ok=True)
 
         logger.info("=" * 60)
@@ -66,7 +63,7 @@ def run_variant(
 
         metrics = train_bilstm(
             variant=variant,
-            train_file=train_file,
+            train_file=TRAIN_FILE,
             val_file=VAL_FILE,
             test_file=TEST_FILE,
             output_dir=outdir,
@@ -104,7 +101,6 @@ def aggregate(variant: str, seed_metrics: dict[int, dict]) -> dict:
             "f1_macro": stats("f1_macro", "test"),
             "accuracy": stats("accuracy", "test"),
             "f1_depression": stats("f1_depression", "test"),
-            "f1_weighted": stats("f1_weighted", "test"),
             "precision_macro": stats("precision_macro", "test"),
             "recall_macro": stats("recall_macro", "test"),
         },
@@ -112,7 +108,6 @@ def aggregate(variant: str, seed_metrics: dict[int, dict]) -> dict:
             "f1_macro": stats("f1_macro", "cross_domain_vsmec"),
             "accuracy": stats("accuracy", "cross_domain_vsmec"),
             "f1_depression": stats("f1_depression", "cross_domain_vsmec"),
-            "f1_weighted": stats("f1_weighted", "cross_domain_vsmec"),
             "precision_macro": stats("precision_macro", "cross_domain_vsmec"),
             "recall_macro": stats("recall_macro", "cross_domain_vsmec"),
         },
@@ -121,16 +116,16 @@ def aggregate(variant: str, seed_metrics: dict[int, dict]) -> dict:
 
 def main() -> None:
     p = argparse.ArgumentParser(description="BiLSTM multi-seed sweep")
-    p.add_argument("--seeds", type=int, nargs="+", default=[42, 123, 2024],
-                   help="Seeds to train from scratch")
+    p.add_argument("--seeds", type=int, nargs="+", default=[123, 2024],
+                   help="Additional seeds to run (seed=42 is already done)")
     p.add_argument("--epochs", type=int, default=8)
     p.add_argument("--variants", choices=VARIANTS, nargs="+", default=VARIANTS,
                    help="Which variants to run")
-    p.add_argument("--train-file", type=Path, default=TRAIN_FILE)
-    p.add_argument("--tag", default="clean")
     args = p.parse_args()
 
-    all_seeds = sorted(set(args.seeds))
+    # For aggregation, include the existing seed=42 run + new seeds.
+    existing_seed = 42
+    all_seeds = sorted(set([existing_seed] + args.seeds))
 
     summary = {
         "timestamp": __import__("pandas").Timestamp.now().isoformat(),
@@ -140,13 +135,22 @@ def main() -> None:
     }
 
     for variant in args.variants:
-        seed_metrics = run_variant(
-            variant,
-            all_seeds,
-            epochs=args.epochs,
-            train_file=args.train_file,
-            tag=args.tag,
-        )
+        # Load existing seed=42 metrics from canonical path
+        existing_metrics_path = PROJECT_DIR / "models" / "bilstm" / variant / "bilstm_metrics.json"
+        seed_metrics: dict[int, dict] = {}
+        if existing_metrics_path.exists():
+            with open(existing_metrics_path) as f:
+                m = json.load(f)
+            seed_metrics[existing_seed] = m
+            logger.info("Loaded existing seed=%d metrics from %s",
+                        existing_seed, existing_metrics_path)
+        else:
+            logger.warning("No existing seed=%d metrics at %s — running all seeds",
+                           existing_seed, existing_metrics_path)
+
+        # Run new seeds
+        new_seed_metrics = run_variant(variant, args.seeds, epochs=args.epochs)
+        seed_metrics.update(new_seed_metrics)
 
         agg = aggregate(variant, seed_metrics)
         summary["variants"][variant] = agg
@@ -161,8 +165,7 @@ def main() -> None:
                     agg["cross_domain_vsmec"]["f1_macro"]["std"])
         logger.info("=" * 60)
 
-    out_path = PROJECT_DIR / "results" / "reproducible_round5" / f"bilstm_results_{args.tag}.json"
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path = PROJECT_DIR / "models" / "bilstm" / "multiseed_summary.json"
     out_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     logger.info("Aggregated summary: %s", out_path)
 

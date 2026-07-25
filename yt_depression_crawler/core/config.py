@@ -50,35 +50,29 @@ ADDITIONAL_KEYWORDS: list[str] = []
 
 # Files
 OUTPUT_DIR = BASE_DIR / "data"
-RAW_DATA_DIR = OUTPUT_DIR / "raw"
-LABELED_DATA_DIR = OUTPUT_DIR / "labeled"
-PREDICTION_DATA_DIR = OUTPUT_DIR / "model_predictions"
-ANALYSIS_DATA_DIR = OUTPUT_DIR / "analysis"
 LOG_DIR = BASE_DIR / "logs"
-RAW_FILE = RAW_DATA_DIR / "raw_comments.csv"
-CLEANED_FILE = RAW_DATA_DIR / "cleaned_comments.csv"
-AUTO_LABELED_FILE = RAW_DATA_DIR / "auto_labeled_comments.csv"
-INITIAL_TRAIN_FILE = LABELED_DATA_DIR / "initial_train.csv"
-REVIEW_SAMPLES_FILE = PREDICTION_DATA_DIR / "review_samples.csv"
-GOLD_REVIEW_FILE = LABELED_DATA_DIR / "gold_review.csv"
-REVIEW_EVAL_REPORT_FILE = ANALYSIS_DATA_DIR / "review_eval_report.json"
-REVIEW_EVAL_ERRORS_FILE = ANALYSIS_DATA_DIR / "review_eval_errors.csv"
-BASELINE_GOLD_ERRORS_FILE = ANALYSIS_DATA_DIR / "baseline_gold_errors.csv"
-TRAIN_FILE = LABELED_DATA_DIR / "train.csv"
-VAL_FILE = LABELED_DATA_DIR / "val.csv"
-TEST_FILE = LABELED_DATA_DIR / "test.csv"
-# Canonical repaired Round-5 splits. Research-result scripts reference these
-# explicitly; TRAIN_FILE/VAL_FILE/TEST_FILE remain only for legacy workflows.
-FINAL_DATASET_FILE = LABELED_DATA_DIR / "final_dataset.csv"
-FINAL_TRAIN_FILE = LABELED_DATA_DIR / "final_train.csv"
-FINAL_VAL_FILE = LABELED_DATA_DIR / "final_val.csv"
-FINAL_TEST_FILE = LABELED_DATA_DIR / "final_test.csv"
-TRAIN_GOLD_FILE = LABELED_DATA_DIR / "train_gold.csv"
-VAL_GOLD_FILE = LABELED_DATA_DIR / "val_gold.csv"
-TEST_GOLD_FILE = LABELED_DATA_DIR / "test_gold.csv"
-LABELING_REPORT_FILE = ANALYSIS_DATA_DIR / "labeling_report.json"
-PROCESSED_VIDEOS_FILE = RAW_DATA_DIR / "processed_videos.txt"
-VIDEO_METADATA_FILE = RAW_DATA_DIR / "video_metadata.csv"
+RAW_FILE = OUTPUT_DIR / "raw_comments.csv"
+CLEANED_FILE = OUTPUT_DIR / "cleaned_comments.csv"
+AUTO_LABELED_FILE = OUTPUT_DIR / "auto_labeled_comments.csv"
+INITIAL_TRAIN_FILE = OUTPUT_DIR / "initial_train.csv"
+REVIEW_SAMPLES_FILE = OUTPUT_DIR / "review_samples.csv"
+GOLD_REVIEW_FILE = OUTPUT_DIR / "gold_review.csv"
+REVIEW_EVAL_REPORT_FILE = OUTPUT_DIR / "review_eval_report.json"
+REVIEW_EVAL_ERRORS_FILE = OUTPUT_DIR / "review_eval_errors.csv"
+BASELINE_GOLD_ERRORS_FILE = OUTPUT_DIR / "baseline_gold_errors.csv"
+TRAIN_FILE = OUTPUT_DIR / "train.csv"
+VAL_FILE = OUTPUT_DIR / "val.csv"
+TEST_FILE = OUTPUT_DIR / "test.csv"
+# Post-Phase-2 final splits (round-3 review merged). Models that should
+# use these defaults (LinearSVC baseline, DAPT eval, BiLSTM) reference
+# FINAL_TRAIN_FILE etc. explicitly; models that still need the legacy
+# pre-Phase-1 splits (initial PhoBERT smoke tests) keep TRAIN_FILE.
+FINAL_TRAIN_FILE = OUTPUT_DIR / "final_train.csv"
+FINAL_VAL_FILE = OUTPUT_DIR / "final_val.csv"
+FINAL_TEST_FILE = OUTPUT_DIR / "final_test.csv"
+LABELING_REPORT_FILE = OUTPUT_DIR / "labeling_report.json"
+PROCESSED_VIDEOS_FILE = OUTPUT_DIR / "processed_videos.txt"
+VIDEO_METADATA_FILE = OUTPUT_DIR / "video_metadata.csv"
 LOG_FILE = LOG_DIR / "crawler.log"
 MODEL_DIR = BASE_DIR / "models"
 BASELINE_MODEL_FILE = MODEL_DIR / "tfidf_logreg.joblib"
@@ -90,9 +84,9 @@ PHOBERT_MODEL_NAME = "vinai/phobert-base"
 PHOBERT_OUTPUT_DIR = MODEL_DIR / "phobert_first"
 PHOBERT_METRICS_FILE = PHOBERT_OUTPUT_DIR / "phobert_metrics.json"
 PHOBERT_GOLD_METRICS_FILE = PHOBERT_OUTPUT_DIR / "phobert_gold_metrics.json"
-PHOBERT_REMAINING_PREDICTIONS_FILE = PREDICTION_DATA_DIR / "phobert_remaining_predictions.csv"
-PHOBERT_CONFIDENT_PREDICTIONS_FILE = PREDICTION_DATA_DIR / "phobert_confident_predictions.csv"
-PHOBERT_ACTIVE_LEARNING_FILE = PREDICTION_DATA_DIR / "phobert_active_learning_samples.csv"
+PHOBERT_REMAINING_PREDICTIONS_FILE = OUTPUT_DIR / "phobert_remaining_predictions.csv"
+PHOBERT_CONFIDENT_PREDICTIONS_FILE = OUTPUT_DIR / "phobert_confident_predictions.csv"
+PHOBERT_ACTIVE_LEARNING_FILE = OUTPUT_DIR / "phobert_active_learning_samples.csv"
 PHOBERT_POSTPROCESS_REPORT_FILE = PHOBERT_OUTPUT_DIR / "phobert_postprocess_report.json"
 
 # BERTopic settings
@@ -206,10 +200,6 @@ VIDEO_METADATA_COLUMNS = [
 def ensure_directories() -> None:
     """Tao thu muc output/log neu chua ton tai."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
-    LABELED_DATA_DIR.mkdir(parents=True, exist_ok=True)
-    PREDICTION_DATA_DIR.mkdir(parents=True, exist_ok=True)
-    ANALYSIS_DATA_DIR.mkdir(parents=True, exist_ok=True)
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     PHOBERT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

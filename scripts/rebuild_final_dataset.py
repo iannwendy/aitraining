@@ -10,8 +10,6 @@ from sklearn.model_selection import train_test_split
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_DIR / "data"
-RAW_DIR = DATA_DIR / "raw"
-LABELED_DIR = DATA_DIR / "labeled"
 
 def main():
     print("=" * 60)
@@ -19,7 +17,7 @@ def main():
     print("=" * 60)
 
     # Load merged gold set (Round 4 merged)
-    gold_df = pd.read_csv(LABELED_DIR / "train_gold.csv", dtype=str).fillna("")
+    gold_df = pd.read_csv(DATA_DIR / "train_gold.csv", dtype=str).fillna("")
     gold_df['label'] = gold_df['label'].astype(int)
     gold_df['source'] = 'human_gold'
     gold_df['weight'] = 3
@@ -28,7 +26,7 @@ def main():
     print(f"  - Depression (1): {sum(gold_df['label']==1)}")
 
     # Load auto-labeled comments
-    auto_df = pd.read_csv(RAW_DIR / "auto_labeled_comments.csv", dtype=str).fillna("")
+    auto_df = pd.read_csv(DATA_DIR / "auto_labeled_comments.csv", dtype=str).fillna("")
     print(f"\nAuto-labeled: {len(auto_df)} samples")
 
     # Filter weak_high_conf based on confidence
@@ -68,9 +66,9 @@ def main():
     )
 
     # Save
-    train.to_csv(LABELED_DIR / "final_train.csv", index=False)
-    val.to_csv(LABELED_DIR / "final_val.csv", index=False)
-    test.to_csv(LABELED_DIR / "final_test.csv", index=False)
+    train.to_csv(DATA_DIR / "final_train.csv", index=False)
+    val.to_csv(DATA_DIR / "final_val.csv", index=False)
+    test.to_csv(DATA_DIR / "final_test.csv", index=False)
 
     print(f"\nSaved splits:")
     print(f"  - Train: {len(train)} ({sum(train['label']==0)} normal, {sum(train['label']==1)} depression)")
@@ -78,8 +76,8 @@ def main():
     print(f"  - Test: {len(test)} ({sum(test['label']==0)} normal, {sum(test['label']==1)} depression)")
 
     # Save full dataset
-    final_df.to_csv(LABELED_DIR / "final_dataset.csv", index=False)
-    print(f"\nFull dataset: {LABELED_DIR / 'final_dataset.csv'}")
+    final_df.to_csv(DATA_DIR / "final_dataset.csv", index=False)
+    print(f"\nFull dataset: {DATA_DIR / 'final_dataset.csv'}")
 
     print("\n" + "=" * 60)
     print("DONE - Ready for model retraining!")

@@ -21,7 +21,6 @@ from sentence_transformers import SentenceTransformer
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_DIR / "data"
-LABELED_DIR = DATA_DIR / "labeled"
 MODEL_DIR = PROJECT_DIR / "models"
 
 # Disable proxy for local model loading
@@ -46,9 +45,9 @@ logger = logging.getLogger(__name__)
 
 def load_data():
     """Load augmented dataset."""
-    train = pd.read_csv(LABELED_DIR / "final_train.csv", dtype=str).fillna("")
-    val = pd.read_csv(LABELED_DIR / "final_val.csv", dtype=str).fillna("")
-    test = pd.read_csv(LABELED_DIR / "final_test.csv", dtype=str).fillna("")
+    train = pd.read_csv(DATA_DIR / "final_train.csv", dtype=str).fillna("")
+    val = pd.read_csv(DATA_DIR / "final_val.csv", dtype=str).fillna("")
+    test = pd.read_csv(DATA_DIR / "final_test.csv", dtype=str).fillna("")
     cross = pd.read_csv(PROJECT_DIR / "data_unified" / "cross_domain_test.csv", dtype=str).fillna("")
 
     for df in [train, val, test, cross]:

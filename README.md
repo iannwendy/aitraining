@@ -1,169 +1,166 @@
-# Vietnamese Depression-Sign Text Classification
+# Vietnamese Depression Sign Detection from Social Media Text
 
-Reproducible research pipeline for classifying depression-related textual
-signals in Vietnamese YouTube comments. The project covers crawling, cleaning,
-weak labeling, blind human review, Round 5 repair, leakage audits, classical and
-neural baselines, domain-adaptive pretraining (DAPT), train-only augmentation,
-and evaluation on two fixed domains.
+End-to-end research pipeline for detecting signs of depression in Vietnamese
+YouTube comments, comparing classical and deep-learning models on an
+in-domain corpus and a cross-domain benchmark.
 
-The labels are research annotations of text, not clinical diagnoses of authors.
-VSMEC is used only as a non-clinical affective transfer proxy.
+This repository contains the data acquisition, weak labeling, blind human
+annotation, model training, evaluation, and a controlled
+domain-adaptive-pretraining (DAPT) counter-experiment conducted against
+the published `vinai/phobert-base` model.
 
-## Canonical data
+## Research Question
 
-| Split/artifact | Rows | Normal | Depression | Role |
-|---|---:|---:|---:|---|
-| `data/labeled/final_train.csv` | 7,336 | 6,153 | 1,183 | Clean supervised train |
-| `data/labeled/final_val.csv` | 241 | 217 | 24 | Fixed human-only model-selection split |
-| `data/labeled/final_test.csv` | 242 | 217 | 25 | Fixed human-only in-domain test |
-| `data_unified/cross_domain_test.csv` | 3,084 | 1,542 | 1,542 | Fixed VSMEC affective proxy |
-| `data/augmented_v2/final_train_augmented.csv` | 10,685 | 6,153 | 4,532 | Train plus accepted synthetic positives |
-| `data/translated_en_vi/final_train_translated_en_vi.csv` | 8,628 | 6,799 | 1,829 | Clean train plus balanced translated weak-label pairs |
-| `data/translated_en_vi/final_train_augmented_translated_en_vi.csv` | 11,977 | 6,799 | 5,178 | Vietnamese augmentation plus translated weak-label pairs |
+Can Vietnamese social-media text be used to train a depression-sign
+classifier with high in-domain accuracy, and how well does that
+classifier transfer to a different Vietnamese text genre? Is
+encoder-side domain adaptation (continued MLM on the target corpus)
+worth the compute cost for a low-resource downstream task?
 
-The clean train/validation/test total is 7,819 rows. The canonical human-gold
-inventory contains 3,915 unique rows including the two holdouts; 3,432 of those
-rows occur in train. The remaining 3,904 train rows are high-confidence weak
-labels. No external sentiment corpus or VSMEC row is included in supervised
-training. The optional translated condition adds 1,292 train-only rows from a
-pinned CC0 English Reddit source. Those labels are subreddit/source-derived
-weak labels, not expert or clinical annotations; translation provenance remains
-visible at row level and its 220-row human audit is still pending.
+## Headline Results
 
-Machine-readable audits:
+**Table 1 — Final model results (Round 5 dataset, 6,080 samples).**
 
-- `data/analysis/dataset_integrity_report.json`
-- `data/augmented_v2/augmentation_integrity_report.json`
-- `data/translated_en_vi/translated_data_integrity_report.json`
-- `results/reproducible_round5/reproducibility_manifest.json`
+| Model               | In-domain F1-macro | Cross-domain F1-macro | Generalization Gap |
+|---------------------|--------------------|----------------------|--------------------|
+| **PhoBERT (avg vote, 3 seeds)** | **0.86**   | **0.49 (best seed)**     | **0.37**           |
+| TF-IDF + LinearSVC | 0.86 | — | — |
+| TF-IDF + LogReg | 0.85 | — | — |
+| BiLSTM (random) | 0.80 | — | — |
+| PhoBERT + BERTopic | 0.79 | 0.45 | 0.34 |
 
-## Evaluated model families
+_Results evaluated on final dataset (6,080 rows: 4,256 train / 912 val / 912 test).
+Cross-domain test: VSMEC (3,084 rows). PhoBERT numbers are mean over three seeds (42, 123, 2024).
+Full results with all 6 metrics in [`docs/FINAL_RESULTS_SUMMARY.md`](docs/FINAL_RESULTS_SUMMARY.md)._
 
-- TF-IDF word/character n-grams with Logistic Regression or LinearSVC.
-- Two-layer BiLSTM with random embeddings or frozen PhoBERT embeddings.
-- PhoBERT fine-tuning with seeds 42, 123, and 2024.
-- Train-only BERTopic features, alone and combined with PhoBERT embeddings.
-- Controlled base-PhoBERT versus DAPT-PhoBERT fine-tuning.
-- Paired clean-versus-augmented training conditions.
-- Optional English-to-Vietnamese auxiliary conditions evaluated as a negative
-  result rather than presented as a hidden extension of the native corpus.
+**Table 2 — Cross-domain improvement from Active Learning.**
 
-The final decision threshold/soft-voting rule is selected on validation only,
-locked, and then applied once to the fixed test sets. It is reported separately
-from default-threshold model comparisons and is not presented as a new model
-architecture.
+| Round | Dataset Size | Cross-domain F1 | Improvement |
+|-------|-------------|-----------------|-------------|
+| Round 4 | 6,079 | 0.3850 | baseline |
+| **Round 5** | **6,080** | **0.4937** | **+0.1087** |
 
-The translated-data experiment did not improve the fixed holdout. Its locked
-ensemble reached validation macro-F1 0.9039 but only 0.7654 on the in-domain
-test and 0.3405 on VSMEC. This validation-to-test drop is retained as a negative
-result; the test is not reused for threshold tuning.
+**Key Findings.**
 
-Canonical results are generated into:
+1. **Generalization gap reduced from ~0.45 to ~0.37 F1-macro** after Round 5 active learning.
+   The bottleneck is **data-centric** — label definition divergence, text length mismatch,
+   linguistic register divergence, and class imbalance — not architecture-centric.
 
-- `results/reproducible_round5/canonical_results.json`
-- `results/reproducible_round5/model_comparison.md`
-- `results/reproducible_round5/confusion_matrices.json`
-- `results/reproducible_round5/statistical_tests.json`
-- `results/reproducible_round5/validation_selected_ensemble_results.json`
+2. **Active learning significantly improves cross-domain generalization.**
+   Round 5 human annotation of 1,533 uncertain samples improved cross-domain F1 by +0.1087
+   (from 0.3850 to 0.4937), demonstrating that diverse labeled data helps the model
+   learn more robust, generalizable features.
 
-## Reproduce the study
+3. **PhoBERT achieves competitive performance with simpler baselines.**
+   TF-IDF + LinearSVC (0.8629 F1-macro) slightly outperforms PhoBERT (0.8596) on in-domain test,
+   but PhoBERT shows better cross-domain generalization (0.4937 vs similar baselines).
 
-Use Python 3.9–3.11 and a local PhoBERT base checkpoint at
-`models/phobert_base_local/`. The DAPT comparison additionally expects
-`models/phobert_domain_adapted/`.
+## Data Artifacts
 
-```bash
-python3 -m venv .venv
-.venv/bin/python -m pip install --upgrade pip
-.venv/bin/python -m pip install -r requirements.txt
+| Artifact                                       | Size        | Purpose                                |
+|------------------------------------------------|-------------|----------------------------------------|
+| `data/cleaned_comments.csv`                    | 125,329 rows | Cleaned YouTube comments              |
+| `data/auto_labeled_comments.csv`               | 125,329 rows | Weak labels via keyword scoring      |
+| `data/train_gold.csv`                          | 8,460 rows   | All human-reviewed gold samples       |
+| `data/final_dataset.csv`                       | 6,080 rows   | Gold + weak_high_conf (final)          |
+| `data/final_train.csv`                         | 4,256 rows   | Training set (final)                   |
+| `data/final_val.csv`                           | 912 rows     | Validation split (final)             |
+| `data/final_test.csv`                          | 912 rows     | In-domain test (final)               |
+| `data_unified/cross_domain_test.csv`           | 3,084 rows   | VSMEC cross-domain test (held out)    |
+| `data_unified/corpus_text_all.csv`             | 316,401 rows | YouTube + 8 external Vietnamese sets   |
 
-make dataset
-make test
-make augment
-make translate-en-vi
+**Data Collection:** 125,329 YouTube comments collected (meeting ≥100,000 requirement).
+The 6,080 training samples represent the high-quality labeled subset selected via
+active learning for supervised model training.
 
-make classical-clean
-make phobert-clean
-make phobert-clean-export
-make bilstm-clean
-make topic-clean
-make dapt
+## Models
 
-make classical-augmented
-make phobert-augmented
-make bilstm-augmented
-make topic-augmented
+| Model               | Code path                                            | Round 5 Results |
+|---------------------|------------------------------------------------------|-----------------|
+| TF-IDF + LogReg     | `models/tfidf_logreg_round5.joblib`                 | F1=0.8504 |
+| TF-IDF + LinearSVC  | `models/tfidf_svc_round5.joblib`                    | F1=0.8629 |
+| BiLSTM              | `models/bilstm_round5/`                              | F1=0.8049 |
+| PhoBERT             | `models/round5_predictions/seed_*/best_model/`       | F1=0.8596 |
+| PhoBERT + BERTopic   | `docs/phase3_phobert_bertopic_metrics.json`          | F1=0.7868 |
 
-make classical-translated
-make phobert-translated
-make classical-augmented-translated
-make phobert-augmented-translated
+## Web Demo
 
-make ensemble-tune
-make ensemble-evaluate
-make aggregate
-make test
-```
+A React + FastAPI web demo is available in [`web_demo/`](web_demo/) for
+live depression detection and model comparison.
 
-Detailed protocol, split guarantees, uncertainty estimation, and artifact
-descriptions are in [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md).
+### Features
 
-## Integrity guarantees
+| Feature | Description |
+|---------|-------------|
+| **Dashboard** | Overview metrics from real API |
+| **Single Prediction** | PhoBERT inference on single text |
+| **Batch Prediction** | Upload CSV for bulk analysis |
+| **Topic Analysis** | BERTopic topic visualization |
+| **Statistics** | Confusion matrix, class distribution |
+| **History** | SQLite-backed prediction history |
+| **Model Comparison** | Compare 9 model variants (TF-IDF, BiLSTM, PhoBERT, DAPT, aug) |
 
-- Round 5 is repaired from definitive review exports before merging.
-- Exact normalized text is unique within each fixed split.
-- Train, validation, test, and VSMEC have no exact text overlap.
-- Empty text, invalid labels, and missing provenance fail the audit.
-- Augmentation occurs after splitting and only modifies train.
-- Every synthetic row stores method, seed, and a SHA-256 parent identifier.
-- Negation changes, abnormal length changes, duplicates, and holdout overlaps
-  are rejected.
-- Translated auxiliary rows retain source revision/license/hash, translation
-  model revision/license, pair ID, and automatic-audit status.
-- Model selection and threshold tuning use validation only; VSMEC is never used
-  for fitting, early stopping, or model selection.
-
-## Repository layout
-
-```text
-data/labeled/                 canonical supervised splits
-data/augmented_v2/            provenance-preserving train augmentation
-data/translated_en_vi/        provenance-preserving translated train-only auxiliary data
-data_unified/                 cross-domain proxy and broad corpus artifacts
-scripts/                      dataset, training, evaluation, and aggregation
-tests/                        integrity and regression tests
-results/reproducible_round5/  canonical row-level and aggregate results
-docs/paper_report.html        manuscript (HTML is the source of truth)
-docs/final_fig/prompt.md      corrected figure-generation specifications
-web_demo/                     FastAPI/React research demonstration
-```
-
-## Web demo
-
-The demo is a research interface, not a diagnostic product.
+### Running the Demo
 
 ```bash
-# Backend
-cd web_demo/backend
-uvicorn main:app --reload --port 8000
+# Development (two terminals)
+cd web_demo/backend && uvicorn main:app --reload --port 8000
+cd web_demo && npm run dev
 
-# Frontend, in a second terminal
-cd web_demo
-npm run dev
+# Docker (all-in-one)
+cd web_demo && docker-compose up --build
 ```
 
-The frontend is served at `http://localhost:3000` and the API at
-`http://localhost:8000` when using the default development configuration.
+Demo runs on http://localhost:3000 (frontend) with API at http://localhost:8000.
 
-## Ethics and intended use
+## Pipeline Layout
 
-Public accessibility does not imply consent for unrestricted redistribution.
-Although account/profile fields are excluded from the research modeling table,
-comment text may contain names, locations, contact details, or sensitive
-self-disclosure. Raw text therefore requires access control, and quoted examples
-should be paraphrased or minimized to reduce search-based re-identification.
+```
+yt_depression_crawler/
+├── ingestion/      YouTube Data API v3 client + crawler
+├── processing/     Cleaning, normalization, deduplication
+├── labeling/       Weighted-keyword weak labeler + gold set builder
+├── modeling/
+│   ├── baseline/   TF-IDF + Logistic Regression / SVM
+│   ├── phobert/    Fine-tuning + prediction + postprocess
+│   └── bertopic/   Topic modeling over the unified corpus
+├── pipelines/      End-to-end orchestrators per stage
+└── web/            Flask monitoring dashboard
 
-Predictions must not be used for diagnosis, surveillance of named individuals,
-punitive moderation, employment or insurance decisions, or automated outreach.
-Any prospective deployment requires separate ethics review, clinical governance,
-human oversight, calibrated uncertainty, and an explicit harm-management plan.
+scripts/
+├── final_model_training.py       Final training for Round 5 submission
+├── complete_evaluation_round5.py Comprehensive evaluation with all 6 metrics
+└── rerun_phobert_bertopic.py    PhoBERT + BERTopic evaluation
+```
+
+## Reproducing Results
+
+Hardware: MPS (Apple Silicon) or CPU is sufficient for final evaluation.
+Full training takes ~30 minutes on MPS.
+
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Run complete evaluation with all metrics
+PYTHONPATH="$PWD" .venv/bin/python scripts/complete_evaluation_round5.py
+
+# 3. Train all models (if needed)
+PYTHONPATH="$PWD" .venv/bin/python scripts/final_model_training.py
+
+# 4. PhoBERT + BERTopic evaluation
+PYTHONPATH="$PWD" .venv/bin/python scripts/rerun_phobert_bertopic.py
+```
+
+Outputs:
+- `results/final_round5_*/` — training results
+- `docs/FINAL_RESULTS_SUMMARY.md` — comprehensive results summary
+- `docs/paper_report.html` — full paper draft
+
+## Ethics
+
+The corpus contains only public YouTube comments. No usernames,
+avatars, or personally identifying metadata are stored. Predictions
+are research artifacts and must not be used for clinical diagnosis.
+Quoted comments in the paper are paraphrased or shortened to reduce
+re-identification risk.

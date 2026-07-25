@@ -29,24 +29,22 @@ from tqdm import tqdm
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_DIR / "data"
-LABELED_DIR = DATA_DIR / "labeled"
-AUGMENTED_DIR = DATA_DIR / "augmented_v2"
 DOCS_DIR = PROJECT_DIR / "docs"
 
 # ── Vietnamese Synonym Lists ─────────────────────────────────────────
 # Depression-related words with potential synonyms
 VIETNAMESE_SYNONYMS: dict[str, list[str]] = {
     # Emotion words
-    "buồn": ["buồn bã", "sầu", "thất vọng", "đau lòng"],
+    "buồn": ["chán", "sầu", "sai", "thất vọng", "đau lòng"],
     "cô đơn": ["một mình", "trống vắng", "heo hút", "lẻ loi"],
     "mệt mỏi": ["mệt", "chán nản", "kiệt sức", "uể oải"],
     "lo âu": ["lo lắng", "băn khoăn", "sợ hãi", "bất an"],
     "đau khổ": ["khổ sở", "đau lòng", "bi kịch"],
-    "tuyệt vọng": ["mất hy vọng", "vô vọng"],
+    "tuyệt vọng": ["mất hy vọng", "绝望"],
     "chán nản": ["chán", "mệt mỏi", "buồn chán"],
 
     # Mental state
-    "stress": ["áp lực", "căng thẳng"],
+    "stress": ["áp lực", "căng thẳng", " Strain"],
     "ám ảnh": ["quấn quanh", "day dứt", "mắc kẹt"],
     "sợ": ["e ngại", "kinh hoàng", "hoảng sợ"],
     "hoảng": ["sợ", "kinh hãi", "run sợ"],
@@ -320,37 +318,37 @@ class VietnameseAugmenter:
         text: str,
         label: int,
         n_per_method: int = 1,
-    ) -> list[tuple[str, int, str]]:
+    ) -> list[tuple[str, int]]:
         """Generate augmentations for a text sample."""
         results = []
         seen = {text}  # Avoid duplicates
 
-        def add_unique(text_aug: str, method: str) -> None:
+        def add_unique(text_aug: str) -> None:
             if text_aug and text_aug not in seen:
                 seen.add(text_aug)
-                results.append((text_aug, label, method))
+                results.append((text_aug, label))
 
         # Apply each method
         # 1. Synonym replacement
         for aug in self.synonym_replacement(text, n=n_per_method):
-            add_unique(aug, "synonym_replacement")
+            add_unique(aug)
 
         # 2. Random insertion
         for aug in self.random_insertion(text, n=n_per_method):
-            add_unique(aug, "random_insertion")
+            add_unique(aug)
 
         # 3. Random swap
         for aug in self.random_swap(text, n=n_per_method):
-            add_unique(aug, "random_swap")
+            add_unique(aug)
 
         # 4. Random deletion
         for aug in self.random_deletion(text, p=0.1):
-            add_unique(aug, "random_deletion")
+            add_unique(aug)
 
         # 5. PhoBERT MLM (if available)
         if self.phobert_model:
             for aug in self.phobert_mlm_augment(text, n=n_per_method):
-                add_unique(aug, "phobert_mlm")
+                add_unique(aug)
 
         return results
 
@@ -389,32 +387,20 @@ def generate_augmented_data(
     for _, row in pbar:
         text = str(row["comment_text"])
         label = int(row["label"])
-        normalized_source = re.sub(r"\s+", " ", text).strip().casefold()
-        source_hash = hashlib.sha256(normalized_source.encode("utf-8")).hexdigest()
 
         # Add original
-        all_samples.append({
-            "comment_text": text,
-            "label": label,
-            "augmented": False,
-            "augmentation_method": "original",
-            "source_text_sha256": source_hash,
-            "augmentation_seed": augmenter.seed,
-        })
+        all_samples.append({"comment_text": text, "label": label, "augmented": False})
 
         # Generate augmentations
         augmentations = augmenter.augment(text, label, n_per_method=1)
 
         # Limit total augmentations per sample
-        for aug_text, aug_label, method in augmentations[:n_augmentations]:
+        for aug_text, aug_label in augmentations[:n_augmentations]:
             if aug_text != text:  # Don't duplicate original
                 all_samples.append({
                     "comment_text": aug_text,
                     "label": aug_label,
                     "augmented": True,
-                    "augmentation_method": method,
-                    "source_text_sha256": source_hash,
-                    "augmentation_seed": augmenter.seed,
                 })
 
         pbar.set_postfix({"total": len(all_samples)})
@@ -434,7 +420,6 @@ def merge_with_train(
     keep_duplicates: bool = False,
 ) -> dict:
     """Merge augmented data with existing training data."""
-    output_file.parent.mkdir(parents=True, exist_ok=True)
     train_df = pd.read_csv(train_file, dtype=str).fillna("")
     original_count = len(train_df)
 
@@ -475,12 +460,12 @@ def main():
     parser = argparse.ArgumentParser(description="Vietnamese text augmentation")
     parser.add_argument(
         "--input", type=str,
-        default=str(LABELED_DIR / "final_train.csv"),
+        default=str(DATA_DIR / "final_train.csv"),
         help="Input CSV file"
     )
     parser.add_argument(
         "--output", type=str,
-        default=str(AUGMENTED_DIR / "generated_train.csv"),
+        default=str(DATA_DIR / "final_train_augmented.csv"),
         help="Output augmented CSV"
     )
     parser.add_argument(
@@ -489,7 +474,7 @@ def main():
     )
     parser.add_argument(
         "--train-file", type=str,
-        default=str(LABELED_DIR / "final_train.csv"),
+        default=str(DATA_DIR / "final_train.csv"),
         help="Train file to merge with"
     )
     parser.add_argument(
@@ -550,10 +535,8 @@ def main():
     )
 
     # ── Save augmented data ─────────────────────────────────────────
-    output_path = Path(args.output)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    augmented_df.to_csv(output_path, index=False, encoding="utf-8-sig")
-    logging.info(f"Saved augmented data: {output_path}")
+    augmented_df.to_csv(args.output, index=False, encoding="utf-8-sig")
+    logging.info(f"Saved augmented data: {args.output}")
 
     # ── Merge with train ─────────────────────────────────────────────
     if args.merge:
@@ -561,7 +544,7 @@ def main():
         stats = merge_with_train(
             augmented_df,
             Path(args.train_file),
-            output_path,
+            Path(args.output),
             keep_duplicates=args.keep_duplicates,
         )
 

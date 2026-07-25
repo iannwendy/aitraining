@@ -42,12 +42,17 @@ def model_tag(model_path):
 
 
 def sanity_check_datasets():
-    """Validate repaired Round-5 splits and the VSMEC proxy schema."""
+    """Validate final_train, final_val, final_test, and cross_domain_test schemas.
+
+    All splits in `data/final_*.csv` are produced by Phase 2 of the pipeline
+    (after the round-3 review merge). The orchestrator must train on these,
+    not the legacy `data/train.csv` from the original weak-label split.
+    """
     import pandas as pd
     for path, required in [
-        ("data/labeled/final_train.csv", {"comment_text", "label", "weight"}),
-        ("data/labeled/final_val.csv", {"comment_text", "label"}),
-        ("data/labeled/final_test.csv", {"comment_text", "label"}),
+        ("data/final_train.csv", {"comment_text", "label", "weight"}),
+        ("data/final_val.csv", {"comment_text", "label"}),
+        ("data/final_test.csv", {"comment_text", "label"}),
         ("data_unified/cross_domain_test.csv", {"comment_text", "label"}),
     ]:
         df = pd.read_csv(path)
@@ -68,7 +73,7 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument(
         "--models", nargs="+",
-        default=["models/phobert_base_local", "models/phobert_domain_adapted"],
+        default=["vinai/phobert-base", "models/phobert_domain_adapted"],
     )
     p.add_argument("--seeds", nargs="+", type=int, default=[42, 123, 2024])
     p.add_argument(
@@ -122,9 +127,9 @@ def main():
                 final_test_pred_csv = os.path.join(
                     output_dir, "predictions", f"{run_id}_final_test.csv"
                 )
-                run_eval(ckpt, "data/labeled/final_test.csv", final_test_pred_csv)
+                run_eval(ckpt, "data/final_test.csv", final_test_pred_csv)
                 in_domain_metrics = compute_cross_domain_metrics(
-                    final_test_pred_csv, "data/labeled/final_test.csv"
+                    final_test_pred_csv, "data/final_test.csv"
                 )
                 print(f"[{run_id}] final_test F1 macro={in_domain_metrics['f1_macro']:.4f}")
 
