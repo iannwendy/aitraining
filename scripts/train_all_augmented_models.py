@@ -340,10 +340,8 @@ def train_bilstm(
         for batch in train_loader:
             optimizer.zero_grad()
             if use_phobert:
+                labels = batch['labels'].to(device)  # Save labels BEFORE modifying batch
                 batch = {k: v.to(device) for k, v in batch.items() if k != 'labels'}
-                labels = batch['labels'] if 'labels' in batch else None
-                if labels is None:
-                    labels = torch.tensor([0] * batch['input_ids'].size(0)).to(device)
             else:
                 x, labels = batch
                 x = x.to(device)
@@ -362,15 +360,17 @@ def train_bilstm(
         with torch.no_grad():
             for batch in val_loader:
                 if use_phobert:
+                    val_labels_list.extend(batch['labels'].tolist())  # Save labels BEFORE moving batch
                     batch = {k: v.to(device) for k, v in batch.items()}
                     outputs = model(batch)
                 else:
-                    x, _ = batch
+                    x, y = batch
                     x = x.to(device)
+                    y = y.to(device)
+                    val_labels_list.extend(y.tolist())
                     outputs = model(x)
                 preds = torch.argmax(outputs, dim=-1).cpu().tolist()
                 val_preds.extend(preds)
-                val_labels_list.extend(batch['labels'].tolist() if use_phobert else batch[1].tolist())
 
         val_f1 = f1_score(val_labels_list, val_preds, average='macro', zero_division=0)
         logger.info(f"    Epoch {epoch+1}/{epochs} | Loss: {total_loss/len(train_loader):.4f} | Val F1: {val_f1:.4f}")

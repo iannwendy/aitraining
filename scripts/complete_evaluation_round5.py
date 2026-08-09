@@ -41,9 +41,9 @@ RESULTS_DIR = PROJECT_DIR / "results"
 OUTPUT_DIR = RESULTS_DIR / f"round5_complete_eval_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-TEST_FILE = DATA_DIR / "final_test.csv"
+TEST_FILE = DATA_DIR / "labeled" / "final_test.csv"
 VSMEC_FILE = DATA_DIR.parent / "data_unified" / "cross_domain_test.csv"
-PHOBERT_DIR = MODEL_DIR / "round5_predictions"
+PHOBERT_DIR = MODEL_DIR / "round5_retrained"
 MODEL_NAME = "vinai/phobert-base"
 MAX_LEN = 128
 
@@ -171,7 +171,7 @@ def main():
     print("Getting PhoBERT predictions...")
     phobert_predictions = {}
     for seed in [42, 123, 2024]:
-        model_dir = PHOBERT_DIR / f"seed_{seed}" / "best_model"
+        model_dir = PHOBERT_DIR / f"phobert_seed_{seed}" / "best_model"
         if model_dir.exists():
             print(f"  Seed {seed}...")
             phobert_predictions[seed] = get_phobert_predictions(model_dir, test_texts)
@@ -180,12 +180,12 @@ def main():
     phobert_avg_pred = (np.mean([phobert_predictions[s] for s in phobert_predictions], axis=0) >= 0.5).astype(int)
 
     # ── Get TF-IDF predictions ───────────────────────────────────────────────
-    tfidf_svc_path = MODEL_DIR / "tfidf_svc.joblib"
+    tfidf_svc_path = PHOBERT_DIR / "tfidf_linearsvc_round5.joblib"
     if tfidf_svc_path.exists():
         pipeline = joblib.load(tfidf_svc_path)
         tfidf_pred = pipeline.predict(test_texts)
 
-    tfidf_logreg_path = MODEL_DIR / "tfidf_logreg.joblib"
+    tfidf_logreg_path = PHOBERT_DIR / "tfidf_logreg_round5.joblib"
     if tfidf_logreg_path.exists():
         pipeline = joblib.load(tfidf_logreg_path)
         tfidf_logreg_pred = pipeline.predict(test_texts)
@@ -279,7 +279,7 @@ def main():
         print("-" * 70)
 
         for seed, _ in phobert_predictions.items():
-            model_dir = PHOBERT_DIR / f"seed_{seed}" / "best_model"
+            model_dir = PHOBERT_DIR / f"phobert_seed_{seed}" / "best_model"
             vsmec_pred = get_phobert_predictions(model_dir, vsmec_texts)
             metrics = compute_all_metrics(vsmec_labels, vsmec_pred)
             all_results["cross_domain"][f"phobert_seed{seed}"] = metrics

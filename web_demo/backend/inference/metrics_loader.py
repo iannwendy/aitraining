@@ -106,13 +106,33 @@ def _load_tfidf_svc() -> Optional[dict]:
 
 
 def _load_bilstm_random() -> Optional[dict]:
-    """BiLSTM with random embeddings — load first available seed metrics."""
+    """BiLSTM with random embeddings — load from multiseed_summary.json (3 seeds)."""
+    # Prefer the aggregated multiseed summary
+    summary_file = MODEL_DIR / "bilstm" / "multiseed_summary.json"
+    data = _load_json(summary_file)
+    if data and "variants" in data:
+        variant = data["variants"].get("random", {})
+        test_f1 = variant.get("test", {}).get("f1_macro", {})
+        cross_f1 = variant.get("cross_domain_vsmec", {}).get("f1_macro", {})
+        if test_f1 and cross_f1:
+            return {
+                "name": "BiLSTM (random)",
+                "accuracy": round(test_f1.get("mean", 0), 4),
+                "in_domain_f1": round(test_f1.get("mean", 0), 4),
+                "cross_domain_f1": round(cross_f1.get("mean", 0), 4),
+                "precision": None,
+                "recall": None,
+                "type": "bilstm",
+                "std_in": round(test_f1.get("std", 0), 4) if test_f1.get("std") else None,
+                "std_cross": round(cross_f1.get("std", 0), 4) if cross_f1.get("std") else None,
+                "note": None,
+            }
+
+    # Fallback: load individual seed files
     base = MODEL_DIR / "bilstm" / "random"
-    seed_dirs = sorted(base.glob("seed*/bilstm_metrics.json"))
-    if not seed_dirs:
+    seed_files = sorted(base.glob("seed*/bilstm_metrics.json"))
+    if not seed_files:
         seed_files = [base / "bilstm_metrics.json"]
-    else:
-        seed_files = seed_dirs
 
     all_in, all_cross = [], []
     for sf in seed_files:
@@ -141,10 +161,33 @@ def _load_bilstm_random() -> Optional[dict]:
 
 
 def _load_bilstm_phobert() -> Optional[dict]:
-    """BiLSTM with PhoBERT-frozen embeddings."""
+    """BiLSTM with PhoBERT-frozen embeddings — load from multiseed_summary.json (3 seeds)."""
+    # Prefer the aggregated multiseed summary
+    summary_file = MODEL_DIR / "bilstm" / "multiseed_summary.json"
+    data = _load_json(summary_file)
+    if data and "variants" in data:
+        variant = data["variants"].get("phobert", {})
+        test_f1 = variant.get("test", {}).get("f1_macro", {})
+        cross_f1 = variant.get("cross_domain_vsmec", {}).get("f1_macro", {})
+        if test_f1 and cross_f1:
+            return {
+                "name": "BiLSTM (PhoBERT-frozen)",
+                "accuracy": round(test_f1.get("mean", 0), 4),
+                "in_domain_f1": round(test_f1.get("mean", 0), 4),
+                "cross_domain_f1": round(cross_f1.get("mean", 0), 4),
+                "precision": None,
+                "recall": None,
+                "type": "bilstm",
+                "std_in": round(test_f1.get("std", 0), 4) if test_f1.get("std") else None,
+                "std_cross": round(cross_f1.get("std", 0), 4) if cross_f1.get("std") else None,
+                "note": None,
+            }
+
+    # Fallback: load individual seed files
     base = MODEL_DIR / "bilstm" / "phobert"
-    seed_dirs = sorted(base.glob("seed*/bilstm_metrics.json"))
-    seed_files = seed_dirs if seed_dirs else [base / "bilstm_metrics.json"]
+    seed_files = sorted(base.glob("seed*/bilstm_metrics.json"))
+    if not seed_files:
+        seed_files = [base / "bilstm_metrics.json"]
 
     all_in, all_cross = [], []
     for sf in seed_files:

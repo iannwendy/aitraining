@@ -1,10 +1,14 @@
 """Comprehensive evaluation of all models for Round 5.
 
 Evaluates:
-1. PhoBERT (3 seeds) - in-domain
+1. PhoBERT (3 seeds) - in-domain and cross-domain
 2. BiLSTM - in-domain
-3. TF-IDF + LogReg - in-domain
-4. Cross-domain evaluation on VSMEC dataset
+3. TF-IDF + LogReg - in-domain and cross-domain
+4. TF-IDF + LinearSVC - in-domain and cross-domain
+5. Cross-domain evaluation on VSMEC dataset for all available models
+
+Note: ``joblib.load`` reads scikit-learn pipelines serialized from our own
+``retrain_all_models_round5.py`` — these are trusted in-project artifacts.
 
 Usage:
     .venv/bin/python scripts/evaluate_all_models_round5.py
@@ -47,9 +51,10 @@ RESULTS_DIR = PROJECT_DIR / "results"
 OUTPUT_DIR = RESULTS_DIR / f"round5_final_eval_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-TEST_FILE = DATA_DIR / "final_test.csv"
+TEST_FILE = DATA_DIR / "labeled" / "final_test.csv"
 VSMEC_FILE = DATA_DIR.parent / "data_unified" / "cross_domain_test.csv"
-PHOBERT_DIR = MODEL_DIR / "round5_predictions"
+# Use the retrained models (trained on the repaired dataset, 7,336 train rows).
+PHOBERT_DIR = MODEL_DIR / "round5_retrained"
 MODEL_NAME = "vinai/phobert-base"
 MAX_LEN = 128
 
@@ -176,29 +181,39 @@ def main():
 
     # ── 1. PhoBERT (all seeds) ────────────────────────────────────────────────
     phobert_results = []
+    phobert_per_seed_preds = {}
     for seed in [42, 123, 2024]:
-        model_dir = PHOBERT_DIR / f"seed_{seed}" / "best_model"  # points to the model directory
+        # Models trained by retrain_all_models_round5.py live under phobert_seed_*/best_model/
+        model_dir = PHOBERT_DIR / f"phobert_seed_{seed}" / "best_model"
         if model_dir.exists():
             result = evaluate_phobert(model_dir, test_texts, test_labels, f"test_seed{seed}")
             result["seed"] = seed
             phobert_results.append(result)
+            phobert_per_seed_preds[seed] = np.array(result["predictions"])
 
             # Per-seed summary
             print(f"  Seed {seed}: Acc={result['accuracy']:.4f}, F1={result['f1_macro']:.4f}")
 
     if phobert_results:
-        # Average across seeds
-        avg_phobert = {
-            "accuracy": np.mean([r["accuracy"] for r in phobert_results]),
-            "f1_macro": np.mean([r["f1_macro"] for r in phobert_results]),
-            "f1_depression": np.mean([r["f1_depression"] for r in phobert_results]),
-            "precision": np.mean([r["precision"] for r in phobert_results]),
-            "recall": np.mean([r["recall"] for r in phobert_results]),
-            "seeds": [r["seed"] for r in phobert_results],
-            "per_seed": {str(r["seed"]): {k: v for k, v in r.items() if k not in ["predictions", "probabilities", "confusion_matrix", "seed"]} for r in phobert_results}
+        # Average across seeds — proper majority vote on predictions
+        seeds_sorted = sorted(phobert_per_seed_preds.keys())
+        stacked = np.stack([phobert_per_seed_preds[s] for s in seeds_sorted], axis=0)
+        avg_preds = (np.mean(stacked, axis=0) >= 0.5).astype(int)
+        avg_metrics = {
+            "accuracy": float(accuracy_score(test_labels, avg_preds)),
+            "f1_macro": float(f1_score(test_labels, avg_preds, average="macro")),
+            "f1_depression": float(f1_score(test_labels, avg_preds, average="binary", pos_label=1)),
+            "precision": float(precision_score(test_labels, avg_preds, average="macro")),
+            "recall": float(recall_score(test_labels, avg_preds, average="macro")),
+            "seeds": seeds_sorted,
+            "per_seed": {
+                str(r["seed"]): {k: v for k, v in r.items() if k not in ["predictions", "probabilities", "confusion_matrix", "seed"]}
+                for r in phobert_results
+            },
         }
-        all_results["in_domain"]["phobert_avg"] = avg_phobert
-        print(f"\nPhoBERT Average: Acc={avg_phobert['accuracy']:.4f}, F1={avg_phobert['f1_macro']:.4f}")
+        all_results["in_domain"]["phobert_avg"] = avg_metrics
+        print(f"\nPhoBERT Average (majority vote across {len(seeds_sorted)} seeds): "
+              f"Acc={avg_metrics['accuracy']:.4f}, F1={avg_metrics['f1_macro']:.4f}")
 
     # ── 2. BiLSTM ─────────────────────────────────────────────────────────────
     bilstm_dir = MODEL_DIR / "bilstm"
@@ -213,7 +228,7 @@ def main():
             print(f"BiLSTM evaluation skipped: {e}")
 
     # ── 3. TF-IDF + LogReg ────────────────────────────────────────────────────
-    tfidf_path = MODEL_DIR / "tfidf_logreg.joblib"
+    tfidf_path = PHOBERT_DIR / "tfidf_logreg_round5.joblib"
     if tfidf_path.exists():
         try:
             # Model is a Pipeline, not a dict
@@ -239,7 +254,7 @@ def main():
             print(f"TF-IDF LogReg evaluation skipped: {e}")
 
     # ── 4. TF-IDF + LinearSVC ─────────────────────────────────────────────────
-    tfidf_svc_path = MODEL_DIR / "tfidf_svc.joblib"
+    tfidf_svc_path = PHOBERT_DIR / "tfidf_linearsvc_round5.joblib"
     if tfidf_svc_path.exists():
         try:
             # Model is a Pipeline
@@ -270,35 +285,61 @@ def main():
 
     vsmec_texts, vsmec_labels, vsmec_df = load_vsmec_data()
     if vsmec_texts is not None:
-        # PhoBERT cross-domain
+        # PhoBERT cross-domain — collect predictions per seed for majority vote
+        phobert_cross_preds_per_seed = {}
         for seed in [42, 123, 2024]:
-            model_dir = PHOBERT_DIR / f"seed_{seed}" / "best_model"  # points to the model directory
+            model_dir = PHOBERT_DIR / f"phobert_seed_{seed}" / "best_model"
             if model_dir.exists():
                 result = evaluate_phobert(model_dir, vsmec_texts, vsmec_labels, f"vsmec_seed{seed}")
                 all_results["cross_domain"][f"phobert_seed{seed}"] = result
+                phobert_cross_preds_per_seed[seed] = np.array(result["predictions"])
                 print(f"  PhoBERT Seed {seed} on VSMEC: Acc={result['accuracy']:.4f}, F1={result['f1_macro']:.4f}")
 
-        # TF-IDF cross-domain
-        if tfidf_path.exists():
-            try:
-                pipeline = joblib.load(tfidf_path)
-                preds = pipeline.predict(vsmec_texts)
-                probs = pipeline.predict_proba(vsmec_texts)[:, 1]
+        # PhoBERT cross-domain majority vote
+        if phobert_cross_preds_per_seed:
+            seeds_sorted = sorted(phobert_cross_preds_per_seed.keys())
+            stacked = np.stack([phobert_cross_preds_per_seed[s] for s in seeds_sorted], axis=0)
+            avg_preds = (np.mean(stacked, axis=0) >= 0.5).astype(int)
+            avg_cross = {
+                "accuracy": float(accuracy_score(vsmec_labels, avg_preds)),
+                "f1_macro": float(f1_score(vsmec_labels, avg_preds, average="macro")),
+                "f1_depression": float(f1_score(vsmec_labels, avg_preds, average="binary", pos_label=1)),
+                "precision": float(precision_score(vsmec_labels, avg_preds, average="macro")),
+                "recall": float(recall_score(vsmec_labels, avg_preds, average="macro")),
+                "confusion_matrix": confusion_matrix(vsmec_labels, avg_preds).tolist(),
+                "seeds": seeds_sorted,
+            }
+            all_results["cross_domain"]["phobert_avg"] = avg_cross
+            print(f"  PhoBERT avg vote on VSMEC: Acc={avg_cross['accuracy']:.4f}, F1={avg_cross['f1_macro']:.4f}")
 
-                logreg_cross = {
-                    "accuracy": accuracy_score(vsmec_labels, preds),
-                    "f1_macro": f1_score(vsmec_labels, preds, average="macro"),
-                    "f1_depression": f1_score(vsmec_labels, preds, average="binary", pos_label=1),
-                    "precision": precision_score(vsmec_labels, preds, average="macro"),
-                    "recall": recall_score(vsmec_labels, preds, average="macro"),
-                    "confusion_matrix": confusion_matrix(vsmec_labels, preds).tolist(),
-                    "predictions": preds.tolist(),
-                    "probabilities": probs.tolist()
-                }
-                all_results["cross_domain"]["tfidf_logreg"] = logreg_cross
-                print(f"  TF-IDF + LogReg on VSMEC: Acc={logreg_cross['accuracy']:.4f}, F1={logreg_cross['f1_macro']:.4f}")
-            except Exception as e:
-                print(f"TF-IDF cross-domain evaluation skipped: {e}")
+        # TF-IDF cross-domain — both LogReg and LinearSVC
+        for tfidf_name, tfidf_model_path, has_proba in [
+            ("tfidf_logreg", PHOBERT_DIR / "tfidf_logreg_round5.joblib", True),
+            ("tfidf_svc", PHOBERT_DIR / "tfidf_linearsvc_round5.joblib", False),
+        ]:
+            if tfidf_model_path.exists():
+                try:
+                    pipeline = joblib.load(tfidf_model_path)
+                    preds = pipeline.predict(vsmec_texts)
+                    probs = (
+                        pipeline.predict_proba(vsmec_texts)[:, 1].tolist()
+                        if has_proba
+                        else None
+                    )
+                    metrics = {
+                        "accuracy": float(accuracy_score(vsmec_labels, preds)),
+                        "f1_macro": float(f1_score(vsmec_labels, preds, average="macro")),
+                        "f1_depression": float(f1_score(vsmec_labels, preds, average="binary", pos_label=1)),
+                        "precision": float(precision_score(vsmec_labels, preds, average="macro")),
+                        "recall": float(recall_score(vsmec_labels, preds, average="macro")),
+                        "confusion_matrix": confusion_matrix(vsmec_labels, preds).tolist(),
+                        "predictions": preds.tolist(),
+                        "probabilities": probs,
+                    }
+                    all_results["cross_domain"][tfidf_name] = metrics
+                    print(f"  {tfidf_name} on VSMEC: Acc={metrics['accuracy']:.4f}, F1={metrics['f1_macro']:.4f}")
+                except Exception as e:
+                    print(f"{tfidf_name} cross-domain evaluation skipped: {e}")
 
     # ── Save results ───────────────────────────────────────────────────────────
     results_file = OUTPUT_DIR / "evaluation_results.json"

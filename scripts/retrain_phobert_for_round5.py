@@ -43,8 +43,8 @@ MODEL_DIR = PROJECT_DIR / "models"
 OUTPUT_DIR = MODEL_DIR / "round5_predictions"
 PREDICTIONS_FILE = DATA_DIR / "phobert_remaining_predictions.csv"
 
-TRAIN_FILE = DATA_DIR / "final_train.csv"
-VAL_FILE = DATA_DIR / "final_val.csv"
+TRAIN_FILE = DATA_DIR / "labeled" / "final_train.csv"
+VAL_FILE = DATA_DIR / "labeled" / "final_val.csv"
 MODEL_NAME = "vinai/phobert-base"
 MAX_LEN = 128
 BATCH_SIZE = 16

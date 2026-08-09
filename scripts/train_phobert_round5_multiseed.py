@@ -39,9 +39,9 @@ MODEL_DIR = PROJECT_DIR / "models"
 OUTPUT_DIR = MODEL_DIR / "round5_predictions"
 RESULTS_DIR = PROJECT_DIR / "results"
 
-TRAIN_FILE = DATA_DIR / "final_train.csv"
-VAL_FILE = DATA_DIR / "final_val.csv"
-TEST_FILE = DATA_DIR / "final_test.csv"
+TRAIN_FILE = DATA_DIR / "labeled" / "final_train.csv"
+VAL_FILE = DATA_DIR / "labeled" / "final_val.csv"
+TEST_FILE = DATA_DIR / "labeled" / "final_test.csv"
 
 MODEL_NAME = "vinai/phobert-base"
 MAX_LEN = 128

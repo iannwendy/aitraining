@@ -55,9 +55,9 @@ RESULTS_DIR = PROJECT_DIR / "results"
 OUTPUT_DIR = RESULTS_DIR / f"final_round5_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-TRAIN_FILE = DATA_DIR / "final_train.csv"
-VAL_FILE = DATA_DIR / "final_val.csv"
-TEST_FILE = DATA_DIR / "final_test.csv"
+TRAIN_FILE = DATA_DIR / "labeled" / "final_train.csv"
+VAL_FILE = DATA_DIR / "labeled" / "final_val.csv"
+TEST_FILE = DATA_DIR / "labeled" / "final_test.csv"
 VSMEC_FILE = PROJECT_DIR / "data_unified" / "cross_domain_test.csv"
 BERTOPIC_DIR = MODEL_DIR / "bertopic"
 PHOBERT_DIR = MODEL_DIR / "round5_predictions"

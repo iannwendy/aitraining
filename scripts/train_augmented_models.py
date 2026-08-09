@@ -46,9 +46,9 @@ def set_seed(seed):
 
 def load_data():
     """Load augmented dataset."""
-    train = pd.read_csv(DATA_DIR / "final_train.csv", dtype=str).fillna("")
-    val = pd.read_csv(DATA_DIR / "final_val.csv", dtype=str).fillna("")
-    test = pd.read_csv(DATA_DIR / "final_test.csv", dtype=str).fillna("")
+    train = pd.read_csv(DATA_DIR / "labeled" / "final_train.csv", dtype=str).fillna("")
+    val = pd.read_csv(DATA_DIR / "labeled" / "final_val.csv", dtype=str).fillna("")
+    test = pd.read_csv(DATA_DIR / "labeled" / "final_test.csv", dtype=str).fillna("")
     cross = pd.read_csv(PROJECT_DIR / "data_unified" / "cross_domain_test.csv", dtype=str).fillna("")
 
     for df in [train, val, test, cross]:
