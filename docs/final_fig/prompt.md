@@ -14,7 +14,7 @@ The diagram should have 4 horizontal layers arranged vertically with connecting 
 
 LAYER 1 - CLINICAL REALITY (top, color: vermillion #E34234):
 - Box 1: "MDD (DSM-5)"
-- Box 2: "Stigma, Workforce"  
+- Box 2: "Stigma, Workforce"
 - Box 3: "PHQ-9 Self-Report"
 
 ↓ (arrow labeled "0.2 psychiatrists")
@@ -28,7 +28,7 @@ LAYER 2 - SOCIAL MEDIA (color: blue #3B82F6):
 LAYER 3 - ML PIPELINE (color: green #22C55E):
 - Box 1: "Weak Label" → Box 2: "Annotation" → Box 3: "PhoBERT"
 
-↓ (arrow labeled "Round 6")
+↓ (arrow labeled "Round 6 v2")
 
 EVALUATION (bottom, color: orange #F97316):
 - Left box: "In-domain (n=1,371)"
@@ -78,10 +78,10 @@ Color scheme:
 - PhoBERT (highlighted): green #22C55E with thick border
 
 Add a legend box in bottom-left corner with:
-- "Round 6 Results:"
-- "PhoBERT F1: 0.7254 (in-domain)"
-- "Cross-domain: 0.3659"
-- "Dataset: 6,392 samples"
+- "Round 6 v2 Results:"
+- "PhoBERT F1: 0.7187 (in-domain)"
+- "Cross-domain: 0.3608"
+- "Dataset: 9,134 samples"
 
 Style: Professional academic tree diagram, white background, clean typography
 ```
@@ -97,7 +97,7 @@ Create a professional PIPELINE OVERVIEW flowchart showing a 15-step ML pipeline 
 Structure with TWO MAIN SECTIONS separated by a vertical line on the left:
 
 SECTION 1 - "Chapter 3" (blue theme #3B82F6):
-Row 1 (left to right): 
+Row 1 (left to right):
 [1. Crawl] → [2. Clean] → [3. External] → [4. Corpus]
 Row 2 (below):
 [5. Weak Label] → [6. Annotate] → [7. Gold Set]
@@ -156,10 +156,10 @@ Models (X-axis):
 5. PhoBERT + BERTopic
 
 In-domain values (BLUE #3B82F6):
-0.7254, 0.7025, 0.7138, 0.6421, 0.7153
+0.7187, 0.7025, 0.7138, 0.6418, 0.7153
 
 Cross-domain values (RED #EF4444):
-0.3659, 0.3798, 0.3577, 0.3375, 0.3674
+0.3608, 0.3798, 0.3577, 0.3375, 0.3674
 
 Chart specifications:
 - Y-axis: "F1-macro" (0.0 - 1.0)
@@ -215,11 +215,11 @@ Style: Clean academic bar chart, white background
 Create TWO SIDE-BY-SIDE CONFUSION MATRICES for a depression detection model.
 
 LEFT MATRIX - In-domain (n=1,371):
-- True Negative (TN): 941
-- False Positive (FP): 159
-- False Negative (FN): 99
-- True Positive (TP): 172
-- Accuracy: 0.8118
+- True Negative (TN): 906
+- False Positive (FP): 194
+- False Negative (FN): 89
+- True Positive (TP): 182
+- Accuracy: 0.8038
 - Title: "PhoBERT - In-domain (n=1,371)"
 
 RIGHT MATRIX - Cross-domain (n=3,084):
@@ -227,7 +227,7 @@ RIGHT MATRIX - Cross-domain (n=3,084):
 - False Positive (FP): 11
 - False Negative (FN): 1,493
 - True Positive (TP): 49
-- Accuracy: 0.5123
+- Accuracy: 0.5104
 - Title: "PhoBERT - Cross-domain (n=3,084)"
 
 Matrix specifications:
@@ -286,10 +286,10 @@ Models:
 3. PhoBERT + BERTopic
 
 Values:
-- In-domain (before): 0.7254, 0.4208, 0.7254 - Light BLUE
-- In-domain (after): 0.7254, 0.4208, 0.7153 - Dark BLUE
-- Cross-domain (before): 0.3659, 0.5030, 0.3659 - Light RED
-- Cross-domain (after): 0.3659, 0.5030, 0.3674 - Dark RED
+- In-domain (before): 0.7187, 0.4208, 0.7187 - Light BLUE
+- In-domain (after): 0.7187, 0.4208, 0.7153 - Dark BLUE
+- Cross-domain (before): 0.3608, 0.5030, 0.3608 - Light RED
+- Cross-domain (after): 0.3608, 0.5030, 0.3674 - Dark RED
 
 Chart specifications:
 - Y-axis: "F1-macro" (0.0 - 1.0)

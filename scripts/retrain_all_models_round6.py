@@ -62,7 +62,7 @@ BATCH_SIZE = 16
 EPOCHS = 3
 SEEDS = [42, 123, 2024]
 
-OUTPUT_DIR = MODEL_DIR / "round6_retrained"
+OUTPUT_DIR = MODEL_DIR / "round6_v2_retrained"
 
 device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 print(f"Device: {device}")
@@ -364,11 +364,11 @@ def evaluate_bilstm(model_path, texts, labels, vocab, split_name):
 # ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    results_dir = RESULTS_DIR / f"round5_retrained_{timestamp}"
+    results_dir = RESULTS_DIR / f"round6_retrained_{timestamp}"
     results_dir.mkdir(parents=True, exist_ok=True)
 
     print("="*70)
-    print("ROUND 5 COMPLETE RETRAINING WITH FIXED DATA")
+    print("ROUND 6 COMPLETE RETRAINING")
     print("="*70)
 
     # Load data
@@ -415,7 +415,7 @@ def main():
     print("1. TRAINING TF-IDF + LOGISTIC REGRESSION")
     print("="*60)
 
-    tfidf_logreg_path = OUTPUT_DIR / "tfidf_logreg_round6.joblib"
+    tfidf_logreg_path = OUTPUT_DIR / "tfidf_logreg_round6_v2.joblib"
     tfidf_logreg_pipeline = Pipeline([
         ("tfidf", TfidfVectorizer(max_features=10000, ngram_range=(1, 2), min_df=2)),
         ("clf", LogisticRegression(max_iter=1000, class_weight="balanced", random_state=42))
@@ -438,7 +438,7 @@ def main():
     print("2. TRAINING TF-IDF + LINEARSVC")
     print("="*60)
 
-    tfidf_svc_path = OUTPUT_DIR / "tfidf_linearsvc_round6.joblib"
+    tfidf_svc_path = OUTPUT_DIR / "tfidf_linearsvc_round6_v2.joblib"
     tfidf_svc_pipeline = Pipeline([
         ("tfidf", TfidfVectorizer(max_features=10000, ngram_range=(1, 2), min_df=2)),
         ("clf", LinearSVC(max_iter=2000, class_weight="balanced", random_state=42))
@@ -564,7 +564,7 @@ def main():
     for r in bilstm_results:
         seed = r["seed"]
         model_path = OUTPUT_DIR / f"bilstm_seed_{seed}" / "best_model.pt"
-        _, preds_vsmec = evaluate_bilstm(model_path, vsmec_texts, None, "VSMEC")
+        _, preds_vsmec = evaluate_bilstm(model_path, vsmec_texts, vsmec_labels, None, "VSMEC")
         bilstm_cross_per_seed[seed] = preds_vsmec
         vsmec_metrics = compute_metrics(vsmec_labels, preds_vsmec)
         all_results["cross_domain"][f"bilstm_seed{seed}"] = {
@@ -605,8 +605,8 @@ def main():
             print(f"{model_name:<25} | {acc:>7.4f} | {prec:>7.4f} | {rec:>7.4f} | {f1_m:>7.4f} | {f1_d:>7.4f}")
 
     # Save results to two locations for redundancy:
-    #   1. results/round5_retrained_<timestamp>/ (historical/audit trail)
-    #   2. models/round5_retrained/evaluation_results.json (canonical, fixed)
+    #   1. results/round6_retrained_<timestamp>/ (historical/audit trail)
+    #   2. models/round6_v2_retrained/evaluation_results.json (canonical, fixed)
     results_file = results_dir / "evaluation_results.json"
     with open(results_file, "w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=2, ensure_ascii=False, default=str)

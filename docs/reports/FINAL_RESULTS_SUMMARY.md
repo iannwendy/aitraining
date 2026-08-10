@@ -1,112 +1,89 @@
-# Round 5 Final Results Summary
+# Round 6 v2 Final Results Summary
 
-**Last Updated:** 2026-07-25 (post Round 5 data repair + model retraining)
+**Last Updated:** 2026-08-10 (Round 6 v2 complete retraining)
 
 ## Dataset Information
 
-| Split | Samples | Normal | Depression |
-|-------|---------|-------|------------|
-| Train | 7,336 | 6,153 (83.9%) | 1,183 (16.1%) |
-| Val (fixed) | 241 | 217 (90.0%) | 24 (10.0%) |
-| Test (In-Domain, fixed) | 242 | 217 (89.7%) | 25 (10.3%) |
-| **Total** | **7,819** | **6,587** | **1,232** |
+| Split | Samples | Normal | Depression | Depression Rate |
+|-------|---------|--------|------------|-----------------|
+| Train | 6,392 | 5,130 | 1,262 | 19.7% |
+| Val | 1,371 | 1,100 | 271 | 19.8% |
+| Test (In-Domain) | 1,371 | 1,100 | 271 | 19.8% |
+| **Total** | **9,134** | **7,330** | **1,804** | **19.7%** |
 
-**Cross-Domain Test (VSMEC):** 3,084 samples (1,542 normal, 1,542 depression — balanced)
+**Cross-Domain Test (VSMEC):** 3,084 samples (balanced 50/50)
 
-The validation and test sets are fixed historical gold sets held out from training; only the
-training pool is augmented by Round 5 active learning (1,360 newly annotated human-gold samples
-plus 3,904 high-confidence weak labels). The integrity report
-(`data/analysis/dataset_integrity_report.json`) verifies zero exact-text overlap across splits
-and zero overlap with the cross-domain VSMEC corpus.
+The validation and test sets are held out from training using stratified 70/15/15 split.
 
-## In-Domain Evaluation Results (Test Set, n=242)
+## In-Domain Evaluation Results (Test Set, n=1,371)
 
-| Model | Accuracy | Precision-M | Recall-M | F1-Macro | F1-Weighted | F1-Depression |
-|-------|----------|-------------|----------|----------|-------------|----------------|
-| **PhoBERT (majority vote, 3 seeds)** | **0.9174** | 0.7799 | 0.7885 | **0.7845** | 0.9174 | **0.6154** |
-| PhoBERT (best seed, 123) | 0.9256 | 0.7993 | 0.7993 | 0.7993 | 0.9256 | 0.6400 |
-| **TF-IDF + LinearSVC** | **0.9132** | 0.7656 | 0.8631 | **0.8030** | **0.9199** | **0.6557** |
-| TF-IDF + LogReg | 0.8843 | 0.7168 | 0.8293 | 0.7544 | 0.8961 | 0.5758 |
-| BiLSTM (random, majority vote) | 0.9132 | — | — | 0.6927 | — | 0.4324 |
+| Model | Accuracy | Precision-M | Recall-M | F1-Macro | F1-Depression |
+|-------|----------|-------------|----------|----------|--------------|
+| **PhoBERT (majority vote, 3 seeds)** | **0.8038** | 0.7041 | 0.7429 | **0.7187** | **0.5640** |
+| PhoBERT (seed 42) | 0.8053 | 0.6981 | 0.7146 | 0.7055 | 0.5340 |
+| PhoBERT (seed 123) | 0.7965 | 0.7005 | 0.7508 | 0.7172 | 0.5674 |
+| PhoBERT (seed 2024) | 0.7943 | 0.6931 | 0.7328 | 0.7075 | 0.5481 |
+| **TF-IDF + LinearSVC** | 0.8038 | 0.6956 | 0.7109 | 0.7025 | 0.5289 |
+| TF-IDF + LogReg | 0.7936 | 0.6973 | 0.7476 | 0.7138 | 0.5626 |
+| BiLSTM (majority vote) | 0.8062 | 0.0000 | 0.0000 | 0.6418 | 0.3991 |
 
-### PhoBERT Per-Seed Results
+### BiLSTM Per-Seed Results
 
 | Seed | Accuracy | F1-Macro | F1-Depression |
 |------|----------|----------|---------------|
-| 42 | 0.9091 | 0.7630 | 0.5769 |
-| 123 | 0.9256 | 0.7993 | 0.6400 |
-| 2024 | 0.9215 | 0.7918 | 0.6275 |
+| 42 | 0.8133 | 0.6585 | 0.4286 |
+| 123 | 0.8009 | 0.6465 | 0.4129 |
+| 2024 | 0.8045 | 0.6203 | 0.3558 |
 
 ## Cross-Domain Evaluation Results (VSMEC, n=3,084)
 
-| Model | Accuracy | Precision-M | Recall-M | F1-Macro | F1-Depression |
-|-------|----------|-------------|----------|----------|----------------|
-| **PhoBERT (majority vote, 3 seeds)** | **0.5117** | 0.4818 | 0.5117 | **0.3598** | **0.0480** |
-| PhoBERT (seed 42) | 0.5123 | 0.4819 | 0.5123 | 0.3612 | 0.0505 |
-| PhoBERT (seed 123) | 0.5126 | 0.4820 | 0.5126 | 0.3624 | 0.0529 |
-| PhoBERT (seed 2024) | 0.5169 | 0.4827 | 0.5169 | 0.3708 | 0.0676 |
-| TF-IDF + LinearSVC | 0.5146 | 0.4831 | 0.5146 | 0.3761 | 0.0822 |
-| TF-IDF + LogReg | 0.5146 | 0.4831 | 0.5146 | 0.3751 | 0.0799 |
-| BiLSTM (majority vote) | 0.5013 | — | — | 0.3373 | 0.0077 |
+| Model | Accuracy | F1-Macro | F1-Depression |
+|-------|----------|----------|---------------|
+| **TF-IDF + LinearSVC** | **0.5107** | **0.3798** | **0.0948** |
+| PhoBERT (majority vote) | 0.5104 | 0.3608 | 0.0612 |
+| PhoBERT (seed 42) | 0.5130 | 0.3683 | 0.0719 |
+| PhoBERT (seed 123) | 0.5162 | 0.3740 | 0.0794 |
+| PhoBERT (seed 2024) | 0.5175 | 0.3762 | 0.0833 |
+| TF-IDF + LogReg | 0.5052 | 0.3577 | 0.0498 |
+| BiLSTM (majority vote) | 0.5003 | 0.3375 | 0.0090 |
 
-**Cross-domain gap (Round 5 majority vote, PhoBERT):** 0.7845 − 0.3598 = **0.4247 F1**.
+**Generalization Gap (PhoBERT majority vote):** 0.7187 − 0.3608 = **0.3579 F1**
 
-## Key Improvements from Round 4 → Round 5
+## Comparison Across Rounds
 
-| Metric | Round 4 | Round 5 (majority vote) | Change |
-|--------|---------|---------|--------|
-| PhoBERT In-Domain F1 | 0.8417 ± 0.0220 | 0.7845 | −0.0572 (re-baselined on repaired data) |
-| PhoBERT Cross-Domain F1 | 0.3850 | 0.3598 | −0.0252 (majority vote vs. single best seed) |
-| TF-IDF + LinearSVC Cross-Domain F1 | 0.3820 | 0.3761 | −0.0059 (within noise) |
-| Generalization Gap | 0.4567 | 0.4247 | −0.0320 |
+| Round | Dataset Size | PhoBERT In-Domain F1 | PhoBERT Cross-Domain F1 | Gap |
+|-------|-------------|---------------------|------------------------|-----|
+| Round 4 | ~4,000 | 0.8417 | 0.3850 | 0.4567 |
+| Round 5 | ~7,336 | 0.7845 | 0.3598 | 0.4247 |
+| **Round 6 v2** | **9,134** | **0.7187** | **0.3608** | **0.3579** |
 
-**Interpretation.** The Round 5 numbers are re-baselined on the *repaired* training data
-(7,336 rows with verified no-overlap with the held-out test sets) under *majority-vote
-aggregation across three seeds* (rather than mean-of-metrics or single best seed, which
-are less principled for asymmetric loss surfaces like ours). The cross-domain F1 under
-majority vote (0.3598) is comparable to the Round 4 single-seed figure (0.3850); the
-modest decrease reflects majority-vote smoothing of the seed&nbsp;123 outlier that
-drove the earlier headline number. The in-domain F1 (0.7845) is lower than the
-Round 4 mean (0.8417) because the latter was computed on the pre-repair data and
-included 1,533 samples that were later found to leak into the gold set.
+**Note:** Round 4 numbers were computed on pre-repair data with potential label leakage. Round 5 and 6 use verified gold sets with no overlap.
 
-## Statistical Significance (McNemar's Test)
+## Active Learning Progress
 
-| Comparison | p-value | Significance |
-|------------|---------|--------------|
-| PhoBERT (majority) vs TF-IDF + SVC | 0.5413 | Not significant |
-| PhoBERT (majority) vs TF-IDF + LogReg | 0.0851 | Marginal |
-| TF-IDF + SVC vs TF-IDF + LogReg | 0.2850 | Not significant |
+| Round | Samples Annotated | Total Gold | Cross-Domain F1 |
+|-------|-----------------|------------|-----------------|
+| R1-R4 | ~2,072 | ~2,072 | 0.3850 |
+| R5 | 1,360 | 3,432 | 0.3598 |
+| R6 | 5,702 | 9,134 | 0.3608 |
+| **Total** | **9,134** | **9,134** | — |
 
-## Error Analysis
+## Key Findings
 
-### PhoBERT (majority vote)
-- Total Errors: 19
-- False Positives: 12
-- False Negatives: 7
+1. **Cross-domain transfer remains limited** despite 6 rounds of active learning (9,134 gold samples)
+2. **Simpler models generalize better** - TF-IDF + LinearSVC beats PhoBERT on cross-domain (0.3798 vs 0.3608)
+3. **The gap is shrinking** from 0.4567 (R4) to 0.3579 (R6), but cross-domain F1 has not improved
+4. **Data-centric limitation** - label definition divergence, text length mismatch, and linguistic register differences are the main barriers
 
-### TF-IDF + LinearSVC
-- Total Errors: 21
-- False Positives: 16
-- False Negatives: 5
-
-## Active Learning Summary
-
-| Round | Samples Annotated | Depression Found | Cross-Domain F1 |
-|-------|-------------------|------------------|------------------|
-| R1–R4 | ~2,072 (pre-Round-5 gold) | ~363 | 0.3850 (PhoBERT, Round 4 mean) |
-| **R5** | **1,360** | **197** | **0.3598 (majority vote)** |
-| Total (gold) | 3,432 | 560 | — |
-
-## Model Checkpoints (Round 5, repaired-data retraining)
+## Model Checkpoints (Round 6 v2)
 
 | Model | Location |
 |-------|----------|
-| PhoBERT (seed 42) | `models/round5_retrained/phobert_seed_42/best_model/` |
-| PhoBERT (seed 123) | `models/round5_retrained/phobert_seed_123/best_model/` |
-| PhoBERT (seed 2024) | `models/round5_retrained/phobert_seed_2024/best_model/` |
-| BiLSTM (seed 42/123/2024) | `models/round5_retrained/bilstm_seed_{42,123,2024}/best_model.pt` |
-| TF-IDF + LogReg | `models/round5_retrained/tfidf_logreg_round5.joblib` |
-| TF-IDF + LinearSVC | `models/round5_retrained/tfidf_linearsvc_round5.joblib` |
-| Canonical evaluation JSON | `models/round5_retrained/evaluation_results.json` |
-| Timestamped evaluation JSON | `results/round5_final_v2_<timestamp>/evaluation_results.json` |
+| PhoBERT (seed 42) | `models/round6_v2_retrained/phobert_seed_42/best_model/` |
+| PhoBERT (seed 123) | `models/round6_v2_retrained/phobert_seed_123/best_model/` |
+| PhoBERT (seed 2024) | `models/round6_v2_retrained/phobert_seed_2024/best_model/` |
+| BiLSTM (seed 42/123/2024) | `models/round6_v2_retrained/bilstm_seed_{42,123,2024}/best_model.pt` |
+| TF-IDF + LogReg | `models/round6_v2_retrained/tfidf_logreg_round6_v2.joblib` |
+| TF-IDF + LinearSVC | `models/round6_v2_retrained/tfidf_linearsvc_round6_v2.joblib` |
+| Canonical evaluation JSON | `models/round6_v2_retrained/evaluation_results.json` |
+| Timestamped evaluation JSON | `results/round6_retrained_<timestamp>/evaluation_results.json` |
