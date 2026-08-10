@@ -28,11 +28,11 @@ LAYER 2 - SOCIAL MEDIA (color: blue #3B82F6):
 LAYER 3 - ML PIPELINE (color: green #22C55E):
 - Box 1: "Weak Label" → Box 2: "Annotation" → Box 3: "PhoBERT"
 
-↓ (arrow labeled "Round 5")
+↓ (arrow labeled "Round 6")
 
 EVALUATION (bottom, color: orange #F97316):
-- Left box: "In-domain (n=912)"
-- Middle: "ΔF1 ≈ 0.37"
+- Left box: "In-domain (n=1,371)"
+- Middle: "ΔF1 ≈ 0.36"
 - Right box: "Cross-domain (n=3,084)"
 
 Style requirements:
@@ -78,10 +78,10 @@ Color scheme:
 - PhoBERT (highlighted): green #22C55E with thick border
 
 Add a legend box in bottom-left corner with:
-- "Round 5 Results:"
-- "PhoBERT F1: 0.8596 (in-domain)"
-- "Cross-domain: 0.4937"
-- "Dataset: 6,080 samples"
+- "Round 6 Results:"
+- "PhoBERT F1: 0.7254 (in-domain)"
+- "Cross-domain: 0.3659"
+- "Dataset: 6,392 samples"
 
 Style: Professional academic tree diagram, white background, clean typography
 ```
@@ -103,7 +103,7 @@ Row 2 (below):
 [5. Weak Label] → [6. Annotate] → [7. Gold Set]
 
 SECTION 2 - "Chapter 4" (green theme #22C55E):
-[11. Final Dataset (6,080)] → [12-13. Train Models] → [14. In-domain (n=912)] & [15. Cross-domain (n=3,084)]
+[11. Final Dataset (6,392)] → [12-13. Train Models] → [14. In-domain (n=1,371)] & [15. Cross-domain (n=3,084)]
 
 Arrow connecting Chapter 3 to Chapter 4 labeled "15-step pipeline"
 
@@ -156,14 +156,14 @@ Models (X-axis):
 5. PhoBERT + BERTopic
 
 In-domain values (BLUE #3B82F6):
-0.8596, 0.8629, 0.8504, 0.8049, 0.7868
+0.7254, 0.7025, 0.7138, 0.6421, 0.7153
 
 Cross-domain values (RED #EF4444):
-0.4937, 0.4129, 0.4504, 0.4549, 0.4501
+0.3659, 0.3798, 0.3577, 0.3375, 0.3674
 
 Chart specifications:
 - Y-axis: "F1-macro" (0.0 - 1.0)
-- Legend: "In-domain (n=912)" and "Cross-domain (n=3,084)"
+- Legend: "In-domain (n=1,371)" and "Cross-domain (n=3,084)"
 - Add delta (Δ) annotations above each group showing the generalization gap
 - Grid lines for readability
 
@@ -214,18 +214,20 @@ Style: Clean academic bar chart, white background
 ```
 Create TWO SIDE-BY-SIDE CONFUSION MATRICES for a depression detection model.
 
-LEFT MATRIX - In-domain (n=912):
-- True Negative (TN): 342
-- False Positive (FP): 89
-- False Negative (FN): 52
-- True Positive (TP): 429
-- Title: "PhoBERT - In-domain (n=912)"
+LEFT MATRIX - In-domain (n=1,371):
+- True Negative (TN): 941
+- False Positive (FP): 159
+- False Negative (FN): 99
+- True Positive (TP): 172
+- Accuracy: 0.8118
+- Title: "PhoBERT - In-domain (n=1,371)"
 
 RIGHT MATRIX - Cross-domain (n=3,084):
-- True Negative (TN): 1,847
-- False Positive (FP): 412
-- False Negative (FN): 825
-- True Positive (TP): calculate from data
+- True Negative (TN): 1,531
+- False Positive (FP): 11
+- False Negative (FN): 1,493
+- True Positive (TP): 49
+- Accuracy: 0.5123
 - Title: "PhoBERT - Cross-domain (n=3,084)"
 
 Matrix specifications:
@@ -284,17 +286,15 @@ Models:
 3. PhoBERT + BERTopic
 
 Values:
-- In-domain (before): 0.8681, 0.5599, 0.8504 - Light BLUE
-- In-domain (after): 0.9619, 0.5864, 0.9377 - Dark BLUE
-- Cross-domain (before): 0.3727, 0.5030, 0.3977 - Light RED
-- Cross-domain (after): 0.3993, 0.5022, 0.5262 - Dark RED
+- In-domain (before): 0.7254, 0.4208, 0.7254 - Light BLUE
+- In-domain (after): 0.7254, 0.4208, 0.7153 - Dark BLUE
+- Cross-domain (before): 0.3659, 0.5030, 0.3659 - Light RED
+- Cross-domain (after): 0.3659, 0.5030, 0.3674 - Dark RED
 
 Chart specifications:
-- Y-axis: "F1-macro" (0.0 - 1.1)
+- Y-axis: "F1-macro" (0.0 - 1.0)
 - Legend: 4 items "In (before)", "In (after)", "Cross (before)", "Cross (after)"
-- Add improvement annotations:
-  - "+9.38%" above first group (PhoBERT in-domain improvement)
-  - "+12.85%" above third group (cross-domain improvement)
+- Add annotation showing BERTopic-only best for cross-domain (0.5030)
 - Grid lines for readability
 
 Style: Clean academic grouped bar chart, white background, professional typography
