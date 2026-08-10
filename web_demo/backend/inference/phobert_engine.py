@@ -1,6 +1,6 @@
 """PhoBERT inference engine for depression detection.
 
-Loads the Round 5 fine-tuned PhoBERT model and provides batch inference.
+Loads the Round 6 v2 fine-tuned PhoBERT model and provides batch inference.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ for _var in ["http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROX
 _BACKEND_DIR = Path(__file__).resolve().parent  # /app/inference
 _APP_DIR = _BACKEND_DIR.parent  # /app/
 
-PHOBERT_MODEL_DIR = _APP_DIR / "models" / "round5_predictions" / "best_model"
+PHOBERT_MODEL_DIR = _APP_DIR / "models" / "phobert_seed_42" / "best_model"
 PHOBERT_TOKENIZER_DIR = _APP_DIR / "models" / "phobert_base_local"
 MAX_LENGTH = 128
 BATCH_SIZE = 16

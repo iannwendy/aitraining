@@ -31,6 +31,7 @@ _METRICS_FILES = {
     "phobert_first": MODEL_DIR / "phobert_first" / "phobert_metrics.json",
     "phobert_second": MODEL_DIR / "phobert_second" / "phobert_metrics.json",
     "bertopic": MODEL_DIR / "bertopic" / "bertopic_metrics.json",
+    "round6_v2": MODEL_DIR / "round6_v2_retrained" / "evaluation_results.json",
 }
 
 # Augmentation/DAPT results — pick latest
@@ -335,6 +336,87 @@ def _load_phobert_bertopic() -> Optional[dict]:
     }
 
 
+def _load_round6_v2() -> list[dict]:
+    """Load Round 6 v2 metrics from evaluation_results.json."""
+    data = _load_json(_METRICS_FILES["round6_v2"])
+    if not data:
+        return []
+
+    results = []
+    in_domain = data.get("in_domain", {})
+    cross_domain = data.get("cross_domain", {})
+
+    # PhoBERT avg
+    if "phobert_avg" in in_domain:
+        p_avg = in_domain["phobert_avg"]
+        c_avg = cross_domain.get("phobert_avg", {})
+        results.append({
+            "name": "PhoBERT (Round 6 v2)",
+            "accuracy": round(p_avg.get("accuracy", 0), 4),
+            "in_domain_f1": round(p_avg.get("f1_macro", 0), 4),
+            "cross_domain_f1": round(c_avg.get("f1_macro", 0), 4),
+            "precision": round(p_avg.get("precision_macro", 0), 4),
+            "recall": round(p_avg.get("recall_macro", 0), 4),
+            "type": "phobert",
+            "std_in": None,
+            "std_cross": None,
+            "note": "3 seeds (42, 123, 2024), majority vote",
+        })
+
+    # TF-IDF LogReg
+    if "tfidf_logreg" in in_domain:
+        lr_in = in_domain["tfidf_logreg"]
+        lr_cross = cross_domain.get("tfidf_logreg", {})
+        results.append({
+            "name": "TF-IDF + LogReg (R6 v2)",
+            "accuracy": round(lr_in.get("accuracy", 0), 4),
+            "in_domain_f1": round(lr_in.get("f1_macro", 0), 4),
+            "cross_domain_f1": round(lr_cross.get("f1_macro", 0), 4),
+            "precision": round(lr_in.get("precision_macro", 0), 4),
+            "recall": round(lr_in.get("recall_macro", 0), 4),
+            "type": "baseline",
+            "std_in": None,
+            "std_cross": None,
+            "note": None,
+        })
+
+    # TF-IDF SVC
+    if "tfidf_svc" in in_domain:
+        svc_in = in_domain["tfidf_svc"]
+        svc_cross = cross_domain.get("tfidf_svc", {})
+        results.append({
+            "name": "TF-IDF + LinearSVC (R6 v2)",
+            "accuracy": round(svc_in.get("accuracy", 0), 4),
+            "in_domain_f1": round(svc_in.get("f1_macro", 0), 4),
+            "cross_domain_f1": round(svc_cross.get("f1_macro", 0), 4),
+            "precision": round(svc_in.get("precision_macro", 0), 4),
+            "recall": round(svc_in.get("recall_macro", 0), 4),
+            "type": "baseline",
+            "std_in": None,
+            "std_cross": None,
+            "note": "Best cross-domain",
+        })
+
+    # BiLSTM avg
+    if "bilstm_avg" in in_domain:
+        b_in = in_domain["bilstm_avg"]
+        b_cross = cross_domain.get("bilstm_avg", {})
+        results.append({
+            "name": "BiLSTM (R6 v2)",
+            "accuracy": round(b_in.get("accuracy", 0), 4),
+            "in_domain_f1": round(b_in.get("f1_macro", 0), 4),
+            "cross_domain_f1": round(b_cross.get("f1_macro", 0), 4),
+            "precision": None,
+            "recall": None,
+            "type": "bilstm",
+            "std_in": None,
+            "std_cross": None,
+            "note": "3 seeds majority vote",
+        })
+
+    return results
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def load_all_metrics() -> list[dict]:
@@ -357,8 +439,15 @@ def load_all_metrics() -> list[dict]:
             else:
                 results.append(entry)
 
-    # Augmentation/DAPT results (may overlap, avoid duplicates by name)
+    # Round 6 v2 results
     existing_names = {r["name"] for r in results}
+    r6v2_results = _load_round6_v2()
+    for entry in r6v2_results:
+        if entry["name"] not in existing_names:
+            results.append(entry)
+            existing_names.add(entry["name"])
+
+    # Augmentation/DAPT results (may overlap, avoid duplicates by name)
     aug_results = _load_phobert_aug()
     if aug_results:
         for entry in aug_results:

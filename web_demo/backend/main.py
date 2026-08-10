@@ -234,7 +234,7 @@ async def predict(request: PredictionRequest):
         prediction = pred_result["prediction"]
         confidence = pred_result["confidence"]
         risk_level = pred_result["risk_level"]
-        model_name = "PhoBERT (Round 5)"
+        model_name = "PhoBERT (Round 6 v2)"
 
         # Auto-save to history
         try:

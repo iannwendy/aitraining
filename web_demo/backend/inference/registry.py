@@ -90,7 +90,7 @@ def init_default_registry() -> None:
 
         registry = {
             "latest": {
-                "round": 5,
+                "round": "6v2",
                 "timestamp": datetime.now().isoformat(),
                 "datasets": {
                     "cleaned_comments": {
@@ -108,20 +108,20 @@ def init_default_registry() -> None:
                 },
                 "metrics": {
                     "best_in_domain": {
-                        "model": best_in.get("name", "PhoBERT + BERTopic") if best_in else "PhoBERT + BERTopic",
+                        "model": best_in.get("name", "PhoBERT (Round 6 v2)") if best_in else "PhoBERT (Round 6 v2)",
                         "f1": best_in.get("in_domain_f1", 0) if best_in else 0,
                     },
                     "best_cross_domain": {
-                        "model": best_cross.get("name", "PhoBERT + BERTopic (+aug)") if best_cross else "PhoBERT + BERTopic (+aug)",
+                        "model": best_cross.get("name", "TF-IDF + LinearSVC") if best_cross else "TF-IDF + LinearSVC",
                         "f1": best_cross.get("cross_domain_f1", 0) if best_cross else 0,
                     },
                     "all_models": metrics,
                 },
                 "model_paths": {
-                    "best": "models/round5_predictions/best_model/",
+                    "best": "models/round6_v2_retrained/phobert_seed_42/best_model/",
                     "bertopic": "models/bertopic/bertopic_model.pkl",
-                    "tfidf_logreg": "models/tfidf_logreg.joblib",
-                    "tfidf_svc": "models/tfidf_svc.joblib",
+                    "tfidf_logreg": "models/round6_v2_retrained/tfidf_logreg_round6_v2.joblib",
+                    "tfidf_svc": "models/round6_v2_retrained/tfidf_linearsvc_round6_v2.joblib",
                 },
             },
             "history": [],
