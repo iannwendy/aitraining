@@ -78,12 +78,11 @@ export default function BatchPrediction() {
 
   const handleDownloadCSV = () => {
     const csvContent = [
-      ['Comment', 'Prediction', 'Confidence', 'Topic'],
+      ['Comment', 'Prediction', 'Confidence (%)'],
       ...results.map((r) => [
         `"${r.text.replace(/"/g, '""')}"`,
         r.prediction,
         (r.confidence * 100).toFixed(1),
-        r.topic || '',
       ]),
     ]
       .map((row) => row.join(','))
@@ -247,9 +246,7 @@ Video hay quá.
                     <th className="text-left py-3 px-4 text-sm font-semibold text-muted">
                       {t(i18nKeys.batch.confidence)}
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted">
-                      {t(i18nKeys.batch.topic)}
-                    </th>
+                    {/* Topic column hidden - keywords not meaningful, see topic page */}
                   </tr>
                 </thead>
                 <tbody>
@@ -296,9 +293,6 @@ Video hay quá.
                             {(result.confidence * 100).toFixed(0)}%
                           </span>
                         </div>
-                      </td>
-                      <td className="py-4 px-4 text-sm text-muted">
-                        {result.topic || '—'}
                       </td>
                     </tr>
                   ))}

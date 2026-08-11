@@ -68,6 +68,7 @@ export interface DashboardStatsExt {
     accuracy: number;
     macroF1: number;
     weightedF1: number;
+    crossDomainF1: number;
     precision: number;
     recall: number;
   };

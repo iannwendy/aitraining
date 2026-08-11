@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Brain, LayoutDashboard, MessageSquare, Upload, Network, BarChart3, History, GitCompare } from 'lucide-react';
+import { Brain, LayoutDashboard, MessageSquare, Upload, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
