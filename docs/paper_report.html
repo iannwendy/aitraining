@@ -980,8 +980,90 @@ All models are evaluated on two independent test sets:
 <li><strong>Cross-domain test:</strong> 3,084 samples (1,542 distress [VSMEC Sadness + Fear], 1,542 normal [VSMEC Enjoyment]) from the hold-out VSMEC dataset. This test set is <em>never exposed during training</em>, including during weak-labeling, model selection, or hyperparameter tuning. Round 6 v2 training set contains 6,392 samples with a depression:normal ratio of approximately 1:4.</li>
 </ul>
 
+<h3>4.4. Evaluation Metrics</h3>
+
+<h4>4.4.1. Evaluation Metrics Definitions</h4>
+
 <p>
-Six evaluation metrics are reported: accuracy, macro-averaged precision, macro-averaged recall, macro-averaged F1, weighted F1, and depression-class F1. Macro-averaged F1 is designated as the primary metric for model comparison due to its equal weighting of both classes, which is appropriate given the class imbalance (depression constitutes 33.4% of the in-domain test set but only 9.3% of the gold set). Confusion matrices are reported to enable detailed error analysis.
+Given a binary classification setting where the positive class (label = 1) denotes depression and the negative class (label = 0) denotes normal, we define the four confusion matrix cells as follows: <span class="math">TP</span> (true positive) is the count of depression samples correctly predicted as depression; <span class="math">TN</span> (true negative) is the count of normal samples correctly predicted as normal; <span class="math">FP</span> (false positive) is the count of normal samples incorrectly predicted as depression; and <span class="math">FN</span> (false negative) is the count of depression samples incorrectly predicted as normal.
+</p>
+
+<p>
+From these four quantities we derive six evaluation metrics. Accuracy measures the proportion of correct predictions across both classes:
+</p>
+
+<p style="text-align:center; margin: 12pt 0;">
+<span class="math">Accuracy = (TP + TN) / (TP + TN + FP + FN)</span>
+</p>
+
+<p>
+Precision for a given class <span class="math">c</span> measures the fraction of positive predictions that are correct:
+</p>
+
+<p style="text-align:center; margin: 10pt 0;">
+<span class="math">P<sub>c</sub> = TP<sub>c</sub> / (TP<sub>c</sub> + FP<sub>c</sub>)</span>
+</p>
+
+<p>
+Recall for class <span class="math">c</span> measures the fraction of true instances that are correctly identified:
+</p>
+
+<p style="text-align:center; margin: 10pt 0;">
+<span class="math">R<sub>c</sub> = TP<sub>c</sub> / (TP<sub>c</sub> + FN<sub>c</sub>)</span>
+</p>
+
+<p>
+The F1 score is the harmonic mean of precision and recall:
+</p>
+
+<p style="text-align:center; margin: 10pt 0;">
+<span class="math">F1<sub>c</sub> = 2 &middot; P<sub>c</sub> &middot; R<sub>c</sub> / (P<sub>c</sub> + R<sub>c</sub>)</span>
+</p>
+
+<p>
+We report three aggregate F1 variants. <span class="math">F1-macro</span> is the unweighted average of the two per-class F1 scores:
+</p>
+
+<p style="text-align:center; margin: 10pt 0;">
+<span class="math">F1<sub>macro</sub> = (F1<sub>depression</sub> + F1<sub>normal</sub>) / 2</span>
+</p>
+
+<p>
+<span class="math">F1-weighted</span> is the frequency-weighted average:
+</p>
+
+<p style="text-align:center; margin: 10pt 0;">
+<span class="math">F1<sub>weighted</sub> = (N<sub>depression</sub> &middot; F1<sub>depression</sub> + N<sub>normal</sub> &middot; F1<sub>normal</sub>) / (N<sub>depression</sub> + N<sub>normal</sub>)</span>
+</p>
+
+<p>
+Depression-class F1 (<span class="math">F1<sub>dep</sub></span>) is simply <span class="math">F1<sub>depression</sub></span>, the F1 score computed for the depression class alone.
+</p>
+
+<p>
+We designate <span class="math">F1-macro</span> as the primary evaluation metric because it weights both classes equally. This is appropriate for imbalanced datasets where the depression class constitutes a minority (approximately 10% in the original gold set; 33.4% in the in-domain test set following the 2:1 resampling strategy in Section 3.7.2). Accuracy is reported as a supplementary sanity-check metric but is not used for model selection because it is susceptible to majority-class bias in imbalanced settings. Confusion matrices are reported to enable detailed error analysis.
+</p>
+
+<h4>4.4.2. Class Imbalance Handling</h4>
+
+<p>
+The training set exhibits a depression:normal ratio of approximately 1:4 (1,262 vs 5,130 samples in the Round 6 v2 dataset). Unmitigated, this imbalance would bias the classifier toward predicting the majority class, producing deceptively high accuracy with near-zero recall on the clinically critical depression class. We apply class weighting during training to correct this bias.
+</p>
+
+<p>
+For PhoBERT, class weights are derived from the inverse class-frequency formula used by scikit-learn's <code>compute_class_weight('balanced', classes, y)</code>:
+</p>
+
+<p style="text-align:center; margin: 10pt 0;">
+<span class="math">w<sub>c</sub> = N<sub>total</sub> / (2 &middot; N<sub>c</sub>)</span>
+</p>
+
+<p>
+where <span class="math">N<sub>c</sub></span> is the number of training samples in class <span class="math">c</span>. This yields a larger weight for the minority (depression) class and a smaller weight for the majority (normal) class. These weights are applied to the cross-entropy loss during fine-tuning, upweighting errors on depression-class samples.
+</p>
+
+<p>
+For TF-IDF baselines, we set <code>class_weight="balanced"</code> in the respective scikit-learn classifiers (LinearSVC, LogisticRegression), which applies the same inverse-frequency weighting. For the BiLSTM model, no class weighting was applied in the reported experiments, as the primary goal of including BiLSTM was to represent the pre-Transformer deep learning paradigm rather than to optimize for the depression class.
 </p>
 
 <div class="page-break"></div>
@@ -1061,7 +1143,7 @@ BERTopic was trained on the full 316,401-document corpus (embedding model: <code
 </p>
 <p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.2: Depression-related topics identified by BERTopic. Topic labels are formed from the top-n words and interpreted through manual inspection of representative documents.</p>
 
-<h4>5.3.1. BERTopic Evaluation on Round 6 v2 Dataset</h4>
+<h4>5.3.2. BERTopic Evaluation on Round 6 v2 Dataset</h4>
 
 <p>
 Table 5.2a presents the BERTopic evaluation results on the Round 6 v2 dataset, including BERTopic-only classification and PhoBERT&nbsp;+&nbsp;BERTopic combined evaluation.
@@ -1091,6 +1173,23 @@ The PhoBERT&nbsp;+&nbsp;BERTopic combined model achieves F1-macro of 0.7153 in-d
 <figcaption><strong>Figure 5.2.</strong> Confusion matrices for PhoBERT on in-domain (n=1,371) and cross-domain (n=3,084) test sets (Round 6 v2). Left: in-domain shows moderate performance (TN=906, FP=194, FN=89, TP=182; F1-macro=0.7187). Right: cross-domain shows negative bias — TN=1,531, FP=11, FN=1,493, TP=49, F1-macro=0.3608. The model predicts "normal" for most VSMEC distress sentences, indicating persistent domain shift.</figcaption>
 </figure>
 
+<h4>5.4.1. Confusion Matrix Interpretation</h4>
+
+<p>
+Table 5.4 provides a reference for interpreting the confusion matrix cells referenced throughout this chapter (see Table 5.1, Table 3.9, and Figure 5.2).
+</p>
+
+<table>
+<thead><tr><th>Cell</th><th>Definition</th><th>Clinical Interpretation</th></tr></thead>
+<tbody>
+<tr><td><span class="math">TP</span> (True Positive)</td><td>Predicted depression, True label = depression</td><td>Correctly identified depression signal — highest priority for screening utility</td></tr>
+<tr><td><span class="math">TN</span> (True Negative)</td><td>Predicted normal, True label = normal</td><td>Correctly identified non-depression — avoids unnecessary false alarms</td></tr>
+<tr><td><span class="math">FP</span> (False Positive)</td><td>Predicted depression, True label = normal</td><td>Normal comment incorrectly flagged — reduces precision on depression class</td></tr>
+<tr><td><span class="math">FN</span> (False Negative)</td><td>Predicted normal, True label = depression</td><td>Missed depression signal — highest cost in a screening context</td></tr>
+</tbody>
+</table>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.4: Confusion matrix cell definitions and interpretations for binary depression classification. TP and TN are correct predictions; FP and FN are errors, with FN typically carrying higher clinical cost than FP in a screening setting.</p>
+
 <p>
 Manual inspection of confusion matrix diagonals and off-diagonal cells reveals three systematic error patterns:
 </p>
@@ -1107,7 +1206,7 @@ Manual inspection of confusion matrix diagonals and off-diagonal cells reveals t
 <strong>Orthographic noise from informal Vietnamese.</strong> The pervasive absence of diacritics in social media Vietnamese (e.g., &ldquo;buon&rdquo; vs. &ldquo;buồn&rdquo;) and the prevalence of nonstandard abbreviations (&ldquo;ko&rdquo; = &ldquo;không&rdquo; [not], &ldquo;dc&rdquo; = &ldquo;được&rdquo; [can/okay], &ldquo;j&rdquo; = &ldquo;gì&rdquo; [what]) produce tokenization artifacts that corrupt the semantic representation. While the weak-labeler handles diacritic-free text through accent-stripped matching, the PhoBERT tokenizer was trained on formal Vietnamese and segments these forms inconsistently, leading to out-of-vocabulary token fragmentation and representational degradation.
 </p>
 
-<h3>5.4. Domain-Adaptive Pretraining (Earlier Counter-Experiment — Superseded)</h3>
+<h3>5.5. Domain-Adaptive Pretraining (Earlier Counter-Experiment — Superseded)</h3>
 
 <p style="font-size:10pt; color:var(--muted); margin-top:2pt;"><em>Note: This section reports an earlier counter-experiment conducted on the pre-Round 4 dataset (1,786 training samples). It is preserved here for historical context. The Round 6 v2 final results are presented in Table 5.1 and Section 5.1; this experiment is not part of the final pipeline.</em></p>
 
@@ -1130,7 +1229,7 @@ To test whether the linguistic register divergence identified in Section&nbsp;5.
 <tr><td><strong>&Delta; (original &minus; DAPT)</strong></td><td class="num"><strong>&minus;0.0122</strong></td><td class="num"><strong>+0.0107</strong></td><td class="num"><strong>&minus;0.0096</strong></td><td class="num"><strong>+0.0049</strong></td><td class="num">+0.0229</td></tr>
 </tbody>
 </table>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.3: Earlier DAPT counter-experiment on the pre-Round 4 dataset (superseded). Values are mean &plusmn; standard deviation over three seeds. DAPT provides a small but consistent in-domain gain (+0.0122) at the cost of a marginal cross-domain loss (&minus;0.0107); neither delta is statistically significant at &alpha;&nbsp;=&nbsp;0.05 with three seeds. The cross-domain gap remains large (&minus;0.50 F1 on both models), confirming that encoder-side adaptation alone cannot close the gap.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.5: Earlier DAPT counter-experiment on the pre-Round 4 dataset (superseded). Values are mean &plusmn; standard deviation over three seeds. DAPT provides a small but consistent in-domain gain (+0.0122) at the cost of a marginal cross-domain loss (&minus;0.0107); neither delta is statistically significant at &alpha;&nbsp;=&nbsp;0.05 with three seeds. The cross-domain gap remains large (&minus;0.50 F1 on both models), confirming that encoder-side adaptation alone cannot close the gap.</p>
 
 <p>
 The directional finding from this earlier experiment was that DAPT provides a small but consistent in-domain gain and a marginal cross-domain loss, with neither effect large enough to claim statistical significance at the three-seed sample size. The cross-domain gap remained large in absolute terms (&minus;0.50&nbsp;F1 on both models) and was essentially data-centric. Three explanations remained compatible: <strong>(i)</strong>&nbsp;the base PhoBERT already covers broad Vietnamese registers, so the marginal value of continued MLM on 119K social-media comments is small; <strong>(ii)</strong>&nbsp;two epochs of MLM is below Gururangan et al.'s 100&ndash;500-epoch saturation regime; and <strong>(iii)</strong>&nbsp;the cross-domain gap is dominated by label-definition divergence and text-length mismatch between YouTube comments and VSMEC short utterances, neither of which encoder adaptation can address.
@@ -1140,7 +1239,7 @@ The directional finding from this earlier experiment was that DAPT provides a sm
 
 <div class="page-break"></div>
 
-<h3>5.5. Data Augmentation (Earlier Counter-Experiment — Superseded)</h3>
+<h3>5.6. Data Augmentation (Earlier Counter-Experiment — Superseded)</h3>
 
 <p style="font-size:10pt; color:var(--muted); margin-top:2pt;"><em>Note: This section reports an earlier data augmentation counter-experiment conducted on the pre-Round 4 dataset. It is preserved here for historical context. The Round 6 v2 final results are presented in Table 5.1 and Section 5.1; this experiment is not part of the final pipeline.</em></p>
 
@@ -1163,7 +1262,7 @@ As an additional earlier counter-experiment, we implemented a multi-strategy dat
 <tr><td>PhoBERT + BERTopic</td><td class="num">0.9501</td><td class="num">0.9377</td><td class="num">&minus;0.0124</td><td class="num">0.3977</td><td class="num"><strong>0.5262</strong></td><td class="num">+0.1285</td></tr>
 </tbody>
 </table>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.4: Earlier data augmentation experiment on the pre-Round 4 dataset (superseded). PhoBERT benefits most substantially from augmentation on the in-domain test set (+9.38 pp F1-macro). PhoBERT + BERTopic shows the largest cross-domain improvement (+12.85 pp). BERTopic-only remains limited by its two-feature representation.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.6: Earlier data augmentation experiment on the pre-Round 4 dataset (superseded). PhoBERT benefits most substantially from augmentation on the in-domain test set (+9.38 pp F1-macro). PhoBERT + BERTopic shows the largest cross-domain improvement (+12.85 pp). BERTopic-only remains limited by its two-feature representation.</p>
 
 <p>
 Three findings emerged from this earlier experiment. <strong>First</strong>, PhoBERT achieved the largest in-domain gain (+9.38 F1 points). <strong>Second</strong>, the PhoBERT + BERTopic model showed the most pronounced cross-domain improvement (+12.85 F1 points), suggesting that augmented data helps the model generalize to the VSMEC distribution. <strong>Third</strong>, BERTopic-only remained essentially unchanged (+0.03 F1), confirming that the two-feature representation (topic ID + probability) is the primary bottleneck rather than training data volume. A practical limitation of the pipeline is its reliance on rule-based synonym substitution; future work should explore neural paraphrasing approaches such as back-translation and LLM-based paraphrase generation.
