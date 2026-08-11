@@ -1,5 +1,7 @@
 # Prompts for Generating Academic Diagrams
 
+**Updated for Round 6 v2 Results (Final)**
+
 Use these prompts with ChatGPT (with image generation like DALL-E/GPT-4V) or Claude to generate professional academic diagrams.
 
 ---
@@ -17,7 +19,7 @@ LAYER 1 - CLINICAL REALITY (top, color: vermillion #E34234):
 - Box 2: "Stigma, Workforce"
 - Box 3: "PHQ-9 Self-Report"
 
-↓ (arrow labeled "0.2 psychiatrists")
+↓ (arrow labeled "0.2 psychiatrists per 100,000")
 
 LAYER 2 - SOCIAL MEDIA (color: blue #3B82F6):
 - Box 1: "125,329 YouTube Comments"
@@ -26,13 +28,13 @@ LAYER 2 - SOCIAL MEDIA (color: blue #3B82F6):
 ↓ (arrow)
 
 LAYER 3 - ML PIPELINE (color: green #22C55E):
-- Box 1: "Weak Label" → Box 2: "Annotation" → Box 3: "PhoBERT"
+- Box 1: "Weak Label" → Box 2: "6 Rounds Annotation" → Box 3: "PhoBERT"
 
 ↓ (arrow labeled "Round 6 v2")
 
 EVALUATION (bottom, color: orange #F97316):
 - Left box: "In-domain (n=1,371)"
-- Middle: "ΔF1 ≈ 0.36"
+- Middle: "ΔF1 = 0.3579"
 - Right box: "Cross-domain (n=3,084)"
 
 Style requirements:
@@ -81,7 +83,8 @@ Add a legend box in bottom-left corner with:
 - "Round 6 v2 Results:"
 - "PhoBERT F1: 0.7187 (in-domain)"
 - "Cross-domain: 0.3608"
-- "Dataset: 9,134 samples"
+- "Gap: ΔF1 = 0.3579"
+- "Training: 6,392 samples"
 
 Style: Professional academic tree diagram, white background, clean typography
 ```
@@ -100,7 +103,7 @@ SECTION 1 - "Chapter 3" (blue theme #3B82F6):
 Row 1 (left to right):
 [1. Crawl] → [2. Clean] → [3. External] → [4. Corpus]
 Row 2 (below):
-[5. Weak Label] → [6. Annotate] → [7. Gold Set]
+[5. Weak Label] → [6. 6 Rounds Annotation] → [7. Gold Set]
 
 SECTION 2 - "Chapter 4" (green theme #22C55E):
 [11. Final Dataset (6,392)] → [12-13. Train Models] → [14. In-domain (n=1,371)] & [15. Cross-domain (n=3,084)]
@@ -130,7 +133,7 @@ Data to plot:
 
 Chart specifications:
 - Y-axis: "Percentage (% of 125,329)" (0-100%)
-- X-axis: Weak Label Category
+- X-axis: "Weak Label Category"
 - Add data labels on top of each bar showing percentage and count
 - Grid lines for readability
 - Legend or color key
@@ -140,11 +143,11 @@ Style: Clean academic bar chart, white background, professional typography
 
 ---
 
-## Figure 5: Generalization Gap (Grouped Bar Chart)
+## Figure 5: Generalization Gap (Grouped Bar Chart) - MAIN RESULT
 
 **Prompt:**
 ```
-Create a professional GROUPED BAR CHART comparing model performance.
+Create a professional GROUPED BAR CHART comparing model performance on Round 6 v2.
 
 Data (5 model groups, each with 2 bars):
 
@@ -163,8 +166,15 @@ Cross-domain values (RED #EF4444):
 
 Chart specifications:
 - Y-axis: "F1-macro" (0.0 - 1.0)
+- X-axis: "Model"
 - Legend: "In-domain (n=1,371)" and "Cross-domain (n=3,084)"
-- Add delta (Δ) annotations above each group showing the generalization gap
+- Add delta (Δ) annotations above each group showing the generalization gap:
+  - PhoBERT: Δ=0.3579
+  - TF-IDF+SVC: Δ=0.3227
+  - TF-IDF+LogReg: Δ=0.3561
+  - BiLSTM: Δ=0.3043
+  - PhoBERT+BERTopic: Δ=0.3479
+- Add title: "Figure 5.1: Generalization Gap Analysis (Round 6 v2)"
 - Grid lines for readability
 
 Style: Clean academic grouped bar chart, white background, professional typography
@@ -195,12 +205,12 @@ Chart specifications:
 - Y-axis: "Document Count"
 - Legend showing: "Depression Topic" (red), "Outlier" (gray), "Other" (blue)
 - Add annotation box with:
-  - "Key Topics:"
-  - "Topic 7: Sleep, medicine"
-  - "Topic 14: Sadness, music"
-  - "Topic 19: Burnout, work"
-  - "Topic 27: Loneliness"
-  - "Topic 33: Clinical depression"
+  - "Key Depression Topics:"
+  - "Topic 33: Clinical depression, treatment"
+  - "Topic 7: Sleep disorders, medicine"
+  - "Topic 19: Burnout, work stress"
+  - "Topic 14: Sadness, emotional release"
+  - "Topic 27: Loneliness, existential"
   - "Outlier: 149,650 (48.3%)"
 
 Style: Clean academic bar chart, white background
@@ -208,11 +218,11 @@ Style: Clean academic bar chart, white background
 
 ---
 
-## Figure 7: Confusion Matrices
+## Figure 7: Confusion Matrices - MAIN RESULT
 
 **Prompt:**
 ```
-Create TWO SIDE-BY-SIDE CONFUSION MATRICES for a depression detection model.
+Create TWO SIDE-BY-SIDE CONFUSION MATRICES for PhoBERT on Round 6 v2.
 
 LEFT MATRIX - In-domain (n=1,371):
 - True Negative (TN): 906
@@ -220,6 +230,7 @@ LEFT MATRIX - In-domain (n=1,371):
 - False Negative (FN): 89
 - True Positive (TP): 182
 - Accuracy: 0.8038
+- F1-macro: 0.7187
 - Title: "PhoBERT - In-domain (n=1,371)"
 
 RIGHT MATRIX - Cross-domain (n=3,084):
@@ -228,6 +239,7 @@ RIGHT MATRIX - Cross-domain (n=3,084):
 - False Negative (FN): 1,493
 - True Positive (TP): 49
 - Accuracy: 0.5104
+- F1-macro: 0.3608
 - Title: "PhoBERT - Cross-domain (n=3,084)"
 
 Matrix specifications:
@@ -238,66 +250,9 @@ Matrix specifications:
 - Add colorbar legend
 
 Bottom note: "TN = True Negative, TP = True Positive, FN = False Negative, FP = False Positive"
+Add note: "Cross-domain shows negative bias: model predicts 'normal' for most VSMEC distress sentences"
 
 Style: Clean heatmap/confusion matrix, white background, professional academic
-```
-
----
-
-## Figure 8: DAPT Experiment Results
-
-**Prompt:**
-```
-Create a professional GROUPED BAR CHART for DAPT (Domain-Adaptive Pre-Training) counter-experiment results.
-
-Data (4 groups):
-
-Group 1: In-domain Original - 0.8681 (BLUE #3B82F6)
-Group 2: In-domain + DAPT - 0.8803 (RED #EF4444)
-Group 3: Cross-domain Original - 0.3727 (BLUE)
-Group 4: Cross-domain + DAPT - 0.3620 (RED)
-
-Chart specifications:
-- Y-axis: "F1-macro" (0.0 - 1.0)
-- Title: "DAPT Counter-Experiment"
-- Legend: "PhoBERT (Original)" and "PhoBERT + DAPT"
-- Add annotations:
-  - Δ=-0.012 above In-domain groups
-  - "(n.s.)" indicating not significant
-  - Δ=+0.011 above Cross-domain groups
-- Grid lines for readability
-
-Style: Clean academic grouped bar chart, white background
-```
-
----
-
-## Figure 9: Data Augmentation Results
-
-**Prompt:**
-```
-Create a professional GROUPED BAR CHART showing data augmentation experiment results.
-
-Data (3 groups, 4 bars each):
-
-Models:
-1. PhoBERT
-2. BERTopic-only
-3. PhoBERT + BERTopic
-
-Values:
-- In-domain (before): 0.7187, 0.4208, 0.7187 - Light BLUE
-- In-domain (after): 0.7187, 0.4208, 0.7153 - Dark BLUE
-- Cross-domain (before): 0.3608, 0.5030, 0.3608 - Light RED
-- Cross-domain (after): 0.3608, 0.5030, 0.3674 - Dark RED
-
-Chart specifications:
-- Y-axis: "F1-macro" (0.0 - 1.0)
-- Legend: 4 items "In (before)", "In (after)", "Cross (before)", "Cross (after)"
-- Add annotation showing BERTopic-only best for cross-domain (0.5030)
-- Grid lines for readability
-
-Style: Clean academic grouped bar chart, white background, professional typography
 ```
 
 ---
@@ -342,3 +297,23 @@ If you prefer to create these manually:
    - Type: Simple arrow
    - Color: Gray or matching theme color
    - Width: 1-2pt
+
+---
+
+## Summary: Round 6 v2 Key Metrics for Figures
+
+| Metric | Value |
+|--------|-------|
+| PhoBERT In-Domain F1 | 0.7187 |
+| PhoBERT Cross-Domain F1 | 0.3608 |
+| Generalization Gap (ΔF1) | 0.3579 |
+| Training Samples | 6,392 |
+| In-domain Test | 1,371 |
+| Cross-domain Test (VSMEC) | 3,084 |
+| Best Cross-Domain Model | TF-IDF + LinearSVC (0.3798) |
+| BiLSTM F1 | 0.6418 |
+| PhoBERT + BERTopic F1 | 0.7153 |
+
+---
+
+*Updated: 2026-08-10*
