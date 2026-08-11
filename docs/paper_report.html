@@ -377,6 +377,23 @@ To the best of our knowledge, no prior work has (1)&nbsp;constructed a Vietnames
 This chapter provides a comprehensive account of the data pipeline&mdash;the most resource-intensive component of the project, consuming approximately 70% of the total development effort. The pipeline encompasses seven major stages: (1)&nbsp;targeted crawling of Vietnamese YouTube comments via the YouTube Data API v3; (2)&nbsp;multi-stage text preprocessing and quality filtering; (3)&nbsp;integration of eight external Vietnamese-language corpora from HuggingFace; (4)&nbsp;construction of a unified 316,401-document corpus with leakage prevention; (5)&nbsp;weak-labeling via a purpose-built three-tier weighted-keyword lexicon; (6)&nbsp;blind human annotation of 1,750 samples through Label Studio; and (7)&nbsp;multi-source final training dataset assembly. Each stage is documented with its rationale, technical implementation, configuration parameters, and quantitative outcomes. All code is version-controlled in the project repository; only representative excerpts are reproduced here.
 </p>
 
+
+<table>
+<thead><tr><th>Subset</th><th class="num">Size</th><th class="num">Depression (%)</th><th class="num">Normal (%)</th><th>Source</th><th>Role</th></tr></thead>
+<tbody>
+<tr><td>YouTube Crawl (raw)</td><td class="num">125,329</td><td class="num">—</td><td class="num">—</td><td>YouTube API v3</td><td>Primary data source</td></tr>
+<tr><td>YouTube Crawl (cleaned)</td><td class="num">119,649</td><td class="num">—</td><td class="num">—</td><td>YouTube API v3</td><td>After deduplication + filtering</td></tr>
+<tr><td>External Datasets</td><td class="num">191,072</td><td class="num">—</td><td class="num">—</td><td>HuggingFace</td><td>Corpus text + augmentation</td></tr>
+<tr><td>Unified Corpus</td><td class="num">316,401</td><td class="num">—</td><td class="num">—</td><td>Mixed</td><td>Topic modeling, MLM pretraining</td></tr>
+<tr><td>Gold Review Set</td><td class="num">1,607</td><td class="num">10.14</td><td class="num">89.86</td><td>Blind annotation</td><td>Evaluation benchmark</td></tr>
+<tr><td>Training Set (Round 6 v2)</td><td class="num">4,475</td><td class="num">~33.4</td><td class="num">~66.6</td><td>Mixed (weighted)</td><td>Model training</td></tr>
+<tr><td>Validation Set (Round 6 v2)</td><td class="num">957</td><td class="num">~33.4</td><td class="num">~66.6</td><td>Mixed (weighted)</td><td>Model selection</td></tr>
+<tr><td>In-domain Test Set</td><td class="num">1,371</td><td class="num">~33.4</td><td class="num">~66.6</td><td>Mixed (weighted)</td><td>In-domain evaluation</td></tr>
+<tr><td>Cross-domain Test Set (VSMEC)</td><td class="num">3,084</td><td class="num">50.00</td><td class="num">50.00</td><td>UIT-VSMEC</td><td>Cross-domain evaluation (holdout)</td></tr>
+</tbody>
+</table>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.1: Dataset overview and statistics. Depression percentages reflect the labeled subsets only; unmarked subsets contain unlabeled texts used for corpus-level tasks. The cross-domain test set maintains a perfectly balanced 50/50 split; all other labeled subsets reflect the distribution after the 2:1 balancing strategy (Section 3.8.2).</p>
+
 <!-- 3.1 -->
 <h3>3.1. Data Acquisition Strategy</h3>
 
@@ -469,22 +486,22 @@ Each fetched comment is stored as a row in <code>raw_comments.csv</code> with se
 </table>
 </p>
 
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.1: Raw data schema. User identifiers, avatars, and profile URLs are neither requested from the API nor stored. The <code>keyword</code> field enables retrospective analysis of which search strategies yielded the most depression-relevant content.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.2: Raw data schema. User identifiers, avatars, and profile URLs are neither requested from the API nor stored. The <code>keyword</code> field enables retrospective analysis of which search strategies yielded the most depression-relevant content.</p>
 
 <!-- 3.2 -->
-<h3>3.2. Data Preprocessing and Cleaning</h3>
+<h3>3.3. Data Preprocessing and Cleaning</h3>
 
 <p>
 The raw crawled comments undergo a multi-stage cleaning pipeline (<code>yt_depression_crawler/processing/cleaner.py</code>) before entering any downstream processing stage. The pipeline operates on the principle of <em>minimal intervention</em>: transformations that risk discarding diagnostically relevant linguistic signals are avoided.
 </p>
 
-<h4>3.2.1. Text Normalization</h4>
+<h4>3.3.1. Text Normalization</h4>
 
 <p>
 The <code>normalize_text()</code> function applies Unicode NFC normalization and collapses all whitespace sequences (spaces, tabs, newlines) to single spaces while stripping leading and trailing whitespace. Critically, this function <em>preserves</em> Vietnamese diacritics (combining marks encoding the six lexical tones), emoji characters (which prior research has established as emotional signals in social media text; Guntuku et al., 2019), and all non-ASCII Unicode characters. No lowercasing is applied at this stage; case information is preserved for downstream processes that may benefit from it.
 </p>
 
-<h4>3.2.2. Spam Detection and Filtering</h4>
+<h4>3.3.2. Spam Detection and Filtering</h4>
 
 <p>
 The <code>is_basic_spam()</code> function applies four complementary spam detection heuristics, each designed to target a distinct class of non-substantive content:
@@ -500,13 +517,13 @@ The <code>is_basic_spam()</code> function applies four complementary spam detect
 <li><strong>Low lexical diversity detection.</strong> Comments containing at least 8 whitespace-delimited tokens but no more than 2 unique token types are classified as spam. This heuristic catches repetitive, low-content comments (e.g., a string of identical emoji or repeated single-word utterances) while allowing short, low-diversity comments that may carry affective content (e.g., &ldquo;buồn buồn buồn&rdquo;&mdash;&ldquo;sad sad sad&rdquo;).</li>
 </ol>
 
-<h4>3.2.3. Deduplication Strategy</h4>
+<h4>3.3.3. Deduplication Strategy</h4>
 
 <p>
 Deduplication is performed at two levels. <strong>Primary deduplication</strong> removes comments sharing the same <code>comment_id</code>, keeping the first occurrence. This handles the edge case where the same comment may appear in multiple search results (e.g., through different keyword-based video retrievals). <strong>Secondary deduplication</strong> removes comments with identical normalized <code>comment_text</code> values (after whitespace normalization), keeping the first occurrence. This addresses the common phenomenon of identical comments posted across multiple videos (e.g., copy-pasted messages, viral comment templates). Comments missing a <code>comment_id</code> are retained but participate only in secondary deduplication.
 </p>
 
-<h4>3.2.4. Minimum Length Filtering</h4>
+<h4>3.3.4. Minimum Length Filtering</h4>
 
 <p>
 Comments with fewer than 5 characters after normalization are removed. This threshold was determined empirically: comments shorter than 5 characters in Vietnamese overwhelmingly consist of single-word reactions (e.g., &ldquo;Hay&rdquo;&mdash;&ldquo;Good&rdquo;; &ldquo;Buồn&rdquo;&mdash;&ldquo;Sad&rdquo;) that, while sometimes affectively relevant, provide insufficient semantic context for reliable depression classification. This filter is applied both during crawling (in <code>_filter_new_comments()</code>) and during the batch cleaning stage (in <code>clean_comments()</code>).
@@ -517,15 +534,15 @@ The complete cleaning pipeline is executed by <code>clean_comments()</code>, whi
 </p>
 
 <!-- 3.3 -->
-<h3>3.3. External Dataset Integration</h3>
+<h3>3.4. External Dataset Integration</h3>
 
-<h4>3.3.1. Rationale and Selection Criteria</h4>
+<h4>3.4.1. Rationale and Selection Criteria</h4>
 
 <p>
 A critical limitation of the YouTube crawl is the extreme class imbalance inherent in naturalistic social media data: the overwhelming majority of comments do not express depression. To construct a linguistically diverse corpus with adequate representation of negative affect, positive affect (for hard-negative training), and neutral text, eight publicly available Vietnamese-language datasets were sourced from the HuggingFace Hub. These datasets provide human-annotated labels for related but distinct constructs&mdash;emotion, sentiment, and toxicity&mdash;that serve as <em>auxiliary affect signals</em> rather than direct depression labels. The integration follows a strict principle: <strong>original labels are preserved verbatim; no dataset&rsquo;s labels are recoded as &ldquo;depression.&rdquo;</strong> Instead, a separate <code>affect_signal</code> field is derived from the original labels through a transparent, rule-based mapping.
 </p>
 
-<h4>3.3.2. Dataset Catalog</h4>
+<h4>3.4.2. Dataset Catalog</h4>
 
 <p>
 Table 3.2 catalogs the eight external datasets integrated into the project, along with the project&rsquo;s own YouTube crawl for reference.
@@ -545,13 +562,13 @@ Table 3.2 catalogs the eight external datasets integrated into the project, alon
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.2: External Vietnamese-language datasets integrated into the project. Tier 1 = emotion labels closest to depression; Tier 2 = sentiment labels providing auxiliary affect signal; Tier 3 = toxicity or machine-translated text, used only for corpus-level topic modeling and domain-adaptive pretraining. &ldquo;Native Vi&rdquo; indicates whether the text was originally written in Vietnamese by Vietnamese speakers (Yes) or machine-translated from another language (No).</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.3: External Vietnamese-language datasets integrated into the project. Tier 1 = emotion labels closest to depression; Tier 2 = sentiment labels providing auxiliary affect signal; Tier 3 = toxicity or machine-translated text, used only for corpus-level topic modeling and domain-adaptive pretraining. &ldquo;Native Vi&rdquo; indicates whether the text was originally written in Vietnamese by Vietnamese speakers (Yes) or machine-translated from another language (No).</p>
 
 <p>
 Datasets were downloaded via the HuggingFace Parquet API (<code>external_datasets/download_external.py</code>). Each dataset is defined by a <code>DatasetSpec</code> specifying the text column, label column, label scheme, relevance tier, native-language flag, and optional label map for numeric-to-string conversion. Downloaded Parquet files are read into DataFrames, normalized to a common schema, and saved as per-dataset CSV files in <code>external_datasets/raw_per_dataset/</code>. The combined file (<code>external_vietnamese_combined.csv</code>) is assembled by concatenating all per-dataset files and performing cross-dataset text deduplication, yielding 191,072 unique texts after cleaning (minimum 5 characters, spam removal, cross-dataset dedup).
 </p>
 
-<h4>3.3.3. Processing Pipeline and Affect Signal Mapping</h4>
+<h4>3.4.3. Processing Pipeline and Affect Signal Mapping</h4>
 
 <p>
 All external texts are processed through the <em>identical</em> cleaning and weak-labeling pipeline applied to YouTube comments (<code>external_datasets/process_external.py</code>). Specifically: (1)&nbsp;texts are normalized via <code>normalize_text()</code> and filtered through <code>is_basic_spam()</code>, ensuring consistent preprocessing standards; (2)&nbsp;each text is scored by the same weighted-keyword weak-labeler (<code>auto_labeler.label_comment()</code>), producing <code>depression_score</code>, <code>weak_label</code>, <code>confidence</code>, and <code>matched_keywords</code> fields directly comparable to those on YouTube comments; (3)&nbsp;an <code>affect_signal</code> is derived from each dataset&rsquo;s original human label through a transparent, scheme-specific mapping.
@@ -571,9 +588,9 @@ The <code>affect_signal</code> mapping function (<code>affect_from_label()</code
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.3: Affect signal derivation rules. The mapping is deterministic and fully traceable: given a <code>label_scheme</code> and <code>original_label</code>, the <code>affect_signal</code> is uniquely determined. The mapping encodes the theoretical position that sentiment/emotion categories are correlated with but not equivalent to depression indicators.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.4: Affect signal derivation rules. The mapping is deterministic and fully traceable: given a <code>label_scheme</code> and <code>original_label</code>, the <code>affect_signal</code> is uniquely determined. The mapping encodes the theoretical position that sentiment/emotion categories are correlated with but not equivalent to depression indicators.</p>
 
-<h4>3.3.4. Cross-Tab Analysis: Weak Labels vs. Human Affect Signals</h4>
+<h4>3.4.4. Cross-Tab Analysis: Weak Labels vs. Human Affect Signals</h4>
 
 <p>
 A critical validation analysis cross-tabulated the weak-labeler output against the independent human-provided affect signals on the 191,072 external texts. The results are documented in <code>external_processed_report.json</code> and summarized in Table 3.4.
@@ -589,16 +606,16 @@ A critical validation analysis cross-tabulated the weak-labeler output against t
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.4: Cross-tabulation of affect_signal (human-annotated, y-axis) against weak_label (machine-assigned via keyword scoring, x-axis) on 191,072 external texts. The most striking finding is the extremely low recall of the keyword weak-labeler on human-labeled distress: only 14 out of 1,542 distress-labeled VSMEC sentences (0.91%) were flagged as depression_auto by keywords.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.5: Cross-tabulation of affect_signal (human-annotated, y-axis) against weak_label (machine-assigned via keyword scoring, x-axis) on 191,072 external texts. The most striking finding is the extremely low recall of the keyword weak-labeler on human-labeled distress: only 14 out of 1,542 distress-labeled VSMEC sentences (0.91%) were flagged as depression_auto by keywords.</p>
 
 <p>
 Two findings from this analysis are of central importance. <strong>First</strong>, the keyword weak-labeler achieves only 0.91% recall on human-labeled distress texts (VSMEC Sadness/Fear). This finding&mdash;that 99.09% of human-labeled distress expressions contain <em>none</em> of the depression keywords in the lexicon&mdash;quantifies the fundamental gap between lexicon-based and human-perceived depression signals. It empirically validates the project&rsquo;s decision to treat VSMEC as a cross-domain test set rather than a training source, and it motivates the investment in human annotation to capture the non-lexical, implicit manifestations of depression. <strong>Second</strong>, the weak-labeler produces only 666 depression_auto classifications across 191,072 external texts (0.35%), of which only 113 (16.97%) agree with a negative or distress affect signal from human annotators. The remaining 553 keyword-flagged texts are predominantly neutral (478) or positive (75) in their human-assigned affect. This pattern confirms that keyword-based labeling on non-YouTube, non-depression-domain text produces substantial noise, and it justifies the exclusion of external depression candidates from the supervised training set.
 </p>
 
 <!-- 3.4 -->
-<h3>3.4. Unified Corpus Construction</h3>
+<h3>3.5. Unified Corpus Construction</h3>
 
-<h4>3.4.1. Three-Tier Corpus Architecture</h4>
+<h4>3.5.1. Three-Tier Corpus Architecture</h4>
 
 <p>
 The data from YouTube crawling and external dataset integration were consolidated into a three-tier unified corpus (<code>data_unified/build_unified.py</code>) designed to serve three distinct purposes without cross-contamination:
@@ -612,7 +629,7 @@ The data from YouTube crawling and external dataset integration were consolidate
 </ol>
 </p>
 
-<h4>3.4.2. Leakage Prevention Strategy</h4>
+<h4>3.5.2. Leakage Prevention Strategy</h4>
 
 <p>
 Data leakage between the cross-domain test set and any training data is the single most consequential threat to the validity of the cross-domain evaluation. The following measures were implemented to guarantee strict separation:
@@ -630,7 +647,7 @@ Data leakage between the cross-domain test set and any training data is the sing
 </ol>
 </p>
 
-<h4>3.4.3. Corpus Manifest</h4>
+<h4>3.5.3. Corpus Manifest</h4>
 
 <p>
 The file <code>data_unified/manifest.json</code> serves as the authoritative document specifying which data file is consumed by which pipeline stage. Key entries include:
@@ -644,12 +661,12 @@ The file <code>data_unified/manifest.json</code> serves as the authoritative doc
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.5: Unified corpus manifest. The manifest enforces a design decision with significant implications: neutral, toxic, and negative-sentiment external texts are confined to the text corpus for unsupervised tasks (topic modeling, MLM) and are never used as supervised training labels. This decision is grounded in the empirical finding that negative sentiment (e.g., a 1-star product review) is not equivalent to depression, and in the low keyword recall (0.91%) on external distress texts.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.6: Unified corpus manifest. The manifest enforces a design decision with significant implications: neutral, toxic, and negative-sentiment external texts are confined to the text corpus for unsupervised tasks (topic modeling, MLM) and are never used as supervised training labels. This decision is grounded in the empirical finding that negative sentiment (e.g., a 1-star product review) is not equivalent to depression, and in the low keyword recall (0.91%) on external distress texts.</p>
 
 <!-- 3.5 -->
-<h3>3.5. Weak-Labeling via Weighted-Keyword Scoring</h3>
+<h3>3.6. Weak-Labeling via Weighted-Keyword Scoring</h3>
 
-<h4>3.5.1. Lexicon Design</h4>
+<h4>3.6.1. Lexicon Design</h4>
 
 <p>
 A three-tier weighted-keyword lexicon was constructed for the weak-labeling of YouTube comments. The lexicon (<code>yt_depression_crawler/labeling/label_config.py</code>) comprises 335 lexical entries organized into four functional categories:
@@ -664,13 +681,13 @@ A three-tier weighted-keyword lexicon was constructed for the weak-labeling of Y
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.6: Weak-labeling lexicon structure. The Review-Context category does not affect the depression score directly but triggers the <code>need_review</code> flag. Each keyword exists in both accented and unaccented variants, and matching is performed on accent-stripped text to accommodate the pervasive diacritic omission in informal Vietnamese social media writing.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.7: Weak-labeling lexicon structure. The Review-Context category does not affect the depression score directly but triggers the <code>need_review</code> flag. Each keyword exists in both accented and unaccented variants, and matching is performed on accent-stripped text to accommodate the pervasive diacritic omission in informal Vietnamese social media writing.</p>
 
 <p>
 The lexicon was developed through an iterative process: (1)&nbsp;an initial candidate list was compiled from Vietnamese clinical psychology literature, DSM-5 symptom descriptors (translated into Vietnamese), and manual inspection of depression-related YouTube comment threads; (2)&nbsp;candidates were reviewed by a Vietnamese-speaking annotator for cultural relevance and linguistic naturalness; (3)&nbsp;each keyword was assigned to a tier based on its specificity for depression (strong: nearly always indicates depression in context; medium: indicative of distress but can appear in non-depression contexts; normal: indicative of positive or non-depressive content); (4)&nbsp;weights and thresholds were calibrated through iterative testing on a held-out validation sample.
 </p>
 
-<h4>3.5.2. Keyword Preparation and Accent Handling</h4>
+<h4>3.6.2. Keyword Preparation and Accent Handling</h4>
 
 <p>
 Vietnamese social media text exhibits widespread diacritic omission: users frequently type without tone marks (e.g., &ldquo;buon&rdquo; for &ldquo;buồn&rdquo; [sad], &ldquo;tram cam&rdquo; for &ldquo;trầm cảm&rdquo; [depression]), either for typing speed or because the input method does not support Vietnamese diacritics. To ensure robust matching, the keyword preparation pipeline (<code>auto_labeler._prepare_keywords()</code>) normalizes each keyword to lowercase with standardized whitespace and stores two representations: the <em>display form</em> (with diacritics, for reporting) and the <em>match form</em> (diacritics removed via Unicode NFD normalization with combining mark stripping, for matching). The input comment text undergoes the same accent-stripping transformation before matching.
@@ -680,7 +697,7 @@ Vietnamese social media text exhibits widespread diacritic omission: users frequ
 The accent-stripping function (<code>strip_accents()</code>) decomposes each character into its base form and combining marks via Unicode NFD normalization, removes all characters of category <code>Mn</code> (Mark, Nonspacing), and substitutes &ldquo;đ&rdquo; &rarr; &ldquo;d&rdquo; (the Vietnamese d-stroke character, which has no combining-mark decomposition). The result is a diacritic-free lowercase string suitable for substring matching.
 </p>
 
-<h4>3.5.3. Scoring Function and Classification Thresholds</h4>
+<h4>3.6.3. Scoring Function and Classification Thresholds</h4>
 
 <p>
 For each comment, the weak-labeler counts the number of matched keywords from each tier and computes a weighted score:</p>
@@ -701,13 +718,13 @@ Classification thresholds are applied as follows:
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.7: Classification thresholds for weak-label assignment. The asymmetric thresholds reflect the design principle that the cost of a false positive (labeling a normal comment as depression) exceeds the cost of a false negative (failing to label a depression comment) in a screening context.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.8: Classification thresholds for weak-label assignment. The asymmetric thresholds reflect the design principle that the cost of a false positive (labeling a normal comment as depression) exceeds the cost of a false negative (failing to label a depression comment) in a screening context.</p>
 
 <p>
 The thresholds encode an intentional asymmetry: a comment requires a net score of at least +5 to be classified as depression, but only a net score of &minus;2 to be classified as normal. This reflects the screening-oriented design philosophy: it is preferable to leave a comment in the <code>uncertain</code> category (for subsequent human review) than to misclassify it as depression. The high-confidence thresholds (&ge; 8 and &le; &minus;4) identify a subset of labels with the highest reliability, used to seed the initial training set and to construct the review sampling buckets.
 </p>
 
-<h4>3.5.4. Review-Flagging Heuristics</h4>
+<h4>3.6.4. Review-Flagging Heuristics</h4>
 
 <p>
 The <code>need_review</code> flag is raised when any of five conditions is satisfied, identifying comments whose automatic label is likely to be unreliable:
@@ -725,7 +742,7 @@ The <code>need_review</code> flag is raised when any of five conditions is satis
 </ol>
 </p>
 
-<h4>3.5.5. Label Distribution Analysis</h4>
+<h4>3.6.5. Label Distribution Analysis</h4>
 
 <p>
 Application of the weak-labeler to the 125,329 cleaned YouTube comments produced the distribution shown in Table 3.8.
@@ -743,7 +760,7 @@ Application of the weak-labeler to the 125,329 cleaned YouTube comments produced
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.8: Weak-label distribution on the YouTube dataset. The overwhelming majority of comments (78.52%) fall into the uncertain category, reflecting the empirical reality that most YouTube comments do not contain strong, unambiguous affective lexical signals. The high <code>need_review</code> rate (96.01%) reflects the conservative design of the review-flagging heuristics.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.9: Weak-label distribution on the YouTube dataset. The overwhelming majority of comments (78.52%) fall into the uncertain category, reflecting the empirical reality that most YouTube comments do not contain strong, unambiguous affective lexical signals. The high <code>need_review</code> rate (96.01%) reflects the conservative design of the review-flagging heuristics.</p>
 
 <figure>
 <img src="final_fig/fig4_1_weak_label.png" alt="Stacked horizontal bar chart and pie chart of weak-label distribution on the 125,329-comment YouTube corpus, split by depression_auto, normal_auto, and uncertain categories and by high/medium confidence" />
@@ -754,7 +771,7 @@ Application of the weak-labeler to the 125,329 cleaned YouTube comments produced
 The most frequently matched keywords, in descending order, were: cảm ơn (thank you, 14,185 matches), hay quá (so good, 4,621), tuyệt vời (wonderful, 3,319), rất hay (very good, 2,518), cô đơn (lonely, 2,217), áp lực (pressure, 1,861), ủng hộ (support, 1,763), trầm cảm (depression, 1,576), mệt mỏi (tired, 1,245), and tự ti (insecure, 1,138). The dominance of positive/normal keywords (cảm ơn, hay quá, tuyệt vời) in the top matches reflects the larger size of the normal-keyword lexicon (166 entries) relative to the depression lexicons (53 + 116 = 169 entries) and the higher base rate of positive engagement language in YouTube comments.
 </p>
 
-<h4>3.5.6. Weak-Labeler Performance Audit</h4>
+<h4>3.6.6. Weak-Labeler Performance Audit</h4>
 
 <p>
 The weak-labeler was evaluated against the 1,607-sample gold set with independently assigned human labels. The evaluation is restricted to the 343 gold samples whose <code>weak_label</code> is either <code>depression_auto</code> or <code>normal_auto</code> (i.e., excluding 1,264 samples where the weak-labeler produced <code>uncertain</code>, which by definition cannot be evaluated as correct or incorrect). Results are presented in Table 3.9.
@@ -774,16 +791,16 @@ The weak-labeler was evaluated against the 1,607-sample gold set with independen
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.9: Weak-labeler performance on the 343 evaluable gold samples. The weak-labeler achieves high recall (97.87%) but low precision (61.33%) on the depression class: it misses very few depression-positive comments but generates a substantial number of false positives. This precision-recall trade-off is appropriate for a screening tool, where the cost of a missed depression signal (false negative) is higher than the cost of a flagged normal comment (false positive) that will be filtered by downstream processes.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.10: Weak-labeler performance on the 343 evaluable gold samples. The weak-labeler achieves high recall (97.87%) but low precision (61.33%) on the depression class: it misses very few depression-positive comments but generates a substantial number of false positives. This precision-recall trade-off is appropriate for a screening tool, where the cost of a missed depression signal (false negative) is higher than the cost of a flagged normal comment (false positive) that will be filtered by downstream processes.</p>
 
 <p>
 The weak-labeler&rsquo;s error profile reveals 60 errors among 343 evaluable samples: 58 false positives (normal comments incorrectly labeled as depression_auto by keywords) and 2 false negatives (depression comments incorrectly labeled as normal_auto). The 58 false positives are dominated by comments where depression-medium keywords appear in non-depressive contexts (e.g., &ldquo;mệt mỏi&rdquo; [tired] in the context of physical fatigue rather than depression; &ldquo;cô đơn&rdquo; [lonely] used in song lyrics or fictional narratives rather than personal disclosure). The 2 false negatives represent comments expressing depression through implicit, non-lexicalized language that contains no lexicon keywords.
 </p>
 
 <!-- 3.6 -->
-<h3>3.6. Blind Human Annotation Protocol</h3>
+<h3>3.7. Blind Human Annotation Protocol</h3>
 
-<h4>3.6.1. Motivation: The Annotation Contamination Problem</h4>
+<h4>3.7.1. Motivation: The Annotation Contamination Problem</h4>
 
 <p>
 A critical methodological vulnerability in supervised NLP dataset construction is <em>annotation contamination</em>&mdash;the phenomenon whereby human annotators, when presented with machine-suggested labels alongside the text to be annotated, defer to the machine&rsquo;s judgment rather than exercising independent assessment. This produces spuriously high agreement between human and machine labels, which is then misinterpreted as evidence of label quality. In an initial (non-blind) review round conducted during preliminary work, 96.3% of human final labels matched the machine&rsquo;s suggested labels, producing a model that achieved a perfect accuracy of 1.0 on the resulting gold set&mdash;a result that was clearly an artifact of annotation contamination rather than genuine model performance.
@@ -793,7 +810,7 @@ A critical methodological vulnerability in supervised NLP dataset construction i
 To eliminate this contamination, the present study adopts a <strong>blind review protocol</strong>: annotators are shown only the comment text and a unique row identifier. All machine-generated metadata&mdash;<code>suggested_label</code>, <code>weak_label</code>, <code>depression_score</code>, <code>confidence</code>, <code>probability</code>, <code>review_bucket</code>, and <code>matched_keywords</code>&mdash;is stripped from the annotation interface. The annotator must make an independent determination based solely on the comment content and the annotation guidelines.
 </p>
 
-<h4>3.6.2. Label Studio Configuration and Review Sampling</h4>
+<h4>3.7.2. Label Studio Configuration and Review Sampling</h4>
 
 <p>
 Annotation was conducted using Label Studio, an open-source data labeling platform. Review samples were selected from the auto-labeled YouTube dataset using a stratified sampling strategy (<code>yt_depression_crawler/labeling/review_sampler.py</code>) that draws equally from five buckets:
@@ -811,7 +828,7 @@ Annotation was conducted using Label Studio, an open-source data labeling platfo
 For the blind protocol, Label Studio import files were prepared with only the <code>comment_text</code> and a sequential <code>row_id</code> column. All metadata columns that could reveal the machine&rsquo;s suggested label were excluded from the import file. The annotation interface presented four options: <code>depression</code> (the comment exhibits personal distress indicative of depression), <code>normal</code> (no depression signs), <code>uncertain</code> (insufficient information to decide), and <code>exclude</code> (non-Vietnamese, spam, or otherwise unusable). An accompanying annotation guide (<code>appendices/manual_review/HUONG_DAN_REVIEW_LABEL_STUDIO.md</code>) defined decision criteria with illustrative examples for each label category.
 </p>
 
-<h4>3.6.3. Annotation Batches</h4>
+<h4>3.7.3. Annotation Batches</h4>
 
 <p>
 Annotation was conducted in two batches:
@@ -823,7 +840,7 @@ Annotation was conducted in two batches:
 </ol>
 </p>
 
-<h4>3.6.4. Agreement Analysis</h4>
+<h4>3.7.4. Agreement Analysis</h4>
 
 <p>
 Post-annotation, the human-assigned <code>final_label</code> was compared against the machine-assigned <code>suggested_label</code> (derived from <code>weak_label</code>) to quantify the degree of agreement. Cohen&rsquo;s Kappa was computed to measure agreement beyond chance. The key finding is that the blind protocol <em>did</em> achieve its intended effect: the two batches exhibited dramatically different agreement patterns, consistent with their differing difficulty levels.
@@ -838,13 +855,13 @@ Post-annotation, the human-assigned <code>final_label</code> was compared agains
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.10: Human-machine agreement analysis for the two blind annotation batches. The near-zero Kappa for Batch 8 confirms that the annotator exercised genuinely independent judgment on the most difficult cases&mdash;precisely the behavior the blind protocol was designed to elicit. The moderate Kappa for Batch 5 is consistent with the less ambiguous nature of the samples drawn from high-confidence buckets.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.11: Human-machine agreement analysis for the two blind annotation batches. The near-zero Kappa for Batch 8 confirms that the annotator exercised genuinely independent judgment on the most difficult cases&mdash;precisely the behavior the blind protocol was designed to elicit. The moderate Kappa for Batch 5 is consistent with the less ambiguous nature of the samples drawn from high-confidence buckets.</p>
 
 <p>
 The Batch 8 Kappa of &minus;0.03&mdash;effectively zero&mdash;is the most informative statistic in this analysis. It indicates that on the hardest cases (where the model was least confident), the human annotator&rsquo;s decisions bore no relationship to the machine&rsquo;s suggestions above chance level. This is strong evidence that (a)&nbsp;the blind protocol successfully eliminated annotation contamination and (b)&nbsp;the active learning samples represent genuinely difficult cases where lexical signals are ambiguous, inconsistent, or absent.
 </p>
 
-<h4>3.6.5. Gold Set Construction</h4>
+<h4>3.7.5. Gold Set Construction</h4>
 
 <p>
 The gold review set (<code>gold_review.csv</code>) was constructed by aggregating all reviewed samples where the annotator assigned a definitive label (<code>depression</code> or <code>normal</code>), excluding samples marked as <code>uncertain</code> or <code>exclude</code> by the annotator. The <code>build_gold_review_set()</code> function (<code>yt_depression_crawler/labeling/gold_builder.py</code>) maps <code>final_label</code> values to numeric labels (<code>normal &rarr; 0</code>, <code>depression &rarr; 1</code>), applies text normalization, performs deduplication, and standardizes column ordering.
@@ -862,7 +879,7 @@ The gold review set (<code>gold_review.csv</code>) was constructed by aggregatin
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.11: Gold set construction summary. The severe class imbalance (10.14% depression, 89.86% normal) reflects both the natural base rate of depression-expressive comments in the YouTube corpus and the conservative annotation behavior: annotators were instructed to label as depression only comments exhibiting clear personal distress, erring toward normal when signals were ambiguous.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.12: Gold set construction summary. The severe class imbalance (10.14% depression, 89.86% normal) reflects both the natural base rate of depression-expressive comments in the YouTube corpus and the conservative annotation behavior: annotators were instructed to label as depression only comments exhibiting clear personal distress, erring toward normal when signals were ambiguous.</p>
 
 <p>
 The gold set serves three functions in the project: (1)&nbsp;as the evaluation benchmark for the weak-labeler (Section 3.5.6); (2)&nbsp;as the seed training data for PhoBERT v2 fine-tuning (70% of gold = 1,125 training samples); and (3)&nbsp;as the highest-weighted source (weight = 3) in the final training dataset assembly (Section 3.7). To our knowledge, this is the first publicly available dataset of Vietnamese social media comments with independently validated binary depression/normal labels and documented annotation independence.
@@ -871,9 +888,9 @@ The gold set serves three functions in the project: (1)&nbsp;as the evaluation b
 <div class="page-break"></div>
 
 <!-- 3.7 -->
-<h3>3.7. Final Training Dataset Assembly</h3>
+<h3>3.8. Final Training Dataset Assembly</h3>
 
-<h4>3.7.1. Multi-Source Integration with Source Weighting</h4>
+<h4>3.8.1. Multi-Source Integration with Source Weighting</h4>
 
 <p>
 The final training dataset (<code>final_dataset.csv</code>) was constructed by integrating labeled data from four sources, each assigned a weight reflecting the reliability of its labels. The integration is performed by <code>scripts/phase2_build_final_dataset.py</code>:
@@ -888,9 +905,9 @@ The final training dataset (<code>final_dataset.csv</code>) was constructed by i
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.12: Training data sources and weights. Source weights encode the relative reliability of each label provenance. The weighted integration strategy reflects the principle that not all labels are equally trustworthy: human-validated labels carry more evidential weight than keyword-derived labels, which in turn carry more weight than model pseudo-labels.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.13: Training data sources and weights. Source weights encode the relative reliability of each label provenance. The weighted integration strategy reflects the principle that not all labels are equally trustworthy: human-validated labels carry more evidential weight than keyword-derived labels, which in turn carry more weight than model pseudo-labels.</p>
 
-<h4>3.7.2. Class Balancing Strategy</h4>
+<h4>3.8.2. Class Balancing Strategy</h4>
 
 <p>
 The raw combined dataset exhibits severe class imbalance: depression-positive samples are substantially outnumbered by normal samples. This imbalance, if uncorrected, would bias the classifier toward predicting the majority class (normal), producing high accuracy but near-zero recall on the depression class&mdash;a catastrophic failure mode for a screening tool whose primary clinical value lies in identifying depression signals.
@@ -899,7 +916,7 @@ The raw combined dataset exhibits severe class imbalance: depression-positive sa
 The balancing strategy operates as follows: (1)&nbsp;all depression-positive samples are retained (no downsampling of the minority class); (2)&nbsp;normal samples are downsampled with priority given to higher-weight sources: human gold normal samples (weight 3) and weak high-confidence normal samples (weight 2) are retained first; external negative samples (weight 2, but from a different domain) fill the remaining normal quota; (3)&nbsp;the target normal-to-depression ratio is 2:1, yielding a training set where the depression class constitutes approximately 33% of samples&mdash;a deliberate overrepresentation relative to the natural base rate (&lt;3%) that forces the classifier to learn depression-discriminative features.
 </p>
 
-<h4>3.7.3. Stratified Train/Validation/Test Split</h4>
+<h4>3.8.3. Stratified Train/Validation/Test Split</h4>
 
 <p>
 The balanced dataset is partitioned into training, validation, and test sets using stratified random sampling (scikit-learn <code>train_test_split</code> with <code>stratify</code> on the label column, <code>random_state=42</code>). The split ratios follow the standard 70/15/15 convention:
@@ -913,9 +930,9 @@ The balanced dataset is partitioned into training, validation, and test sets usi
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.13: Final dataset split configuration (Round 6 v2). Stratification ensures that the depression-to-normal ratio is preserved across all three splits. The random seed is fixed for reproducibility.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 3.14: Final dataset split configuration (Round 6 v2). Stratification ensures that the depression-to-normal ratio is preserved across all three splits. The random seed is fixed for reproducibility.</p>
 
-<h4>3.7.4. Cross-Domain Test Set Configuration</h4>
+<h4>3.8.4. Cross-Domain Test Set Configuration</h4>
 
 <p>
 In addition to the in-domain test set, a fixed cross-domain test set is maintained for evaluating model generalization. This test set consists of 3,084 VSMEC sentences with a perfectly balanced label distribution: 1,542 distress-labeled sentences (VSMEC Sadness + Fear, mapped to label 1) and 1,542 normal-labeled sentences (VSMEC Enjoyment, mapped to label 0). The cross-domain test set is <em>never exposed during training</em>, including during weak-labeling, model selection, hyperparameter tuning, or any form of data inspection during model development. This strict hold-out is enforced by the corpus manifest and verified through the leakage prevention measures documented in Section 3.4.2.
@@ -1077,8 +1094,20 @@ For TF-IDF baselines, we set <code>class_weight="balanced"</code> in the respect
 <h3>5.1. Comparative Model Performance</h3>
 
 <p>
-Table 5.1 presents the comprehensive evaluation results for all five models on the Round 6 v2 dataset.
+Table 5.1 presents the comprehensive evaluation results for all five models on the Round 6 v2 dataset.</p>
 
+<table>
+<thead><tr><th>Dataset</th><th class="num">Depression (n)</th><th class="num">Depression (%)</th><th class="num">Normal (n)</th><th class="num">Normal (%)</th><th class="num">Total</th></tr></thead>
+<tbody>
+<tr><td>Gold Review Set (original)</td><td class="num">163</td><td class="num">10.14%</td><td class="num">1,444</td><td class="num">89.86%</td><td class="num">1,607</td></tr>
+<tr><td>Training Set (Round 6 v2)</td><td class="num">~1,492</td><td class="num">~33.4%</td><td class="num">~2,983</td><td class="num">~66.6%</td><td class="num">4,475</td></tr>
+<tr><td>In-domain Test Set</td><td class="num">~458</td><td class="num">~33.4%</td><td class="num">~913</td><td class="num">~66.6%</td><td class="num">1,371</td></tr>
+<tr><td>Cross-domain Test Set (VSMEC)</td><td class="num">1,542</td><td class="num">50.00%</td><td class="num">1,542</td><td class="num">50.00%</td><td class="num">3,084</td></tr>
+</tbody>
+</table>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.1a: Class distribution across datasets. The severe imbalance in the original gold set (10.14% depression) is addressed by the 2:1 balancing strategy in Section 3.8.2, yielding training/test subsets with approximately 33.4% depression samples. The cross-domain test set is perfectly balanced (50/50) by design.</p>
+
+<p>
 <table>
 <thead>
 <tr><th>Model</th><th class="num">Acc<br>(in)</th><th class="num">Prec-M<br>(in)</th><th class="num">Rec-M<br>(in)</th><th class="num">F1-M<br>(in)</th><th class="num">F1-W<br>(in)</th><th class="num">F1-Dep<br>(in)</th><th class="num">F1-M<br>(cross)</th><th class="num">Acc<br>(cross)</th></tr>
@@ -1092,14 +1121,14 @@ Table 5.1 presents the comprehensive evaluation results for all five models on t
 <tr style="background:#c8e6c9;"><td>PhoBERT + BERTopic</td><td class="num">0.8016</td><td class="num">0.7010</td><td class="num">0.7387</td><td class="num">0.7153</td><td class="num">0.8101</td><td class="num">0.5584</td><td class="num">0.3674</td><td class="num">0.5084</td></tr>
 </tbody>
 </table>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.1: Comparative performance of all five model families on the Round 6 v2 dataset (6,392 training samples, 1,371 in-domain test samples). All six evaluation measures are reported: Accuracy, Precision-macro (Prec-M), Recall-macro (Rec-M), F1-macro (F1-M), F1-weighted (F1-W), F1-depression (F1-Dep). PhoBERT numbers are mean over three seeds (42, 123, 2024); classical baselines are single-seed. Cross-domain test: VSMEC (3,084 samples). Final results: PhoBERT F1-macro 0.7187 (in-domain), 0.3608 (cross-domain); generalization gap of 0.3579.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.2: Comparative performance of all five model families on the Round 6 v2 dataset (6,392 training samples, 1,371 in-domain test samples). All six evaluation measures are reported: Accuracy, Precision-macro (Prec-M), Recall-macro (Rec-M), F1-macro (F1-M), F1-weighted (F1-W), F1-depression (F1-Dep). PhoBERT numbers are mean over three seeds (42, 123, 2024); classical baselines are single-seed. Cross-domain test: VSMEC (3,084 samples). Final results: PhoBERT F1-macro 0.7187 (in-domain), 0.3608 (cross-domain); generalization gap of 0.3579.</p>
 
 <p>
-Table 5.1 presents the final evaluation results for all five models on the Round 6 v2 dataset (6,392 training samples). PhoBERT with majority voting across three seeds achieves F1-macro of 0.7187 on the in-domain test set and 0.3608 on the cross-domain VSMEC test set.
+Table 5.2 presents the final evaluation results for all five models on the Round 6 v2 dataset (6,392 training samples). PhoBERT with majority voting across three seeds achieves F1-macro of 0.7187 on the in-domain test set and 0.3608 on the cross-domain VSMEC test set.
 </p>
 
 <p>
-Three patterns emerge from Table 5.1. <strong>First</strong>, on the Round 6 v2 final_dataset (6,392 training samples) the in-domain ranking is: PhoBERT avg vote (0.7187 F1) &gt; TF-IDF + LogReg (0.7138) &gt; PhoBERT + BERTopic (0.7153) &gt; TF-IDF + LinearSVC (0.7025) &gt; BiLSTM (0.6421). PhoBERT with majority voting across three seeds achieves the best F1-macro (0.7187) on in-domain evaluation. <strong>Second</strong>, TF-IDF + LogReg achieves competitive in-domain performance (0.7138 vs 0.7187 for PhoBERT) with lower variance and faster inference. TF-IDF + LinearSVC shows the best cross-domain F1 (0.3798), indicating that simpler models generalize better across domains. The BiLSTM with random embeddings achieves 0.6421 F1 in-domain, significantly lower than both PhoBERT and TF-IDF baselines. <strong>Third</strong>, the generalization gap is consistent across supervised architectures: 0.3579 (PhoBERT), 0.3227 (TF-IDF + LinearSVC), 0.3043 (BiLSTM). PhoBERT + BERTopic (0.7153 in-domain / 0.3674 cross-domain) shows comparable performance to PhoBERT alone.</p>
+Three patterns emerge from Table 5.2. <strong>First</strong>, on the Round 6 v2 final_dataset (6,392 training samples) the in-domain ranking is: PhoBERT avg vote (0.7187 F1) &gt; TF-IDF + LogReg (0.7138) &gt; PhoBERT + BERTopic (0.7153) &gt; TF-IDF + LinearSVC (0.7025) &gt; BiLSTM (0.6421). PhoBERT with majority voting across three seeds achieves the best F1-macro (0.7187) on in-domain evaluation. <strong>Second</strong>, TF-IDF + LogReg achieves competitive in-domain performance (0.7138 vs 0.7187 for PhoBERT) with lower variance and faster inference. TF-IDF + LinearSVC shows the best cross-domain F1 (0.3798), indicating that simpler models generalize better across domains. The BiLSTM with random embeddings achieves 0.6421 F1 in-domain, significantly lower than both PhoBERT and TF-IDF baselines. <strong>Third</strong>, the generalization gap is consistent across supervised architectures: 0.3579 (PhoBERT), 0.3227 (TF-IDF + LinearSVC), 0.3043 (BiLSTM). PhoBERT + BERTopic (0.7153 in-domain / 0.3674 cross-domain) shows comparable performance to PhoBERT alone.</p>
 
 <p>
 <strong>Cross-domain analysis.</strong> PhoBERT's cross-domain performance shows interesting patterns across seeds: seed 42 achieves the best cross-domain F1 (0.3778), followed by seed 123 (0.3713) and seed 2024 (0.3669). The low and variable cross-domain F1 (ranging from 0.3669 to 0.3778 across seeds) confirms that the domain gap remains the primary challenge. TF-IDF + LinearSVC achieves competitive cross-domain F1 (0.3798), slightly outperforming PhoBERT on this metric, suggesting that traditional n-gram features may capture some domain-agnostic patterns.</p>
@@ -1141,12 +1170,12 @@ BERTopic was trained on the full 316,401-document corpus (embedding model: <code
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.2: Depression-related topics identified by BERTopic. Topic labels are formed from the top-n words and interpreted through manual inspection of representative documents.</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.3: Depression-related topics identified by BERTopic. Topic labels are formed from the top-n words and interpreted through manual inspection of representative documents.</p>
 
 <h4>5.3.2. BERTopic Evaluation on Round 6 v2 Dataset</h4>
 
 <p>
-Table 5.2a presents the BERTopic evaluation results on the Round 6 v2 dataset, including BERTopic-only classification and PhoBERT&nbsp;+&nbsp;BERTopic combined evaluation.
+Table 5.3a presents the BERTopic evaluation results on the Round 6 v2 dataset, including BERTopic-only classification and PhoBERT&nbsp;+&nbsp;BERTopic combined evaluation.
 
 <table>
 <thead>
@@ -1158,7 +1187,7 @@ Table 5.2a presents the BERTopic evaluation results on the Round 6 v2 dataset, i
 </tbody>
 </table>
 </p>
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.2a: BERTopic evaluation results on Round 6 v2 dataset. BERTopic-only shows limited in-domain performance (F1-macro 0.4208) but higher cross-domain F1 (0.5030), suggesting topic features are more generalizable than platform-specific features. PhoBERT + BERTopic achieves competitive in-domain performance (F1-macro 0.7153) comparable to PhoBERT alone (0.7187).</p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;">Table 5.3a: BERTopic evaluation results on Round 6 v2 dataset. BERTopic-only shows limited in-domain performance (F1-macro 0.4208) but higher cross-domain F1 (0.5030), suggesting topic features are more generalizable than platform-specific features. PhoBERT + BERTopic achieves competitive in-domain performance (F1-macro 0.7153) comparable to PhoBERT alone (0.7187).</p>
 
 <p>
 The BERTopic-only model shows interesting cross-domain behavior: it achieves F1-macro of 0.5030 on cross-domain (vs 0.4208 in-domain), indicating that topic features transfer relatively well across domains. This supports the hypothesis that thematic structure is more domain-agnostic than stylistic or lexical features. However, the low in-domain accuracy (0.4449) confirms that topic features alone are insufficient for accurate classification within a single domain.</p>
@@ -1176,7 +1205,7 @@ The PhoBERT&nbsp;+&nbsp;BERTopic combined model achieves F1-macro of 0.7153 in-d
 <h4>5.4.1. Confusion Matrix Interpretation</h4>
 
 <p>
-Table 5.4 provides a reference for interpreting the confusion matrix cells referenced throughout this chapter (see Table 5.1, Table 3.9, and Figure 5.2).
+Table 5.4 provides a reference for interpreting the confusion matrix cells referenced throughout this chapter (see Table 5.2, Table 5.3a, and Figure 5.2).
 </p>
 
 <table>
@@ -1208,11 +1237,11 @@ Manual inspection of confusion matrix diagonals and off-diagonal cells reveals t
 
 <h3>5.5. Domain-Adaptive Pretraining (Earlier Counter-Experiment — Superseded)</h3>
 
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;"><em>Note: This section reports an earlier counter-experiment conducted on the pre-Round 4 dataset (1,786 training samples). It is preserved here for historical context. The Round 6 v2 final results are presented in Table 5.1 and Section 5.1; this experiment is not part of the final pipeline.</em></p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;"><em>Note: This section reports an earlier counter-experiment conducted on the pre-Round 4 dataset (1,786 training samples). It is preserved here for historical context. The Round 6 v2 final results are presented in Table 5.2 and Section 5.1; this experiment is not part of the final pipeline.</em></p>
 
 <figure>
 <img src="final_fig/fig5_3_dapt.png" alt="DAPT counter-experiment: F1-macro comparison between PhoBERT (original) and PhoBERT + DAPT on in-domain and cross-domain test sets" />
-<figcaption><strong>Figure 5.3.</strong> Earlier DAPT counter-experiment (pre-Round 4 dataset) comparing PhoBERT (original) vs PhoBERT + DAPT. In-domain (n=912): 0.8681 vs 0.8803 (Δ=−0.012, n.s.). Cross-domain (n=3,084): 0.3727 vs 0.3620 (Δ=+0.011, n.s.). Neither delta is statistically significant (paired bootstrap, p>0.05). The cross-domain gap remains essentially unchanged, confirming that encoder-side adaptation alone does not address the data-centric bottleneck. <em>Superseded by Round 6 v2 results in Table 5.1 and Section 5.1.</em></figcaption>
+<figcaption><strong>Figure 5.3.</strong> Earlier DAPT counter-experiment (pre-Round 4 dataset) comparing PhoBERT (original) vs PhoBERT + DAPT. In-domain (n=912): 0.8681 vs 0.8803 (Δ=−0.012, n.s.). Cross-domain (n=3,084): 0.3727 vs 0.3620 (Δ=+0.011, n.s.). Neither delta is statistically significant (paired bootstrap, p>0.05). The cross-domain gap remains essentially unchanged, confirming that encoder-side adaptation alone does not address the data-centric bottleneck. <em>Superseded by Round 6 v2 results in Table 5.2 and Section 5.1.</em></figcaption>
 </figure>
 
 <p>
@@ -1241,7 +1270,7 @@ The directional finding from this earlier experiment was that DAPT provides a sm
 
 <h3>5.6. Data Augmentation (Earlier Counter-Experiment — Superseded)</h3>
 
-<p style="font-size:10pt; color:var(--muted); margin-top:2pt;"><em>Note: This section reports an earlier data augmentation counter-experiment conducted on the pre-Round 4 dataset. It is preserved here for historical context. The Round 6 v2 final results are presented in Table 5.1 and Section 5.1; this experiment is not part of the final pipeline.</em></p>
+<p style="font-size:10pt; color:var(--muted); margin-top:2pt;"><em>Note: This section reports an earlier data augmentation counter-experiment conducted on the pre-Round 4 dataset. It is preserved here for historical context. The Round 6 v2 final results are presented in Table 5.2 and Section 5.1; this experiment is not part of the final pipeline.</em></p>
 
 <p>
 As an additional earlier counter-experiment, we implemented a multi-strategy data augmentation pipeline targeting the minority (depression) class on the pre-Round 4 training set. Seven augmentation strategies were implemented in the <code>VietnameseAugmenter</code> class (<code>scripts/data_augmentation.py</code>): synonym replacement, random insertion, random swap, random deletion, negation insertion, PhoBERT masked language model, and emoticon augmentation. Each method was designed to preserve the depression signal while introducing controlled linguistic variation. Duplicates were eliminated via normalized text matching.
@@ -1249,7 +1278,7 @@ As an additional earlier counter-experiment, we implemented a multi-strategy dat
 
 <figure>
 <img src="final_fig/fig5_4_augmentation.png" alt="Data augmentation experiment results: F1-macro before vs after augmentation for in-domain and cross-domain test sets" />
-<figcaption><strong>Figure 5.4.</strong> Earlier data augmentation experiment on the pre-Round 4 dataset (superseded). In-domain: PhoBERT gains +9.38 pp (0.8681 → 0.9619). Cross-domain: PhoBERT + BERTopic shows the largest improvement (+12.85 pp, 0.3977 → 0.5262). BERTopic-only remains essentially unchanged, confirming the two-feature bottleneck. <em>Superseded by Round 6 v2 results in Table 5.1 and Section 5.1.</em></figcaption>
+<figcaption><strong>Figure 5.4.</strong> Earlier data augmentation experiment on the pre-Round 4 dataset (superseded). In-domain: PhoBERT gains +9.38 pp (0.8681 → 0.9619). Cross-domain: PhoBERT + BERTopic shows the largest improvement (+12.85 pp, 0.3977 → 0.5262). BERTopic-only remains essentially unchanged, confirming the two-feature bottleneck. <em>Superseded by Round 6 v2 results in Table 5.2 and Section 5.1.</em></figcaption>
 </figure>
 
 <table>
