@@ -49,8 +49,8 @@ export default function Prediction() {
       label: t(i18nKeys.common.normal),
       value: result
         ? result.prediction === 'normal'
-          ? result.confidence
-          : 100 - result.confidence
+          ? result.confidence * 100
+          : (1 - result.confidence) * 100
         : 0,
       color: 'bg-normal',
     },
@@ -58,8 +58,8 @@ export default function Prediction() {
       label: t(i18nKeys.common.depression),
       value: result
         ? result.prediction === 'depression'
-          ? result.confidence
-          : 100 - result.confidence
+          ? result.confidence * 100
+          : (1 - result.confidence) * 100
         : 0,
       color: 'bg-depression',
     },

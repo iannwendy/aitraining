@@ -125,12 +125,14 @@ class PhoBertEngine:
         results = []
         for text, pred, prob in zip(texts, all_preds, all_probs):
             label = LABEL_MAP[pred]
+            # confidence = probability of the predicted class (max of class prob)
+            confidence = max(prob, 1 - prob)
             results.append({
                 "prediction": label,
-                "confidence": round(float(prob), 4),
+                "confidence": round(float(confidence), 4),
                 "prob_normal": round(float(1 - prob), 4),
                 "prob_depression": round(float(prob), 4),
-                "risk_level": _get_risk_level(label, prob),
+                "risk_level": _get_risk_level(label, confidence),
             })
         return results
 

@@ -1,0 +1,87 @@
+{
+  "latest": {
+    "round": "6v2",
+    "timestamp": "2026-08-10T10:52:00",
+    "datasets": {
+      "cleaned_comments": {
+        "rows": 125329,
+        "source": "data/cleaned_comments.csv"
+      },
+      "final_dataset": {
+        "rows": 9134,
+        "source": "data/final_dataset.csv"
+      },
+      "gold_review": {
+        "rows": 2515,
+        "source": "data/gold_review.csv"
+      }
+    },
+    "metrics": {
+      "best_in_domain": {
+        "model": "PhoBERT (Round 6 v2)",
+        "f1": 0.7187
+      },
+      "best_cross_domain": {
+        "model": "TF-IDF + LinearSVC (R6 v2)",
+        "f1": 0.3798
+      },
+      "all_models": [
+        {
+          "name": "TF-IDF + LogReg (R6 v2)",
+          "accuracy": 0.7936,
+          "in_domain_f1": 0.7138,
+          "cross_domain_f1": 0.3577,
+          "precision": 0.6973,
+          "recall": 0.7476,
+          "type": "baseline",
+          "std_in": null,
+          "std_cross": null,
+          "note": null
+        },
+        {
+          "name": "TF-IDF + LinearSVC (R6 v2)",
+          "accuracy": 0.8038,
+          "in_domain_f1": 0.7025,
+          "cross_domain_f1": 0.3798,
+          "precision": 0.6956,
+          "recall": 0.7109,
+          "type": "baseline",
+          "std_in": null,
+          "std_cross": null,
+          "note": "Best cross-domain"
+        },
+        {
+          "name": "BiLSTM (R6 v2)",
+          "accuracy": 0.8062,
+          "in_domain_f1": 0.6418,
+          "cross_domain_f1": 0.3375,
+          "precision": null,
+          "recall": null,
+          "type": "bilstm",
+          "std_in": null,
+          "std_cross": null,
+          "note": "3 seeds majority vote"
+        },
+        {
+          "name": "PhoBERT (Round 6 v2)",
+          "accuracy": 0.8038,
+          "in_domain_f1": 0.7187,
+          "cross_domain_f1": 0.3608,
+          "precision": 0.7041,
+          "recall": 0.7429,
+          "type": "phobert",
+          "std_in": null,
+          "std_cross": null,
+          "note": "3 seeds (42, 123, 2024), majority vote"
+        }
+      ]
+    },
+    "model_paths": {
+      "best": "models/phobert_seed_42/best_model/",
+      "bertopic": "models/bertopic/bertopic_model.pkl",
+      "tfidf_logreg": "models/round6_v2_retrained/tfidf_logreg_round6_v2.joblib",
+      "tfidf_svc": "models/round6_v2_retrained/tfidf_linearsvc_round6_v2.joblib"
+    }
+  },
+  "history": []
+}

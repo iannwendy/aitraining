@@ -1,13 +1,10 @@
 import './i18n';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import Dashboard from '@/pages/Dashboard';
 import Prediction from '@/pages/Prediction';
 import BatchPrediction from '@/pages/BatchPrediction';
-import Topics from '@/pages/Topics';
-import Statistics from '@/pages/Statistics';
 import History from '@/pages/History';
-import ModelComparison from '@/pages/ModelComparison';
 
 function App() {
   return (
@@ -17,10 +14,11 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="prediction" element={<Prediction />} />
           <Route path="batch" element={<BatchPrediction />} />
-          <Route path="topics" element={<Topics />} />
-          <Route path="statistics" element={<Statistics />} />
           <Route path="history" element={<History />} />
-          <Route path="compare" element={<ModelComparison />} />
+          {/* Hidden routes: Topics, Statistics, Compare - redirect to Dashboard */}
+          <Route path="topics" element={<Navigate to="/" replace />} />
+          <Route path="statistics" element={<Navigate to="/" replace />} />
+          <Route path="compare" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

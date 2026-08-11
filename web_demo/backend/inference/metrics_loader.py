@@ -491,9 +491,10 @@ def _build_stats_from_registry(reg: "ResultsRegistry") -> dict:
         "trainingDate": latest.get("timestamp", ""),
         "round": str(latest.get("round", "")),
         "metrics": {
-            "accuracy": round(best_in.get("f1", 0) * 100, 1),
-            "macroF1": round(best_in.get("f1", 0) * 100, 1),
-            "weightedF1": round(best_in.get("f1", 0) * 100, 1),
+            "accuracy": round(best_in.get("f1", 0), 4),
+            "macroF1": round(best_in.get("f1", 0), 4),
+            "weightedF1": round(best_in.get("f1", 0), 4),
+            "crossDomainF1": round(best_cross.get("f1", 0), 4),
             "precision": 0,
             "recall": 0,
         },

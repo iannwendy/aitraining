@@ -7,10 +7,11 @@ const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/prediction', label: 'Prediction', icon: MessageSquare },
   { path: '/batch', label: 'Batch', icon: Upload },
-  { path: '/topics', label: 'Topics', icon: Network },
-  { path: '/statistics', label: 'Statistics', icon: BarChart3 },
   { path: '/history', label: 'History', icon: History },
-  { path: '/compare', label: 'Compare', icon: GitCompare },
+  // Hidden: Topics, Statistics, Compare (uncomment to enable)
+  // { path: '/topics', label: 'Topics', icon: Network },
+  // { path: '/statistics', label: 'Statistics', icon: BarChart3 },
+  // { path: '/compare', label: 'Compare', icon: GitCompare },
 ];
 
 export function Header() {

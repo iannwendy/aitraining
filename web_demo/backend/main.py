@@ -141,7 +141,7 @@ class HistoryListResponse(BaseModel):
 class RefreshStatusResponse(BaseModel):
     status: str  # "idle" | "loading" | "error"
     last_refresh: Optional[str]
-    round: Optional[str]
+    round: Optional[str | int]
 
 # ── Startup ───────────────────────────────────────────────────────────────────
 
@@ -326,7 +326,7 @@ async def batch_predict(request: BatchPredictionRequest):
                 confidence=conf,
                 topic=topic_info.get("topic_name") if topic_info else None,
                 riskLevel=risk,
-                modelName="PhoBERT (Round 5)",
+                modelName="PhoBERT (Round 6 v2)",
             ))
 
         return BatchPredictionResponse(
