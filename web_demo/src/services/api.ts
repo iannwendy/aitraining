@@ -6,6 +6,11 @@ import {
   HistoryListResponse,
   StatisticsResponse,
   RefreshStatus,
+  User,
+  AuthResponse,
+  LoginCredentials,
+  RegisterCredentials,
+  AdminStats,
 } from '@/types';
 
 const API_BASE = '/api';
@@ -101,4 +106,117 @@ export async function triggerRefresh(): Promise<{
   model_count: number;
 }> {
   return fetchJSON(`${API_BASE}/models/refresh`, { method: 'POST' });
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+
+const TOKEN_KEY = 'auth_token';
+const USER_KEY = 'auth_user';
+
+export function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function removeToken(): void {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+}
+
+export function getStoredUser(): User | null {
+  const stored = localStorage.getItem(USER_KEY);
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored) as User;
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredUser(user: User): void {
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+function authHeaders(): Record<string, string> {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export async function login(credentials: LoginCredentials): Promise<AuthResponse> {
+  const response = await fetch(`${API_BASE}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Login failed' }));
+    throw new Error(error.detail || 'Login failed');
+  }
+
+  const data = await response.json();
+  setToken(data.access_token);
+  setStoredUser(data.user);
+  return data;
+}
+
+export async function register(credentials: RegisterCredentials): Promise<AuthResponse> {
+  const response = await fetch(`${API_BASE}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Registration failed' }));
+    throw new Error(error.detail || 'Registration failed');
+  }
+
+  const data = await response.json();
+  setToken(data.access_token);
+  setStoredUser(data.user);
+  return data;
+}
+
+export async function logout(): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/auth/logout`, {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+  } finally {
+    removeToken();
+  }
+}
+
+export async function getCurrentUser(): Promise<User> {
+  const response = await fetch(`${API_BASE}/auth/me`, {
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    removeToken();
+    throw new Error('Not authenticated');
+  }
+
+  const user = await response.json();
+  setStoredUser(user);
+  return user;
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+
+export async function getAdminStats(): Promise<AdminStats> {
+  return fetchJSON<AdminStats>(`${API_BASE}/admin/stats`, {
+    headers: authHeaders(),
+  });
+}
+
+export async function getAdminUsers(): Promise<{ users: User[] }> {
+  return fetchJSON<{ users: User[] }>(`${API_BASE}/admin/users`, {
+    headers: authHeaders(),
+  });
 }

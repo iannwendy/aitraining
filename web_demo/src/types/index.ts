@@ -122,3 +122,45 @@ export interface RefreshStatus {
   last_refresh: string | null;
   round: string | null;
 }
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+
+export interface User {
+  id: number;
+  username: string;
+  role: 'admin' | 'user';
+  created_at: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  access_token: string;
+  token_type: string;
+}
+
+export interface LoginCredentials {
+  username: string;
+  password: string;
+}
+
+export interface RegisterCredentials {
+  username: string;
+  password: string;
+}
+
+export interface AdminStats {
+  total_users: number;
+  total_predictions: number;
+  predictions_by_user: Array<{
+    username: string;
+    pred_count: number;
+  }>;
+  recent_predictions: Array<{
+    id: string;
+    text: string;
+    prediction: string;
+    confidence: number;
+    username?: string;
+    created_at: string;
+  }>;
+}
