@@ -70,6 +70,7 @@ export interface DashboardStatsExt {
     weightedF1: number;
     precision: number;
     recall: number;
+    crossDomainF1?: number;
   };
 }
 

@@ -80,7 +80,7 @@ export default function Dashboard() {
         },
         {
           label: 'Cross-Domain F1',
-          value: stats.metrics.crossDomainF1 > 0 ? `${(stats.metrics.crossDomainF1 * 100).toFixed(1)}%` : '—',
+          value: (stats.metrics.crossDomainF1 ?? 0) > 0 ? `${((stats.metrics.crossDomainF1 ?? 0) * 100).toFixed(1)}%` : '—',
           subLabel: stats.bestCrossDomain,
           icon: Activity,
           color: 'text-amber-600',
