@@ -3,6 +3,10 @@ uvicorn[standard]==0.30.0
 pydantic==2.7.0
 python-multipart==0.0.9
 
+# Auth dependencies
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
 # ML dependencies
 torch
 transformers

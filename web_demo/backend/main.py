@@ -30,10 +30,16 @@ from typing import Optional
 _backend_dir = Path(__file__).resolve().parent  # /app/
 sys.path.insert(0, str(_backend_dir))  # add /app so 'from inference...' works
 
-from fastapi import FastAPI, HTTPException, Query, Response
+from fastapi import FastAPI, HTTPException, Query, Response, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pydantic import Field
+
+from auth import (
+    Token, create_access_token, get_password_hash, verify_password,
+    get_current_user, require_role, decode_token
+)
+from database import get_user_by_id, get_all_users, get_admin_stats, get_user_by_username, create_user
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 
@@ -143,6 +149,31 @@ class RefreshStatusResponse(BaseModel):
     last_refresh: Optional[str]
     round: Optional[str | int]
 
+
+# ── Auth Pydantic Models ───────────────────────────────────────────────────────
+
+class UserCreate(BaseModel):
+    username: str = Field(..., min_length=3, max_length=30)
+    password: str = Field(..., min_length=6)
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    role: str
+    created_at: str
+
+
+class AuthResponse(BaseModel):
+    user: UserResponse
+    access_token: str
+    token_type: str
+
 # ── Startup ───────────────────────────────────────────────────────────────────
 
 @app.on_event("startup")
@@ -198,6 +229,90 @@ async def health_check():
     }
 
 
+# ── Auth Endpoints ────────────────────────────────────────────────────────────
+
+@app.post("/api/auth/register", response_model=AuthResponse)
+async def register(request: UserCreate):
+    """Register a new user."""
+    existing = get_user_by_username(request.username)
+    if existing:
+        raise HTTPException(status_code=400, detail="Username already exists")
+
+    user = create_user(request.username, get_password_hash(request.password))
+    if not user:
+        raise HTTPException(status_code=400, detail="Failed to create user")
+
+    access_token = create_access_token(
+        data={"sub": user["username"], "role": user["role"]}
+    )
+
+    return AuthResponse(
+        user=UserResponse(
+            id=user["id"],
+            username=user["username"],
+            role=user["role"],
+            created_at=user["created_at"],
+        ),
+        access_token=access_token,
+        token_type="bearer",
+    )
+
+
+@app.post("/api/auth/login", response_model=AuthResponse)
+async def login(request: UserLogin):
+    """Login and get access token."""
+    user = get_user_by_username(request.username)
+    if not user or not verify_password(request.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    access_token = create_access_token(
+        data={"sub": user["username"], "role": user["role"]}
+    )
+
+    return AuthResponse(
+        user=UserResponse(
+            id=user["id"],
+            username=user["username"],
+            role=user["role"],
+            created_at=user["created_at"],
+        ),
+        access_token=access_token,
+        token_type="bearer",
+    )
+
+
+@app.get("/api/auth/me", response_model=UserResponse)
+async def get_me(current_user: dict = Depends(get_current_user)):
+    """Get current user info."""
+    return UserResponse(
+        id=current_user["id"],
+        username=current_user["username"],
+        role=current_user["role"],
+        created_at=current_user["created_at"],
+    )
+
+
+@app.post("/api/auth/logout")
+async def logout():
+    """Logout (client should delete token)."""
+    return {"message": "Logged out successfully"}
+
+
+# ── Admin Endpoints ──────────────────────────────────────────────────────────
+
+@app.get("/api/admin/stats")
+async def get_admin_dashboard_stats(current_user: dict = Depends(require_role("admin"))):
+    """Get admin dashboard stats."""
+    return get_admin_stats()
+
+
+@app.get("/api/admin/users")
+async def get_users(current_user: dict = Depends(require_role("admin"))):
+    """Get all users (admin only)."""
+    users = get_all_users()
+    return {"users": [UserResponse(**u) for u in users]}
+
+
 # ── Dashboard Stats ────────────────────────────────────────────────────────────
 
 @app.get("/api/dashboard/stats", response_model=DashboardStatsResponse)
@@ -214,7 +329,7 @@ async def get_dashboard_stats():
 # ── Prediction ────────────────────────────────────────────────────────────────
 
 @app.post("/api/predict", response_model=PredictionResponse)
-async def predict(request: PredictionRequest):
+async def predict(request: PredictionRequest, current_user: dict = Depends(get_current_user)):
     try:
         from inference.phobert_engine import get_engine
         from inference.bertopic_engine import get_engine as get_topic_engine
@@ -249,6 +364,7 @@ async def predict(request: PredictionRequest):
                 topic_name=topic_info.get("topic_name") if topic_info else None,
                 risk_level=risk_level,
                 model_name=model_name,
+                user_id=current_user.get("id"),
             )
         except Exception as e:
             logger.warning("Failed to save to history: %s", e)
@@ -470,11 +586,14 @@ async def get_statistics():
 async def get_history(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
+    current_user: dict = Depends(get_current_user),
 ):
     try:
         import database
-        items = database.get_history(limit=limit, offset=offset)
-        total = database.get_history_count()
+        # Filter by user_id if not admin
+        user_id = None if current_user.get("role") == "admin" else current_user.get("id")
+        items = database.get_history(limit=limit, offset=offset, user_id=user_id)
+        total = database.get_history_count(user_id=user_id)
         return HistoryListResponse(
             items=[
                 HistoryEntry(
@@ -499,7 +618,7 @@ async def get_history(
 
 
 @app.post("/api/history")
-async def save_history_entry(request: PredictionRequest):
+async def save_history_entry(request: PredictionRequest, current_user: dict = Depends(get_current_user)):
     """Manually save a prediction to history (alternative to auto-save on /predict)."""
     try:
         import database
@@ -526,6 +645,7 @@ async def save_history_entry(request: PredictionRequest):
             topic_name=topic_info.get("topic_name") if topic_info else None,
             risk_level=result["risk_level"],
             model_name="PhoBERT (Round 5)",
+            user_id=current_user.get("id"),
         )
         return {"id": saved["id"], "status": "saved"}
     except Exception as e:
