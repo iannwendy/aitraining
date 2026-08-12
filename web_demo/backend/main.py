@@ -400,7 +400,7 @@ def _build_explanation(prediction: str, confidence: float, topic_info: Optional[
 # ── Batch Prediction ──────────────────────────────────────────────────────────
 
 @app.post("/api/predict/batch", response_model=BatchPredictionResponse)
-async def batch_predict(request: BatchPredictionRequest):
+async def batch_predict(request: BatchPredictionRequest, current_user: dict = Depends(get_current_user)):
     if not request.comments:
         return BatchPredictionResponse(results=[], total=0, depression_count=0, normal_count=0)
 
@@ -654,9 +654,17 @@ async def save_history_entry(request: PredictionRequest, current_user: dict = De
 
 
 @app.delete("/api/history/{id}")
-async def delete_history_entry(id: str):
+async def delete_history_entry(id: str, current_user: dict = Depends(get_current_user)):
     try:
         import database
+        # Admins can delete any prediction
+        # Users can only delete their own predictions
+        if current_user.get("role") != "admin":
+            # Check if prediction belongs to current user
+            from database import get_history
+            user_predictions = get_history(limit=1000, user_id=current_user.get("id"))
+            if not any(p["id"] == id for p in user_predictions):
+                raise HTTPException(status_code=403, detail="You can only delete your own predictions")
         deleted = database.delete_prediction(id)
         if not deleted:
             raise HTTPException(status_code=404, detail="Prediction not found")

@@ -43,6 +43,7 @@ export async function predict(text: string): Promise<PredictionResult> {
   return fetchJSON<PredictionResult>(`${API_BASE}/predict`, {
     method: 'POST',
     body: JSON.stringify({ text }),
+    headers: authHeaders(),
   });
 }
 
@@ -57,6 +58,7 @@ export async function batchPredict(
   return fetchJSON(`${API_BASE}/predict/batch`, {
     method: 'POST',
     body: JSON.stringify({ comments }),
+    headers: authHeaders(),
   });
 }
 

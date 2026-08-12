@@ -1,5 +1,6 @@
 """Authentication utilities: JWT tokens, password hashing, user verification."""
 
+import os
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import Depends, HTTPException, status
@@ -8,9 +9,13 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
-SECRET_KEY = "your-secret-key-change-in-production-minimum-32-chars"
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "dev-only-secret-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
+
+if SECRET_KEY == "dev-only-secret-change-in-production":
+    import logging
+    logging.warning("Using development SECRET_KEY. Set JWT_SECRET_KEY env var in production.")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
