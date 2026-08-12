@@ -657,17 +657,18 @@ async def save_history_entry(request: PredictionRequest, current_user: dict = De
 async def delete_history_entry(id: str, current_user: dict = Depends(get_current_user)):
     try:
         import database
+        # Check if prediction exists and user has permission
+        prediction = database.get_prediction_by_id(id)
+        if prediction is None:
+            raise HTTPException(status_code=404, detail="Prediction not found")
+
         # Admins can delete any prediction
         # Users can only delete their own predictions
         if current_user.get("role") != "admin":
-            # Check if prediction belongs to current user
-            from database import get_history
-            user_predictions = get_history(limit=1000, user_id=current_user.get("id"))
-            if not any(p["id"] == id for p in user_predictions):
+            if prediction.get("user_id") != current_user.get("id"):
                 raise HTTPException(status_code=403, detail="You can only delete your own predictions")
+
         deleted = database.delete_prediction(id)
-        if not deleted:
-            raise HTTPException(status_code=404, detail="Prediction not found")
         return {"status": "deleted", "id": id}
     except HTTPException:
         raise

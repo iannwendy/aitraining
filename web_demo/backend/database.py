@@ -139,6 +139,16 @@ def save_prediction(
         conn.close()
 
 
+def get_prediction_by_id(id: str) -> Optional[dict]:
+    """Fetch a single prediction by ID."""
+    conn = get_connection()
+    try:
+        row = conn.execute("SELECT * FROM predictions WHERE id = ?", (id,)).fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
 def get_history(limit: int = 50, offset: int = 0, user_id: Optional[int] = None) -> list[dict]:
     """Fetch recent predictions, newest first."""
     conn = get_connection()
