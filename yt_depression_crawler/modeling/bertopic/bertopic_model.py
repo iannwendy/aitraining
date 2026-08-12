@@ -16,12 +16,15 @@ import json
 import logging
 import os
 import pickle
+import re
+import unicodedata
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
+from sklearn.feature_extraction.text import CountVectorizer
 
 from yt_depression_crawler.core.config import (
     BERTOPIC_CALCULATE_PROBABILITIES,
@@ -42,6 +45,32 @@ from yt_depression_crawler.core.config import (
     BERTOPIC_VISUALIZATION_FILE,
     ensure_directories,
 )
+
+
+def _vietnamese_tokenize(text: str) -> list[str]:
+    """Vietnamese-aware tokenizer that keeps diacritics and lowercases.
+
+    Uses word boundaries as fall-back; mostly relies on CountVectorizer's
+    regex-based token pattern. Returns tokens of length >= 2.
+    """
+    if not text:
+        return []
+    text = str(text).lower()
+    # Match Unicode letters (including Vietnamese diacritics) and digits
+    return re.findall(r"[a-zA-ZÀ-ỹ0-9]+", text)
+
+
+def _build_vietnamese_vectorizer() -> CountVectorizer:
+    """CountVectorizer that preserves Vietnamese diacritics."""
+    return CountVectorizer(
+        tokenizer=_vietnamese_tokenize,
+        token_pattern=None,  # Use our tokenizer
+        ngram_range=(1, 2),
+        min_df=5,
+        max_df=0.95,
+        max_features=10000,
+        lowercase=False,  # already lowercased in tokenizer
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +160,7 @@ def build_topic_model(
         embedding_model=None,  # We provide pre-computed embeddings
         umap_model=umap_model,
         hdbscan_model=hdbscan_model,
+        vectorizer_model=_build_vietnamese_vectorizer(),  # Preserve Vietnamese diacritics
         calculate_probabilities=calculate_probabilities,
         top_n_words=top_n_words,
         verbose=True,
@@ -365,7 +395,10 @@ def train_bertopic(
             "outlier_percentage": round(n_outliers / n_docs * 100, 2) if n_docs > 0 else 0,
         },
         "topic_distribution": topic_summary[:50],  # Top 50 topics
-        "source_breakdown": df_with_topics.groupby(["source", "topic_id"]).size().to_dict(),
+        "source_breakdown": {
+            f"{src}_{tid}": cnt
+            for (src, tid), cnt in df_with_topics.groupby(["source", "topic_id"]).size().to_dict().items()
+        },
     }
 
     # 7. Save artifacts

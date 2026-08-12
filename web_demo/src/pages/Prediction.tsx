@@ -14,6 +14,7 @@ export default function Prediction() {
   const [result, setResult] = useState<{
     prediction: 'depression' | 'normal';
     confidence: number;
+    topic: string | undefined;
     riskLevel: 'low' | 'medium' | 'high';
     explanation?: string;
     modelName?: string;
@@ -31,6 +32,7 @@ export default function Prediction() {
       setResult({
         prediction: res.prediction,
         confidence: res.confidence,
+        topic: res.topic,
         riskLevel: res.riskLevel,
         explanation: res.explanation,
         modelName: res.modelName,
@@ -195,17 +197,32 @@ export default function Prediction() {
             </CardContent>
           </Card>
 
-          {/* Explanation only - Topic hidden (BERTopic keywords not meaningful) */}
-          {result.explanation && (
-            <Card hover>
-              <CardContent className="p-6">
-                <h4 className="text-sm font-medium text-muted mb-2">
-                  {t(i18nKeys.prediction.explanation)}
-                </h4>
-                <p className="text-dark">{result.explanation}</p>
-              </CardContent>
-            </Card>
-          )}
+          {/* Topic & Explanation */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {result.topic && (
+              <Card hover>
+                <CardContent className="p-6">
+                  <h4 className="text-sm font-medium text-muted mb-2">
+                    {t(i18nKeys.prediction.detectedTopic)}
+                  </h4>
+                  <p className="font-display text-xl font-semibold text-primary">
+                    {result.topic}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {result.explanation && (
+              <Card hover>
+                <CardContent className="p-6">
+                  <h4 className="text-sm font-medium text-muted mb-2">
+                    {t(i18nKeys.prediction.explanation)}
+                  </h4>
+                  <p className="text-dark">{result.explanation}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       )}
     </div>

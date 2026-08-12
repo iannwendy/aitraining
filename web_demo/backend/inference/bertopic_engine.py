@@ -30,6 +30,7 @@ _APP_DIR = _BACKEND_DIR.parent  # /app/
 
 BERTOPIC_MODEL_FILE = _APP_DIR / "models" / "bertopic" / "bertopic_model.pkl"
 BERTOPIC_METRICS_FILE = _APP_DIR / "models" / "bertopic" / "bertopic_metrics.json"
+BERTOPIC_VIETNAMESE_LABELS = _APP_DIR / "models" / "bertopic" / "topic_labels_vietnamese.json"
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +42,23 @@ _TOPIC_KEYWORDS: Optional[dict[int, list[str]]] = None
 
 
 def _load_topic_labels() -> dict[int, str]:
-    """Load topic ID → label mapping from BERTopic metrics."""
+    """Load topic ID → label mapping. Prefer Vietnamese labels if available."""
     global _TOPIC_LABELS
     if _TOPIC_LABELS is not None:
         return _TOPIC_LABELS
 
     _TOPIC_LABELS = {}
+
+    # Try Vietnamese labels first (from TF-IDF extraction)
+    if BERTOPIC_VIETNAMESE_LABELS.exists():
+        with open(BERTOPIC_VIETNAMESE_LABELS, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        for tid, entry in data.items():
+            _TOPIC_LABELS[int(tid)] = entry.get("label", f"topic_{tid}")
+        if _TOPIC_LABELS:
+            return _TOPIC_LABELS
+
+    # Fallback to metrics JSON
     if BERTOPIC_METRICS_FILE.exists():
         with open(BERTOPIC_METRICS_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -62,12 +74,24 @@ def _load_topic_labels() -> dict[int, str]:
 
 
 def _load_topic_keywords() -> dict[int, list[str]]:
-    """Load topic ID → top keywords for keyword matching."""
+    """Load topic ID → top keywords for keyword matching. Prefer Vietnamese if available."""
     global _TOPIC_KEYWORDS
     if _TOPIC_KEYWORDS is not None:
         return _TOPIC_KEYWORDS
 
     _TOPIC_KEYWORDS = {}
+
+    # Try Vietnamese labels first
+    if BERTOPIC_VIETNAMESE_LABELS.exists():
+        with open(BERTOPIC_VIETNAMESE_LABELS, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        for tid, entry in data.items():
+            keywords = [w["word"] for w in entry.get("keywords", [])]
+            _TOPIC_KEYWORDS[int(tid)] = keywords
+        if _TOPIC_KEYWORDS:
+            return _TOPIC_KEYWORDS
+
+    # Fallback to metrics JSON
     if BERTOPIC_METRICS_FILE.exists():
         with open(BERTOPIC_METRICS_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -92,33 +116,22 @@ def _load_topic_metrics() -> dict:
 
 # ── Keyword-based topic matcher ───────────────────────────────────────────────
 
-def _strip_diacritics(text: str) -> str:
-    """Strip Vietnamese diacritics for matching against BERTopic's no-diacritic keywords."""
-    import unicodedata
-    text = unicodedata.normalize("NFD", text)
-    # Combine-diacritic marks include circumflexes, tones; keep 'đ'/'Đ' separately
-    text = "".join(ch for ch in text if unicodedata.category(ch) != "Mn")
-    return text.replace("đ", "d").replace("Đ", "D")
-
-
 def _tokenize(text: str) -> list[str]:
-    """Tokenize text into no-diacritic lowercase word tokens.
+    """Tokenize text into lowercase word tokens with diacritics preserved.
 
-    BERTopic was trained on Vietnamese text without diacritics, so we strip
-    diacritics before matching against topic keywords.
+    Matches against Vietnamese topic keywords from TF-IDF extraction.
     """
     if not text:
         return []
     text = str(text).lower()
-    # Try Vietnamese word tokenization first for better recall
+    # Try Vietnamese word tokenization for better compound word handling
     try:
         from underthesea import word_tokenize
         text = word_tokenize(text, format="text")
     except Exception:
         pass
-    # Strip diacritics to align with topic keywords
-    text = _strip_diacritics(text)
-    tokens = re.findall(r"[a-z0-9]+", text)
+    # Extract tokens, preserving underscores for compound words (e.g., mất_ngủ)
+    tokens = re.findall(r"[a-zA-ZÀ-ỹ0-9_]+", text)
     return [t for t in tokens if len(t) >= 2]
 
 
