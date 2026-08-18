@@ -6,6 +6,10 @@ import { Database, Brain, Target, TrendingUp, Calendar, Activity, RefreshCw } fr
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { i18nKeys } from '../i18n/keys';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { SkeletonStats } from '@/components/ui/Skeleton';
+import { Button } from '@/components/ui/Button';
+import { AlertTriangle } from 'lucide-react';
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -25,7 +29,7 @@ export default function Dashboard() {
       const data = await getDashboardStats();
       setStats(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load stats');
+      setError(err instanceof Error ? err.message : 'Failed to load stats. Please check if the backend server is running.');
     } finally {
       setIsLoading(false);
     }
@@ -37,7 +41,7 @@ export default function Dashboard() {
       await triggerRefresh();
       await loadStats();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Refresh failed');
+      setError(err instanceof Error ? err.message : 'Refresh failed. Please try again.');
     } finally {
       setIsRefreshing(false);
     }
@@ -101,99 +105,105 @@ export default function Dashboard() {
     : [];
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Hero Section */}
-      <section className="text-center space-y-4 py-8">
-        <h1 className="font-display text-4xl sm:text-5xl font-bold text-dark">
-          <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
-            {t(i18nKeys.dashboard.title)}
-          </span>
-          <br />
-          {t(i18nKeys.dashboard.subtitle)}
-        </h1>
-        <p className="text-muted text-lg max-w-2xl mx-auto">
-          Advanced NLP system using PhoBERT + BERTopic for detecting signs of depression
-          in Vietnamese social media texts
-        </p>
-      </section>
+    <ErrorBoundary>
+      <div className="space-y-8 animate-fade-in">
+        {/* Hero Section */}
+        <section className="text-center space-y-4 py-8">
+          <h1 className="font-display text-4xl sm:text-5xl font-bold text-dark">
+            <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
+              {t(i18nKeys.dashboard.title)}
+            </span>
+            <br />
+            {t(i18nKeys.dashboard.subtitle)}
+          </h1>
+          <p className="text-muted text-lg max-w-2xl mx-auto">
+            Advanced NLP system using PhoBERT + BERTopic for detecting signs of depression
+            in Vietnamese social media texts
+          </p>
+        </section>
 
-      {/* Refresh Banner */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
-          {error}
-        </div>
-      )}
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-red-700 text-sm font-medium">{error}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadStats}
+              className="border-red-200 text-red-600 hover:bg-red-50"
+            >
+              Retry
+            </Button>
+          </div>
+        )}
 
-      {/* Stats Grid */}
-      <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {isLoading
-          ? Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i}>
-                <CardContent className="p-5 animate-pulse">
-                  <div className="h-10 bg-slate-100 rounded mb-2" />
-                  <div className="h-4 bg-slate-100 rounded w-3/4" />
-                </CardContent>
-              </Card>
-            ))
-          : statCards.map((stat, index) => (
-              <Card
-                key={stat.label}
-                hover
-                className={cn(
-                  'relative overflow-hidden',
-                  index === 0 && 'animate-breathe',
-                )}
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <CardContent className="p-5">
+        {/* Stats Grid */}
+        <section>
+          {isLoading ? (
+            <SkeletonStats count={6} />
+          ) : stats ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {statCards.map((stat, index) => (
+                <Card
+                  key={stat.label}
+                  hover
+                  className={cn(
+                    'relative overflow-hidden',
+                    index === 0 && 'animate-breathe',
+                  )}
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <CardContent className="p-5">
+                    <div
+                      className={cn(
+                        'flex items-center gap-3 mb-3',
+                        stat.small && 'flex-col items-start',
+                      )}
+                    >
+                      <div className={cn('p-2.5 rounded-xl', stat.bgColor)}>
+                        <stat.icon className={cn('w-5 h-5', stat.color)} />
+                      </div>
+                    </div>
+                    <p
+                      className={cn(
+                        'font-mono font-bold text-dark',
+                        stat.small ? 'text-lg' : 'text-2xl',
+                      )}
+                    >
+                      {stat.value}
+                    </p>
+                    {stat.subLabel && (
+                      <p className="text-sm text-muted mt-1">{stat.subLabel}</p>
+                    )}
+                    <p className="text-xs text-muted mt-0.5">{stat.label}</p>
+                  </CardContent>
                   <div
                     className={cn(
-                      'flex items-center gap-3 mb-3',
-                      stat.small && 'flex-col items-start',
+                      'absolute inset-0 rounded-2xl opacity-0',
+                      index === 0 && 'animate-pulse bg-gradient-to-r from-primary/5 to-transparent',
                     )}
-                  >
-                    <div className={cn('p-2.5 rounded-xl', stat.bgColor)}>
-                      <stat.icon className={cn('w-5 h-5', stat.color)} />
-                    </div>
-                  </div>
-                  <p
-                    className={cn(
-                      'font-mono font-bold text-dark',
-                      stat.small ? 'text-lg' : 'text-2xl',
-                    )}
-                  >
-                    {stat.value}
-                  </p>
-                  {stat.subLabel && (
-                    <p className="text-sm text-muted mt-1">{stat.subLabel}</p>
-                  )}
-                  <p className="text-xs text-muted mt-0.5">{stat.label}</p>
-                </CardContent>
-                <div
-                  className={cn(
-                    'absolute inset-0 rounded-2xl opacity-0',
-                    index === 0 && 'animate-pulse bg-gradient-to-r from-primary/5 to-transparent',
-                  )}
-                />
-              </Card>
-            ))}
-      </section>
+                  />
+                </Card>
+              ))}
+            </div>
+          ) : null}
+        </section>
 
-      {/* Refresh Button */}
-      <div className="flex justify-end">
-        <button
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium',
-            'bg-slate-100 hover:bg-slate-200 text-slate-600',
-            'transition-colors disabled:opacity-50',
-          )}
-        >
-          <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
-          {isRefreshing ? 'Refreshing…' : 'Refresh Data'}
-        </button>
-      </div>
+        {/* Refresh Button */}
+        <div className="flex justify-end">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing || isLoading}
+          >
+            <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
+            {isRefreshing ? 'Refreshing…' : 'Refresh Data'}
+          </Button>
+        </div>
 
       {/* Quick Actions */}
       <section className="grid md:grid-cols-2 gap-6">
@@ -265,6 +275,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </section>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

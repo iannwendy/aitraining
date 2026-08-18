@@ -15,20 +15,102 @@ import {
 
 const API_BASE = '/api';
 
-async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
+// API Configuration
+const API_TIMEOUT = 30000; // 30 seconds timeout
+const MAX_RETRIES = 1;
 
-  if (!response.ok) {
-    throw new Error(`API Error ${response.status}: ${response.statusText}`);
+// Custom error types for better error handling
+export class APIError extends Error {
+  constructor(
+    message: string,
+    public status?: number,
+    public isTimeout = false
+  ) {
+    super(message);
+    this.name = 'APIError';
+  }
+}
+
+// Abort controller wrapper for timeout
+function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeout: number
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  return fetch(url, {
+    ...options,
+    signal: controller.signal,
+  })
+    .finally(() => clearTimeout(timeoutId))
+    .catch((error) => {
+      if (error.name === 'AbortError') {
+        throw new APIError('Request timed out', undefined, true);
+      }
+      throw error;
+    });
+}
+
+// Fetch with retry logic
+async function fetchWithRetry<T>(
+  url: string,
+  options: RequestInit,
+  retries = MAX_RETRIES
+): Promise<T> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetchWithTimeout(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options?.headers,
+        },
+      }, API_TIMEOUT);
+
+      if (!response.ok) {
+        // Try to parse error message from response
+        let errorMessage = `API Error ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          if (errorData.detail) {
+            errorMessage = errorData.detail;
+          }
+        } catch {
+          // Use default error message
+        }
+        throw new APIError(errorMessage, response.status);
+      }
+
+      return response.json() as Promise<T>;
+    } catch (error) {
+      lastError = error as Error;
+
+      // Don't retry on timeout or client errors (4xx)
+      if (
+        error instanceof APIError &&
+        (error.isTimeout || (error.status && error.status >= 400 && error.status < 500))
+      ) {
+        throw error;
+      }
+
+      // Wait before retry (exponential backoff)
+      if (attempt < retries) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.pow(2, attempt) * 500)
+        );
+      }
+    }
   }
 
-  return response.json() as Promise<T>;
+  throw lastError || new APIError('Request failed after retries');
+}
+
+async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
+  return fetchWithRetry<T>(url, options || {});
 }
 
 // ── Dashboard ───────────────────────────────────────────────────────────────

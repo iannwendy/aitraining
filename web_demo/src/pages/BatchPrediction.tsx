@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 import { batchPredict } from '@/services/api';
 import { PredictionResult } from '@/types';
 import { i18nKeys } from '../i18n/keys';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { SkeletonBatch } from '@/components/ui/Skeleton';
 
 export default function BatchPrediction() {
   const { t } = useTranslation();
@@ -99,47 +101,58 @@ export default function BatchPrediction() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
-      {/* Header */}
-      <section className="text-center space-y-2">
-        <h1 className="font-display text-3xl font-bold text-dark">
-          {t(i18nKeys.batch.title)}
-        </h1>
-        <p className="text-muted">{t(i18nKeys.prediction.description)}</p>
-      </section>
+    <ErrorBoundary>
+      <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
+        {/* Header */}
+        <section className="text-center space-y-2">
+          <h1 className="font-display text-3xl font-bold text-dark">
+            {t(i18nKeys.batch.title)}
+          </h1>
+          <p className="text-muted">{t(i18nKeys.prediction.description)}</p>
+        </section>
 
-      {/* Error */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
-          {error}
-        </div>
-      )}
+        {/* Error */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <p className="text-red-700 text-sm flex-1">{error}</p>
+            <Button variant="outline" size="sm" onClick={() => { setError(null); }}>
+              Dismiss
+            </Button>
+          </div>
+        )}
 
-      {/* Upload Section */}
-      <Card>
-        <CardContent className="p-8">
-          <div
-            className={cn(
-              'border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 cursor-pointer',
-              file
-                ? 'border-primary bg-primary/5'
-                : 'border-slate-300 hover:border-primary/50 hover:bg-slate-50',
-            )}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,.txt"
-              onChange={handleFileChange}
-              className="hidden"
-            />
+        {/* Loading State */}
+        {isProcessing && (
+          <SkeletonBatch />
+        )}
 
-            {file ? (
-              <div className="space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <FileText className="w-8 h-8 text-primary" />
-                </div>
+        {/* Upload Section */}
+        <Card>
+          <CardContent className="p-8">
+            <div
+              className={cn(
+                'border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 cursor-pointer',
+                file
+                  ? 'border-primary bg-primary/5'
+                  : 'border-slate-300 hover:border-primary/50 hover:bg-slate-50',
+              )}
+              onClick={() => !isProcessing && fileInputRef.current?.click()}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,.txt"
+                onChange={handleFileChange}
+                className="hidden"
+                disabled={isProcessing}
+              />
+
+              {file ? (
+                <div className="space-y-4">
+                  <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <FileText className="w-8 h-8 text-primary" />
+                  </div>
                 <div>
                   <p className="font-semibold text-dark">{file.name}</p>
                   <p className="text-sm text-muted">
@@ -308,6 +321,7 @@ Video hay quá.
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

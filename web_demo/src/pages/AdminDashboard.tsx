@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { Users, MessageSquare, TrendingUp, Clock, AlertCircle } from 'lucide-react';
 import { getAdminStats, getAdminUsers } from '@/services/api';
 import { AdminStats, User } from '@/types';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { SkeletonAdmin } from '@/components/ui/Skeleton';
+import { Button } from '@/components/ui/Button';
+import { RefreshCw } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -24,26 +28,37 @@ export default function AdminDashboard() {
       setStats(statsData);
       setUsers(usersData.users);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load data');
+      setError(err instanceof Error ? err.message : 'Failed to load data. Please check if the backend server is running.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleRetry = () => {
+    setError('');
+    loadData();
+  };
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-      </div>
+      <ErrorBoundary>
+        <SkeletonAdmin />
+      </ErrorBoundary>
     );
   }
 
   if (error) {
     return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded-xl text-red-600">
-        <AlertCircle className="w-5 h-5 mb-2" />
-        {error}
-      </div>
+      <ErrorBoundary>
+        <div className="p-6 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+          <p className="text-red-600 flex-1">{error}</p>
+          <Button variant="outline" size="sm" onClick={handleRetry}>
+            <RefreshCw className="w-4 h-4" />
+            Retry
+          </Button>
+        </div>
+      </ErrorBoundary>
     );
   }
 
@@ -65,12 +80,13 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      <h1 className="font-display text-2xl font-bold text-dark">
-        Admin Dashboard
-      </h1>
+    <ErrorBoundary>
+      <div className="space-y-8 animate-fade-in">
+        <h1 className="font-display text-2xl font-bold text-dark">
+          Admin Dashboard
+        </h1>
 
-      {/* Stats Grid */}
+        {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {statCards.map((card) => (
           <div
@@ -200,6 +216,7 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

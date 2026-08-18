@@ -6,6 +6,8 @@ import { AlertTriangle, CheckCircle, Brain, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { predict } from '@/services/api';
 import { i18nKeys } from '../i18n/keys';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { SkeletonPrediction } from '@/components/ui/Skeleton';
 
 export default function Prediction() {
   const { t } = useTranslation();
@@ -66,50 +68,61 @@ export default function Prediction() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
-      {/* Header */}
-      <section className="text-center space-y-2">
-        <h1 className="font-display text-3xl font-bold text-dark">
-          {t(i18nKeys.prediction.title)}
-        </h1>
-        <p className="text-muted">{t(i18nKeys.prediction.description)}</p>
-      </section>
+    <ErrorBoundary>
+      <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+        {/* Header */}
+        <section className="text-center space-y-2">
+          <h1 className="font-display text-3xl font-bold text-dark">
+            {t(i18nKeys.prediction.title)}
+          </h1>
+          <p className="text-muted">{t(i18nKeys.prediction.description)}</p>
+        </section>
 
-      {/* Error */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
-          {error}
-        </div>
-      )}
-
-      {/* Input Section */}
-      <Card>
-        <CardContent className="p-8">
-          <label className="block text-sm font-medium text-dark mb-3">
-            {t(i18nKeys.prediction.inputLabel)}
-          </label>
-          <textarea
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder={t(i18nKeys.prediction.inputPlaceholder)}
-            className="input-field min-h-[150px] resize-y font-body"
-          />
-          <div className="flex justify-between items-center mt-4">
-            <p className="text-sm text-muted">
-              {inputText.length} {t(i18nKeys.common.characters)}
-            </p>
-            <Button
-              onClick={handlePredict}
-              isLoading={isLoading}
-              disabled={!inputText.trim()}
-              size="lg"
-            >
-              <Brain className="w-5 h-5" />
-              {t(i18nKeys.button.analyze)}
+        {/* Error */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <p className="text-red-700 text-sm flex-1">{error}</p>
+            <Button variant="outline" size="sm" onClick={() => { setError(null); }}>
+              Dismiss
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <SkeletonPrediction />
+        )}
+
+        {/* Input Section */}
+        <Card>
+          <CardContent className="p-8">
+            <label className="block text-sm font-medium text-dark mb-3">
+              {t(i18nKeys.prediction.inputLabel)}
+            </label>
+            <textarea
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder={t(i18nKeys.prediction.inputPlaceholder)}
+              className="input-field min-h-[150px] resize-y font-body"
+              disabled={isLoading}
+            />
+            <div className="flex justify-between items-center mt-4">
+              <p className="text-sm text-muted">
+                {inputText.length} {t(i18nKeys.common.characters)}
+              </p>
+              <Button
+                onClick={handlePredict}
+                isLoading={isLoading}
+                disabled={!inputText.trim()}
+                size="lg"
+              >
+                <Brain className="w-5 h-5" />
+                {t(i18nKeys.button.analyze)}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
       {/* Results Section */}
       {result && (
@@ -225,6 +238,7 @@ export default function Prediction() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
