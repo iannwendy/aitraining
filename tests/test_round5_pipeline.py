@@ -275,23 +275,22 @@ class TestDataIntegrity:
         assert len(duplicates) == 0, f"Found {len(duplicates)} duplicate texts in train"
 
     def test_correct_train_size(self, load_datasets):
-        """Train set should have ~12555 samples (Round 6 with 5,702 new human gold)."""
+        """Train set should have 6,392 samples (Round 6 v2 dataset)."""
         train, _, _, _ = load_datasets
 
-        expected = 12555
+        expected = 6392
         actual = len(train)
 
-        # Allow small variance for flexibility
-        assert abs(actual - expected) <= 50, (
-            f"Train size mismatch: expected ~{expected}, got {actual}"
+        assert actual == expected, (
+            f"Train size mismatch: expected {expected}, got {actual}"
         )
 
     def test_correct_val_test_sizes(self, load_datasets):
-        """Val should have 241 samples, test should have 242 samples."""
+        """Val should have 1,371 samples, test should have 1,371 samples (Round 6 v2, 15% each)."""
         _, val, test, _ = load_datasets
 
-        assert len(val) == 241, f"Val size should be 241, got {len(val)}"
-        assert len(test) == 242, f"Test size should be 242, got {len(test)}"
+        assert len(val) == 1371, f"Val size should be 1,371, got {len(val)}"
+        assert len(test) == 1371, f"Test size should be 1,371, got {len(test)}"
 
     def test_label_distribution_reasonable(self, load_datasets):
         """Train set should have ~16% depression (imbalanced)."""

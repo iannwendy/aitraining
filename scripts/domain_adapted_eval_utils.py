@@ -9,9 +9,9 @@ def run_finetune(
     model_path: str,
     seed: int,
     output_dir: str,
-    train_csv: str = "data/final_train.csv",
-    val_csv: str = "data/final_val.csv",
-    test_csv: str = "data/final_test.csv",
+    train_csv: str = "data/labeled/final_train.csv",
+    val_csv: str = "data/labeled/final_val.csv",
+    test_csv: str = "data/labeled/final_test.csv",
 ) -> str:
     """Fine-tune a PhoBERT model on the FINAL dataset (post-Phase-1/2 rebuild).
 
@@ -20,8 +20,8 @@ def run_finetune(
     Earlier versions of this function omitted the CSV path overrides, which
     caused the trainer to fall back to `TRAIN_FILE`/`VAL_FILE`/`TEST_FILE` in
     `core/config.py` — those point to the pre-round-3 `data/train.csv` (2,632
-    rows), not the new `data/final_train.csv` (1,786 rows). The defaults here
-    make the new behaviour explicit; callers can override for ablation.
+    rows), not the new `data/labeled/final_train.csv` (6,392 rows, Round 6 v2).
+    The defaults here make the new behaviour explicit; callers can override for ablation.
 
     The trainer (`phobert_train.train_phobert_first`) saves the best
     checkpoint directly to its `output_dir` argument via
