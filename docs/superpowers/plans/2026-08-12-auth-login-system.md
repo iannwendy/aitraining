@@ -5,6 +5,7 @@
 **Goal:** Add user authentication (login/register) with admin/user roles. Each user has isolated prediction history. Admin gets dedicated dashboard.
 
 **Architecture:**
+
 - Backend: FastAPI + SQLite, JWT tokens (httpOnly cookies), bcrypt password hashing
 - Frontend: React 18 + TypeScript, protected routes, auth context, TailwindCSS
 - Auth flow: JWT stored in httpOnly cookies, auto-refresh pattern, role-based access
@@ -22,14 +23,16 @@
 
 ## Backend Tasks
 
-### Task 1: Backend - Auth Dependencies & Database Schema
+### Task 1: Backend - Auth Dependencies &amp; Database Schema
 
 **Files:**
+
 - Modify: `web_demo/backend/requirements.txt`
 - Create: `web_demo/backend/auth.py`
 - Modify: `web_demo/backend/database.py`
 
 **Interfaces:**
+
 - Produces: `auth.py` with `hash_password()`, `verify_password()`, `create_access_token()`, `get_current_user()`, `require_role()`
 - Produces: `database.py` updated with `users` table and user CRUD functions
 
@@ -574,12 +577,14 @@ git commit -m "feat: add authentication system with JWT, users table, admin/user
 
 ---
 
-### Task 2: Backend - CORS & Cookie Configuration
+### Task 2: Backend - CORS &amp; Cookie Configuration
 
 **Files:**
+
 - Modify: `web_demo/backend/main.py`
 
 **Context:**
+
 - Current CORS: `allow_origins=["*"]` allows all origins
 - Need to support credentials for cookies
 - Vite dev server runs on port 3000, backend on 8000
@@ -609,13 +614,15 @@ git commit -m "fix: update CORS for credentials support"
 
 ## Frontend Tasks
 
-### Task 3: Frontend - Auth Types & API
+### Task 3: Frontend - Auth Types &amp; API
 
 **Files:**
+
 - Modify: `web_demo/src/types/index.ts`
 - Modify: `web_demo/src/services/api.ts`
 
 **Interfaces:**
+
 - Consumes: Backend auth endpoints
 - Produces: Auth-related TypeScript types and API functions
 
@@ -793,13 +800,15 @@ git commit -m "feat: add auth types and API functions"
 
 ---
 
-### Task 4: Frontend - Auth Context & Protected Routes
+### Task 4: Frontend - Auth Context &amp; Protected Routes
 
 **Files:**
+
 - Create: `web_demo/src/contexts/AuthContext.tsx`
 - Modify: `web_demo/src/App.tsx`
 
 **Interfaces:**
+
 - Consumes: Auth API functions
 - Produces: AuthContext with user, login, logout, isAdmin, isLoading
 
@@ -1018,18 +1027,21 @@ git commit -m "feat: add auth context and protected routes"
 
 ---
 
-### Task 5: Frontend - Login & Register Pages (ProMAX UI)
+### Task 5: Frontend - Login &amp; Register Pages (ProMAX UI)
 
 **Files:**
+
 - Create: `web_demo/src/pages/Login.tsx`
 - Create: `web_demo/src/pages/Register.tsx`
 
 **Context:**
+
 - Use TailwindCSS with existing theme colors
 - Match existing UI patterns in the codebase
 - ProMAX design: clean, modern, accessible
 
 **Design Specs:**
+
 - Centered card on gradient background
 - Logo/brand at top
 - Form with floating labels
@@ -1393,9 +1405,10 @@ git commit -m "feat: add Login and Register pages with ProMAX UI"
 
 ---
 
-### Task 6: Frontend - Profile & Admin Dashboard Pages
+### Task 6: Frontend - Profile &amp; Admin Dashboard Pages
 
 **Files:**
+
 - Create: `web_demo/src/pages/Profile.tsx`
 - Create: `web_demo/src/pages/AdminDashboard.tsx`
 
@@ -1735,9 +1748,11 @@ git commit -m "feat: add Profile and AdminDashboard pages"
 ### Task 7: Frontend - Update Header with User Menu
 
 **Files:**
+
 - Modify: `web_demo/src/components/layout/Header.tsx`
 
 **Context:**
+
 - Show user menu with username, role badge, profile link, logout
 - Show/hide based on auth state
 - Admin gets link to admin dashboard
@@ -1972,11 +1987,12 @@ git commit -m "feat: update Header with user menu and auth state"
 
 ---
 
-## Integration & Testing
+## Integration &amp; Testing
 
 ### Task 8: Integration Testing
 
 **Files:**
+
 - Modify: `web_demo/backend/requirements.txt` (install test deps if needed)
 - Test manually with curl or browser
 
@@ -1996,7 +2012,7 @@ Expected: No TypeScript errors
 
 1. Start backend: `cd web_demo/backend && uvicorn main:app --reload --port 8000`
 2. Start frontend: `cd web_demo && npm run dev`
-3. Visit http://localhost:5173
+3. Visit [http://localhost:5173](http://localhost:5173)
 4. Should redirect to /login
 5. Login with admin/admin123
 6. Should see dashboard with admin menu
@@ -2016,22 +2032,26 @@ git commit -m "feat: complete authentication system - login, register, admin das
 
 ## Summary
 
-| Task | Description | Files |
-|------|-------------|-------|
-| 1 | Backend auth schema & logic | `auth.py`, `database.py`, `main.py` |
-| 2 | CORS for credentials | `main.py` |
-| 3 | Frontend auth types & API | `types/index.ts`, `services/api.ts` |
-| 4 | Auth context & protected routes | `AuthContext.tsx`, `ProtectedRoute.tsx`, `App.tsx` |
-| 5 | Login & Register pages | `Login.tsx`, `Register.tsx` |
-| 6 | Profile & Admin Dashboard | `Profile.tsx`, `AdminDashboard.tsx` |
-| 7 | Header with user menu | `Header.tsx` |
-| 8 | Integration testing | Manual verification |
+
+| Task | Description                         | Files                                              |
+| ---- | ----------------------------------- | -------------------------------------------------- |
+| 1    | Backend auth schema &amp; logic     | `auth.py`, `database.py`, `main.py`                |
+| 2    | CORS for credentials                | `main.py`                                          |
+| 3    | Frontend auth types &amp; API       | `types/index.ts`, `services/api.ts`                |
+| 4    | Auth context &amp; protected routes | `AuthContext.tsx`, `ProtectedRoute.tsx`, `App.tsx` |
+| 5    | Login &amp; Register pages          | `Login.tsx`, `Register.tsx`                        |
+| 6    | Profile &amp; Admin Dashboard       | `Profile.tsx`, `AdminDashboard.tsx`                |
+| 7    | Header with user menu               | `Header.tsx`                                       |
+| 8    | Integration testing                 | Manual verification                                |
+
 
 **Total: 8 tasks**
 
 After implementation, verify:
+
 - admin/admin123 → admin dashboard with all stats
 - user/user123 → user dashboard with isolated history
 - New users can register and login
 - Predictions are saved with user_id
 - History filters by logged-in user
+

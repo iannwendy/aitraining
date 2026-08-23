@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ProtectedRoute, PublicRoute } from '@/components/auth/ProtectedRoute';
-import Dashboard from '@/pages/Dashboard';
+import Home from '@/pages/Home';
 import Prediction from '@/pages/Prediction';
 import BatchPrediction from '@/pages/BatchPrediction';
 import History from '@/pages/History';
@@ -44,7 +44,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Dashboard />} />
+            <Route index element={<Home />} />
             <Route path="prediction" element={<Prediction />} />
             <Route path="batch" element={<BatchPrediction />} />
             <Route path="history" element={<History />} />

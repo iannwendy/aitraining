@@ -1,6 +1,6 @@
 export const i18nKeys = {
   nav: {
-    dashboard: 'nav.dashboard',
+    home: 'nav.home',
     prediction: 'nav.prediction',
     batch: 'nav.batch',
     topics: 'nav.topics',
@@ -32,17 +32,12 @@ export const i18nKeys = {
     upload: 'button.upload',
     search: 'button.search',
   },
-  dashboard: {
-    title: 'dashboard.title',
-    subtitle: 'dashboard.subtitle',
-    totalComments: 'dashboard.totalComments',
-    currentModel: 'dashboard.currentModel',
-    accuracy: 'dashboard.accuracy',
-    macroF1: 'dashboard.macroF1',
-    weightedF1: 'dashboard.weightedF1',
-    trainingDate: 'dashboard.trainingDate',
-    quickAnalysis: 'dashboard.quickAnalysis',
-    batchProcessing: 'dashboard.batchProcessing',
+  home: {
+    title: 'home.title',
+    subtitle: 'home.subtitle',
+    batchProcessing: 'home.batchProcessing',
+    heroDescription: 'home.heroDescription',
+    uploadCsvDescription: 'home.uploadCsvDescription',
   },
   prediction: {
     title: 'prediction.title',

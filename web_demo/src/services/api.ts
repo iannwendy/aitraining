@@ -170,11 +170,15 @@ export async function getHistory(
 ): Promise<HistoryListResponse> {
   return fetchJSON<HistoryListResponse>(
     `${API_BASE}/history?limit=${limit}&offset=${offset}`,
+    { headers: authHeaders() },
   );
 }
 
 export async function deleteHistoryEntry(id: string): Promise<void> {
-  await fetchJSON(`${API_BASE}/history/${id}`, { method: 'DELETE' });
+  await fetchJSON(`${API_BASE}/history/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
 }
 
 // ── Model Refresh (Hot-reload) ─────────────────────────────────────────────

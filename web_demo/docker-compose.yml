@@ -8,7 +8,8 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -17,16 +18,24 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8001:8000"
     volumes:
       - ./backend:/app
-      - ../models:/app/models             # Trained model weights
-      - ../data:/app/data                 # CSV datasets (gold_review, final_dataset, etc.)
-      - ../data_unified:/app/data_unified  # VSMEC cross-domain test
-      - ./backend/data:/app/backend/data  # SQLite database
+      - ../models:/app/models
+      - ../data:/app/data
+      - ../data_unified:/app/data_unified
+      - ./backend/data:/app/backend/data
+    env_file:
+      - .env
     environment:
-      - PHOBERT_DEVICE=mps                # or cuda, cpu
+      - PHOBERT_DEVICE=cpu
       - HF_HUB_OFFLINE=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
     networks:
       - app-network
 
