@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
-# ── Stage 2: Runtime ───────────────────────────────────────────────────────────
+# ── Stage 2: Runtime ──────────────────────────────────────────────────────────
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -30,9 +30,14 @@ ENV PATH=/root/.local/bin:$PATH
 # Copy all backend source
 COPY . .
 
+# Make entrypoint executable
+RUN chmod +x /app/docker-entrypoint.sh
+
 # Create data directory for SQLite DB
 RUN mkdir -p /app/backend/data
 
 EXPOSE 8000
 
+# Start via entrypoint script to enforce JWT_SECRET_KEY
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

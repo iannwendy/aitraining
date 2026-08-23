@@ -1,6 +1,6 @@
 {
   "nav": {
-    "dashboard": "Dashboard",
+    "home": "Home",
     "prediction": "Text Analysis",
     "batch": "Batch Processing",
     "topics": "Topic Analysis",
@@ -32,17 +32,12 @@
     "upload": "Upload",
     "search": "Search"
   },
-  "dashboard": {
+  "home": {
     "title": "Mental Health AI",
     "subtitle": "Depression Detection Platform",
-    "totalComments": "Total Comments",
-    "currentModel": "Current Model",
-    "accuracy": "Accuracy",
-    "macroF1": "Macro F1",
-    "weightedF1": "Weighted F1",
-    "trainingDate": "Training Date",
-    "quickAnalysis": "Quick Analysis",
-    "batchProcessing": "Batch Processing"
+    "batchProcessing": "Batch Processing",
+    "heroDescription": "Advanced NLP system using PhoBERT + BERTopic for detecting signs of depression in Vietnamese social media texts",
+    "uploadCsvDescription": "Upload a CSV file to analyze multiple texts at once"
   },
   "prediction": {
     "title": "Text Analysis",

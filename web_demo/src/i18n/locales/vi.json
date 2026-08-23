@@ -1,6 +1,6 @@
 {
   "nav": {
-    "dashboard": "Trang chủ",
+    "home": "Trang chủ",
     "prediction": "Phân tích văn bản",
     "batch": "Xử lý hàng loạt",
     "topics": "Phân tích chủ đề",
@@ -32,17 +32,12 @@
     "upload": "Tải lên",
     "search": "Tìm kiếm"
   },
-  "dashboard": {
+  "home": {
     "title": "Mental Health AI",
     "subtitle": "Nền tảng phát hiện trầm cảm",
-    "totalComments": "Tổng bình luận",
-    "currentModel": "Mô hình hiện tại",
-    "accuracy": "Độ chính xác",
-    "macroF1": "Macro F1",
-    "weightedF1": "Weighted F1",
-    "trainingDate": "Ngày huấn luyện",
-    "quickAnalysis": "Phân tích nhanh",
-    "batchProcessing": "Xử lý hàng loạt"
+    "batchProcessing": "Xử lý hàng loạt",
+    "heroDescription": "Hệ thống NLP nâng cao sử dụng PhoBERT + BERTopic để phát hiện dấu hiệu trầm cảm trong văn bản mạng xã hội tiếng Việt",
+    "uploadCsvDescription": "Tải lên file CSV để phân tích nhiều văn bản cùng lúc"
   },
   "prediction": {
     "title": "Phân tích văn bản",

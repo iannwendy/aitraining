@@ -8,7 +8,7 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 
 # ML dependencies
-torch
+torch --index-url https://download.pytorch.org/whl/cpu
 transformers
 scikit-learn
 joblib
