@@ -64,6 +64,18 @@ models/round*_predictions/
 report_pdf/*.pdf
 
 # ============================================================
+# Local-only files
+# ============================================================
+
+# Deployment guide (local only)
+DEPLOY_VERCEL_RAILWAY.md
+
+# Thesis documents (local only)
+*.docx
+*.pdf
+!report_pdf/*.pdf  # Keep PDFs in report_pdf folder
+
+# ============================================================
 # Web demo
 # ============================================================
 web_demo/node_modules/
