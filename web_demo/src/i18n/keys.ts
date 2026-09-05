@@ -7,6 +7,16 @@ export const i18nKeys = {
     statistics: 'nav.statistics',
     history: 'nav.history',
     compare: 'nav.compare',
+    youtube: 'nav.youtube',
+    profile: 'nav.profile',
+    admin: 'nav.admin',
+  },
+  header: {
+    appTitle: 'header.appTitle',
+    appSubtitle: 'header.appSubtitle',
+    signIn: 'header.signIn',
+    logout: 'header.logout',
+    adminDashboard: 'header.adminDashboard',
   },
   common: {
     depression: 'common.depression',

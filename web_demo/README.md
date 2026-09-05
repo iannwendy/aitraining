@@ -1,116 +1,80 @@
-# Mental Health AI Platform
+# 🧠 Mental Health AI Platform
 
-Depression Detection System using PhoBERT + BERTopic for Vietnamese Social Media Texts
+Vietnamese Depression Detection via PhoBERT + BERTopic
 
-## Quick Start (Single Command)
+A web demo platform for detecting depression indicators in Vietnamese text using state-of-the-art NLP models.
 
-```bash
-cd web_demo
-make dev
-```
+## 🚀 Quick Deploy
 
-Hoặc với Docker:
+### Backend → Railway
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app)
 
-```bash
-cd web_demo
-make up
-```
+### Frontend → Vercel
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com)
 
-**Truy cập:** http://localhost:3000
+See [DEPLOY_VERCEL_RAILWAY.md](../DEPLOY_VERCEL_RAILWAY.md) for detailed deployment guide.
 
----
-
-## Available Commands
-
-| Command | Description |
-|---------|-------------|
-| `make dev` | Run in development mode (npm + python) |
-| `make up` | Run with Docker |
-| `make down` | Stop Docker containers |
-| `make build` | Build Docker images only |
-| `make logs` | View Docker logs |
-| `make clean` | Stop and remove containers |
-
----
-
-## Development Without Makefile
-
-### Frontend
+## 🛠️ Local Development
 
 ```bash
+# Frontend
 cd web_demo
 npm install
 npm run dev
-# → http://localhost:3000
-```
 
-### Backend
-
-```bash
+# Backend (separate terminal)
 cd web_demo/backend
-python3 -m venv venv
-source venv/bin/activate
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-# → http://localhost:8000/docs
+JWT_SECRET_KEY="dev-secret-key" uvicorn main:app --reload
 ```
 
----
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 web_demo/
-├── Makefile                 # Single command deployment
-├── docker-compose.yml       # Docker configuration
-├── Dockerfile              # Frontend build
-├── frontend/               # React + TypeScript + TailwindCSS
-│   ├── src/
-│   │   ├── components/    # UI Components
-│   │   ├── pages/         # Page Components
-│   │   ├── data/          # Mock Data
-│   │   └── types/         # TypeScript Types
-│   └── Dockerfile
-├── backend/                # FastAPI Backend
-│   ├── main.py            # API Endpoints
-│   ├── requirements.txt
-│   └── Dockerfile
-├── nginx.conf             # Reverse proxy config
-└── README.md
+├── src/                    # React frontend
+│   ├── components/         # UI components
+│   ├── pages/             # Page components
+│   ├── services/          # API client
+│   └── contexts/          # React contexts
+├── backend/               # FastAPI backend
+│   ├── inference/         # ML inference engines
+│   ├── models/            # Trained models
+│   ├── data/              # SQLite database
+│   └── main.py            # API endpoints
+└── tests/                 # Test suites
 ```
 
-## Features
+## 🔑 Default Credentials
 
-1. **Dashboard** - System overview with metrics
-2. **Text Prediction** - Single text analysis
-3. **Batch Prediction** - CSV file upload
-4. **Topic Analysis** - BERTopic visualization
-5. **Statistics** - Charts and metrics
-6. **History** - Prediction history
-7. **Model Comparison** - Model performance
+| Username | Password |
+|----------|----------|
+| admin | admin123 |
 
-## Tech Stack
+## 📋 Features
 
-- **Frontend**: React 18, TypeScript, TailwindCSS, Recharts
-- **Backend**: FastAPI, Pydantic
-- **AI Models**: PhoBERT, BERTopic
-- **Proxy**: Nginx
-- **Container**: Docker
+- [x] Single text prediction
+- [x] Batch CSV upload
+- [x] YouTube video analysis
+- [x] Prediction history
+- [x] User authentication
+- [x] Admin dashboard
 
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/dashboard/stats` | Dashboard statistics |
-| POST | `/api/predict` | Single text prediction |
-| POST | `/api/predict/batch` | Batch prediction |
-| GET | `/api/topics` | Topic analysis |
-| GET | `/api/models/comparison` | Model comparison |
-
-## Stop Services
+## 🧪 Testing
 
 ```bash
-make down        # Docker
-# or
-pkill -f uvicorn && pkill -f vite   # Dev mode
+cd web_demo
+JWT_SECRET_KEY="dev-secret-key" pytest tests/ -v
 ```
+
+## 📚 Documentation
+
+- [Deployment Guide](../DEPLOY_VERCEL_RAILWAY.md)
+- [API Documentation](http://localhost:8001/docs)
+- [Model Training](../docs/)
+
+## 📄 License
+
+MIT

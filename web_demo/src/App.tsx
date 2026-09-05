@@ -11,6 +11,7 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Profile from '@/pages/Profile';
 import AdminDashboard from '@/pages/AdminDashboard';
+import YouTubeAnalysis from '@/pages/YouTubeAnalysis';
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
             <Route path="prediction" element={<Prediction />} />
             <Route path="batch" element={<BatchPrediction />} />
             <Route path="history" element={<History />} />
+            <Route path="youtube" element={<YouTubeAnalysis />} />
             <Route path="profile" element={<Profile />} />
             {/* Hidden routes */}
             <Route path="topics" element={<Navigate to="/" replace />} />

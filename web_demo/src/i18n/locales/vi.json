@@ -6,7 +6,17 @@
     "topics": "Phân tích chủ đề",
     "statistics": "Thống kê",
     "history": "Lịch sử",
-    "compare": "So sánh mô hình"
+    "compare": "So sánh mô hình",
+    "youtube": "YouTube",
+    "profile": "Hồ sơ",
+    "admin": "Quản trị"
+  },
+  "header": {
+    "appTitle": "Mental Health AI",
+    "appSubtitle": "Nền tảng phát hiện trầm cảm",
+    "signIn": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "adminDashboard": "Trang quản trị"
   },
   "common": {
     "depression": "Trầm cảm",

@@ -1,16 +1,18 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Brain, LayoutDashboard, MessageSquare, Upload, History, User, LogOut, Shield, Menu, X } from 'lucide-react';
+import { Brain, LayoutDashboard, MessageSquare, Upload, History, User, LogOut, Shield, Menu, X, Youtube } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const navItems = [
-  { path: '/', label: 'Home', icon: LayoutDashboard },
-  { path: '/prediction', label: 'Prediction', icon: MessageSquare },
-  { path: '/batch', label: 'Batch', icon: Upload },
-  { path: '/history', label: 'History', icon: History },
-  { path: '/profile', label: 'Profile', icon: User },
+  { path: '/', labelKey: 'nav.home', icon: LayoutDashboard },
+  { path: '/prediction', labelKey: 'nav.prediction', icon: MessageSquare },
+  { path: '/batch', labelKey: 'nav.batch', icon: Upload },
+  { path: '/youtube', labelKey: 'nav.youtube', icon: Youtube },
+  { path: '/history', labelKey: 'nav.history', icon: History },
+  { path: '/profile', labelKey: 'nav.profile', icon: User },
   // Hidden: Topics, Statistics, Compare (uncomment to enable)
   // { path: '/topics', label: 'Topics', icon: Network },
   // { path: '/statistics', label: 'Statistics', icon: BarChart3 },
@@ -18,12 +20,13 @@ const navItems = [
 ];
 
 const adminNavItems = [
-  { path: '/admin', label: 'Admin', icon: Shield },
+  { path: '/admin', labelKey: 'nav.admin', icon: Shield },
 ];
 
 export function Header() {
   const location = useLocation();
   const { user, isAdmin, isAuthenticated, logout } = useAuth();
+  const { t } = useTranslation();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -55,17 +58,17 @@ export function Header() {
             </div>
             <div className="hidden sm:block">
               <h1 className="font-display font-semibold text-dark text-lg leading-tight">
-                Mental Health AI
+                {t('header.appTitle')}
               </h1>
               <p className="text-xs text-muted -mt-0.5">
-                Depression Detection Platform
+                {t('header.appSubtitle')}
               </p>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map(({ path, label, icon: Icon }) => {
+            {navItems.map(({ path, labelKey, icon: Icon }) => {
               const isActive = location.pathname === path;
               return (
                 <Link
@@ -79,11 +82,11 @@ export function Header() {
                   )}
                 >
                   <Icon className="w-4 h-4" />
-                  <span>{label}</span>
+                  <span>{t(labelKey)}</span>
                 </Link>
               );
             })}
-            {isAdmin && adminNavItems.map(({ path, label, icon: Icon }) => {
+            {isAdmin && adminNavItems.map(({ path, labelKey, icon: Icon }) => {
               const isActive = location.pathname === path;
               return (
                 <Link
@@ -97,7 +100,7 @@ export function Header() {
                   )}
                 >
                   <Icon className="w-4 h-4" />
-                  <span>{label}</span>
+                  <span>{t(labelKey)}</span>
                 </Link>
               );
             })}
@@ -159,7 +162,7 @@ export function Header() {
                         className="flex items-center gap-3 px-4 py-2 text-sm text-muted hover:text-dark hover:bg-slate-50 transition-colors"
                       >
                         <User className="w-4 h-4" />
-                        Profile
+                        {t('nav.profile')}
                       </Link>
                       {isAdmin && (
                         <Link
@@ -168,7 +171,7 @@ export function Header() {
                           className="flex items-center gap-3 px-4 py-2 text-sm text-muted hover:text-dark hover:bg-slate-50 transition-colors"
                         >
                           <Shield className="w-4 h-4" />
-                          Admin Dashboard
+                          {t('header.adminDashboard')}
                         </Link>
                       )}
                     </div>
@@ -180,7 +183,7 @@ export function Header() {
                         className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
-                        Logout
+                        {t('header.logout')}
                       </button>
                     </div>
                   </div>
@@ -193,7 +196,7 @@ export function Header() {
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:bg-primary-light shadow-lg shadow-primary/25 transition-all duration-200"
               >
                 <User className="w-4 h-4" />
-                <span>Sign In</span>
+                <span>{t('header.signIn')}</span>
               </Link>
             )}
 
@@ -210,7 +213,7 @@ export function Header() {
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <nav className="md:hidden py-4 border-t border-slate-100">
-            {navItems.map(({ path, label, icon: Icon }) => {
+            {navItems.map(({ path, labelKey, icon: Icon }) => {
               const isActive = location.pathname === path;
               return (
                 <Link
@@ -225,11 +228,11 @@ export function Header() {
                   )}
                 >
                   <Icon className="w-4 h-4" />
-                  {label}
+                  {t(labelKey)}
                 </Link>
               );
             })}
-            {isAdmin && adminNavItems.map(({ path, label, icon: Icon }) => {
+            {isAdmin && adminNavItems.map(({ path, labelKey, icon: Icon }) => {
               const isActive = location.pathname === path;
               return (
                 <Link
@@ -244,7 +247,7 @@ export function Header() {
                   )}
                 >
                   <Icon className="w-4 h-4" />
-                  {label}
+                  {t(labelKey)}
                 </Link>
               );
             })}

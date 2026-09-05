@@ -65,13 +65,21 @@ export default function ModelComparison() {
   };
 
   // Scatter data for in-domain vs cross-domain plot
+  // Recharts Scatter uses data coordinates directly (not pixel coords)
   const scatterData = models.map((m) => ({
     name: m.name,
-    in_domain: Math.round(m.in_domain_f1 * 100),
-    cross_domain: Math.round(m.cross_domain_f1 * 100),
+    inDomainF1: m.in_domain_f1,
+    crossDomainF1: m.cross_domain_f1,
     isBestIn: m.name === bestInDomain?.name,
     isBestCross: m.name === bestCross?.name,
     type: m.model_type,
+    fill: m.name.includes('DAPT')
+      ? '#A855F7'
+      : m.name.includes('aug')
+      ? '#EC4899'
+      : m.name.includes('Best cross-domain')
+      ? '#F59E0B'
+      : '#0D9488',
   }));
 
   return (
@@ -193,27 +201,31 @@ export default function ModelComparison() {
             </p>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+                <ScatterChart margin={{ top: 10, right: 10, bottom: 50, left: 50 }}>
                   <XAxis
-                    dataKey="in_domain"
+                    dataKey="inDomainF1"
                     name="In-Domain F1"
                     type="number"
                     domain={[0.3, 1]}
                     tickFormatter={(v) => `${(v * 100).toFixed(0)}%`}
                     tick={{ fill: '#64748B', fontSize: 11 }}
-                    label={{ value: 'In-Domain F1', position: 'insideBottom', offset: -5, fill: '#64748B' }}
+                    label={{ value: 'In-Domain F1', position: 'insideBottom', offset: -10, fill: '#64748B', fontSize: 12 }}
                   />
                   <YAxis
-                    dataKey="cross_domain"
+                    dataKey="crossDomainF1"
                     name="Cross-Domain F1"
                     type="number"
                     domain={[0.2, 0.6]}
                     tickFormatter={(v) => `${(v * 100).toFixed(0)}%`}
                     tick={{ fill: '#64748B', fontSize: 11 }}
-                    label={{ value: 'Cross-Domain F1 (VSMEC)', angle: -90, position: 'insideLeft', fill: '#64748B' }}
+                    label={{ value: 'Cross-Domain F1 (VSMEC)', angle: -90, position: 'insideLeft', fill: '#64748B', fontSize: 12 }}
                   />
                   <Tooltip
-                    formatter={(value: number, name: string) => [`${(value / 100).toFixed(1)}%`, name]}
+                    formatter={(value: number, name: string) => {
+                      const label = name === 'In-Domain F1' ? 'In-Domain' : 'Cross-Domain';
+                      return [`${(value * 100).toFixed(1)}%`, label];
+                    }}
+                    labelFormatter={(label) => label}
                     contentStyle={{
                       backgroundColor: 'white',
                       border: '1px solid #e2e8f0',
@@ -222,25 +234,16 @@ export default function ModelComparison() {
                   />
                   <Scatter
                     data={scatterData}
-                    fill="#0D9488"
+                    dataKey="inDomainF1"
                   >
                     {scatterData.map((entry, index) => (
-                      <rect
+                      <circle
                         key={index}
-                        x={entry.in_domain * 100 - 5}
-                        y={entry.cross_domain * 100 - 5}
-                        width={10}
-                        height={10}
-                        fill={
-                          entry.isBestCross
-                            ? '#F59E0B'
-                            : entry.name.includes('DAPT')
-                            ? '#A855F7'
-                            : entry.name.includes('aug')
-                            ? '#EC4899'
-                            : '#0D9488'
-                        }
-                        rx={2}
+                        cx={0}
+                        cy={0}
+                        r={entry.isBestIn || entry.isBestCross ? 8 : 6}
+                        fill={entry.fill}
+                        fillOpacity={0.85}
                       />
                     ))}
                   </Scatter>

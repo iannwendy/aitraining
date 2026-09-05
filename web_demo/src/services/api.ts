@@ -13,7 +13,10 @@ import {
   AdminStats,
 } from '@/types';
 
-const API_BASE = '/api';
+// API Configuration - supports both local and production URLs
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
 
 // API Configuration
 const API_TIMEOUT = 30000; // 30 seconds timeout

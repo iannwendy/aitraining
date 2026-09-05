@@ -150,6 +150,39 @@ class RefreshStatusResponse(BaseModel):
     round: Optional[str | int]
 
 
+# ── YouTube Integration Pydantic Models ────────────────────────────────────────
+
+class YouTubeFetchRequest(BaseModel):
+    url: str = Field(..., min_length=1, max_length=200, description="YouTube video URL")
+    max_comments: int = Field(default=100, ge=1, le=500, description="Max comments to fetch (1-500)")
+
+
+class VideoMetadataResponse(BaseModel):
+    video_id: str
+    title: str
+    channel: str
+    view_count: int
+    like_count: int
+    comment_count: int
+    thumbnail_url: str
+    published_at: str
+
+
+class YouTubeCommentResponse(BaseModel):
+    comment_id: str
+    text: str
+    author: str
+    like_count: int
+    published_at: str
+
+
+class YouTubeFetchResponse(BaseModel):
+    metadata: VideoMetadataResponse
+    comments: list[YouTubeCommentResponse]
+    total_comments: int
+    analysis_summary: dict  # aggregated prediction results
+
+
 # ── Auth Pydantic Models ───────────────────────────────────────────────────────
 
 class UserCreate(BaseModel):
@@ -713,8 +746,140 @@ async def refresh_models():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ── YouTube Integration ────────────────────────────────────────────────────────
+
+@app.post("/api/youtube/fetch", response_model=YouTubeFetchResponse)
+async def fetch_youtube_video(
+    request: YouTubeFetchRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Fetch YouTube video metadata and comments, then analyze with PhoBERT."""
+    try:
+        from inference.youtube_engine import get_fetcher, extract_video_id
+
+        # Extract video ID from URL
+        video_id = extract_video_id(request.url)
+        if not video_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid YouTube URL. Please provide a valid YouTube video URL."
+            )
+
+        # Fetch video metadata and comments
+        fetcher = get_fetcher()
+        metadata = fetcher.get_video_metadata(video_id)
+        comments = fetcher.get_comments(video_id, max_comments=request.max_comments)
+
+        if not comments:
+            raise HTTPException(
+                status_code=404,
+                detail="No comments found for this video. The video may have comments disabled."
+            )
+
+        # Analyze comments with PhoBERT
+        from inference.phobert_engine import get_engine
+
+        phobert = get_engine()
+        comment_texts = [c.text for c in comments]
+        predictions = phobert.predict_batch(comment_texts)
+
+        # Aggregate predictions
+        depression_count = sum(1 for p in predictions if p["prediction"] == "depression")
+        normal_count = len(predictions) - depression_count
+        avg_confidence = sum(p["confidence"] for p in predictions) / len(predictions)
+
+        # Risk assessment
+        depression_rate = depression_count / len(predictions) if predictions else 0
+        if depression_rate >= 0.3:
+            overall_risk = "high"
+        elif depression_rate >= 0.15:
+            overall_risk = "medium"
+        else:
+            overall_risk = "low"
+
+        # Get topic distribution
+        topic_engine = None
+        topic_counts = {}
+        try:
+            from inference.bertopic_engine import get_engine as get_topic_engine
+            topic_engine = get_topic_engine()
+            topics = topic_engine.predict_topics(comment_texts)
+            for t in topics:
+                topic_name = t.get("topic_name") or "unknown"
+                topic_counts[topic_name] = topic_counts.get(topic_name, 0) + 1
+        except Exception:
+            pass
+
+        # Build analysis summary
+        analysis_summary = {
+            "total_comments": len(comments),
+            "analyzed_comments": len(predictions),
+            "depression_count": depression_count,
+            "normal_count": normal_count,
+            "depression_rate": round(depression_rate, 4),
+            "avg_confidence": round(avg_confidence, 4),
+            "overall_risk": overall_risk,
+            "topic_distribution": dict(sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)[:10]),
+            "high_risk_comments": [
+                {
+                    "text": comments[i].text[:200] + "..." if len(comments[i].text) > 200 else comments[i].text,
+                    "confidence": p["confidence"],
+                    "risk_level": p["risk_level"],
+                }
+                for i, p in enumerate(predictions)
+                if p["risk_level"] == "high"
+            ][:5],  # Top 5 high-risk comments
+        }
+
+        return YouTubeFetchResponse(
+            metadata=VideoMetadataResponse(**vars(metadata)),
+            comments=[
+                YouTubeCommentResponse(
+                    comment_id=c.comment_id,
+                    text=c.text,
+                    author=c.author,
+                    like_count=c.like_count,
+                    published_at=c.published_at,
+                )
+                for c in comments
+            ],
+            total_comments=len(comments),
+            analysis_summary=analysis_summary,
+        )
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        logger.error("YouTube fetch validation error: %s", e)
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("YouTube fetch failed: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch YouTube data: {str(e)}")
+
+
+@app.get("/api/youtube/validate")
+async def validate_youtube_url(
+    url: str = Query(..., min_length=1),
+    current_user: dict = Depends(get_current_user),
+):
+    """Validate a YouTube URL and extract video ID."""
+    from inference.youtube_engine import extract_video_id
+
+    video_id = extract_video_id(url)
+    if not video_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid YouTube URL. Please provide a valid YouTube video URL."
+        )
+
+    return {"valid": True, "video_id": video_id}
+
+
 # ── Run ────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import os
+    # Railway sets $PORT environment variable
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

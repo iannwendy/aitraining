@@ -1,43 +1,26 @@
-# ── Stage 1: Build dependencies ────────────────────────────────────────────────
-FROM python:3.11-slim AS builder
-
-WORKDIR /app
-
-# Install build deps for ML packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
-
-# ── Stage 2: Runtime ──────────────────────────────────────────────────────────
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install runtime deps
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgomp1 \
-    libsndfile1 \
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy installed packages from builder
-COPY --from=builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH
+# Copy requirements first for better caching
+COPY requirements.txt .
 
-# Copy all backend source
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
 COPY . .
 
-# Make entrypoint executable
-RUN chmod +x /app/docker-entrypoint.sh
+# Create data directory
+RUN mkdir -p /app/data
 
-# Create data directory for SQLite DB
-RUN mkdir -p /app/backend/data
+# Expose port (Railway sets PORT env variable)
+EXPOSE 8080
 
-EXPOSE 8000
-
-# Start via entrypoint script to enforce JWT_SECRET_KEY
-ENTRYPOINT ["./docker-entrypoint.sh"]
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]

@@ -6,7 +6,17 @@
     "topics": "Topic Analysis",
     "statistics": "Statistics",
     "history": "History",
-    "compare": "Model Comparison"
+    "compare": "Model Comparison",
+    "youtube": "YouTube",
+    "profile": "Profile",
+    "admin": "Admin"
+  },
+  "header": {
+    "appTitle": "Mental Health AI",
+    "appSubtitle": "Depression Detection Platform",
+    "signIn": "Sign In",
+    "logout": "Logout",
+    "adminDashboard": "Admin Dashboard"
   },
   "common": {
     "depression": "Major Depressive Disorder",
