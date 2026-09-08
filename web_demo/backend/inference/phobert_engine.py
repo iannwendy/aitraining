@@ -5,6 +5,7 @@ Loads the Round 6 v2 fine-tuned PhoBERT model and provides batch inference.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import re
@@ -72,6 +73,7 @@ class PhoBertEngine:
         # Set HOME to /tmp to avoid transformers cache issues
         os.environ["HOME"] = "/tmp"
 
+        # Load tokenizer using transformers
         logger.info("Loading PhoBERT tokenizer from %s", PHOBERT_TOKENIZER_DIR)
         self.tokenizer = AutoTokenizer.from_pretrained(
             str(PHOBERT_TOKENIZER_DIR),
@@ -79,11 +81,21 @@ class PhoBertEngine:
             use_fast=False,
         )
 
+        # Load model config
+        config_path = PHOBERT_MODEL_DIR / "config.json"
+        with open(config_path) as f:
+            model_config = json.load(f)
+
+        # Load model using from_config + state_dict
         logger.info("Loading PhoBERT model from %s", PHOBERT_MODEL_DIR)
-        self.model = AutoModelForSequenceClassification.from_pretrained(
-            str(PHOBERT_MODEL_DIR),
-            local_files_only=True,
-        )
+        self.model = AutoModelForSequenceClassification.from_config(model_config)
+
+        # Load state dict
+        safetensors_path = PHOBERT_MODEL_DIR / "model.safetensors"
+        from safetensors.torch import load_file
+        state_dict = load_file(str(safetensors_path))
+        self.model.load_state_dict(state_dict, strict=False)
+
         self.model.to(self.device)
         self.model.eval()
         logger.info("PhoBERT model loaded successfully")
@@ -162,7 +174,7 @@ def _normalize_text(text: str) -> str:
     # Lowercase
     text = text.lower().strip()
     # Normalize unicode
-    text = text.replace("‘", "'").replace("’", "'")
+    text = text.replace("'", "'").replace("'", "'")
     text = text.replace(""", '"').replace(""", '"')
     # Collapse whitespace
     text = re.sub(r"\s+", " ", text)
