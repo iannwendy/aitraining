@@ -67,12 +67,17 @@ class PhoBertEngine:
 
         logger.info("Loading PhoBERT tokenizer from %s", PHOBERT_TOKENIZER_DIR)
         self.tokenizer = AutoTokenizer.from_pretrained(
-            str(PHOBERT_TOKENIZER_DIR), use_fast=False
+            str(PHOBERT_TOKENIZER_DIR),
+            local_files_only=True,
+            use_fast=False,
+            trust_repo_code=True
         )
 
         logger.info("Loading PhoBERT model from %s", PHOBERT_MODEL_DIR)
         self.model = AutoModelForSequenceClassification.from_pretrained(
-            str(PHOBERT_MODEL_DIR)
+            str(PHOBERT_MODEL_DIR),
+            local_files_only=True,
+            trust_repo_code=True
         )
         self.model.to(self.device)
         self.model.eval()
