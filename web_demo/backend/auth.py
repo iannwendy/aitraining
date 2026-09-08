@@ -16,7 +16,7 @@ ACCESS_TOKEN_EXPIRE_HOURS = 24
 if not SECRET_KEY:
     raise RuntimeError("JWT_SECRET_KEY environment variable must be set")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 
