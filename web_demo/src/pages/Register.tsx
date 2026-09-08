@@ -58,7 +58,7 @@ export default function Register() {
             <Brain className="w-8 h-8 text-white" />
           </div>
           <h1 className="font-display text-3xl font-bold text-dark mb-2">
-            Mental Health AI
+            MindGuard
           </h1>
           <p className="text-muted">
             Create your account

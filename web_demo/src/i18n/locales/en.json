@@ -12,8 +12,8 @@
     "admin": "Admin"
   },
   "header": {
-    "appTitle": "Mental Health AI",
-    "appSubtitle": "Depression Detection Platform",
+    "appTitle": "MindGuard",
+    "appSubtitle": "Depression Risk Detection",
     "signIn": "Sign In",
     "logout": "Logout",
     "adminDashboard": "Admin Dashboard"
@@ -43,8 +43,8 @@
     "search": "Search"
   },
   "home": {
-    "title": "Mental Health AI",
-    "subtitle": "Depression Detection Platform",
+    "title": "MindGuard",
+    "subtitle": "Depression Risk Detection",
     "batchProcessing": "Batch Processing",
     "heroDescription": "Advanced NLP system using PhoBERT + BERTopic for detecting signs of depression in Vietnamese social media texts",
     "uploadCsvDescription": "Upload a CSV file to analyze multiple texts at once"

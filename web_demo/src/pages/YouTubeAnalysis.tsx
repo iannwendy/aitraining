@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { AlertCircle, Play, ExternalLink, ThumbsUp, Eye, MessageSquare, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
@@ -48,7 +47,6 @@ interface YouTubeFetchResponse {
 }
 
 export default function YouTubeAnalysis() {
-  const { t } = useTranslation();
   const [url, setUrl] = useState('');
   const [maxComments, setMaxComments] = useState(100);
   const [isLoading, setIsLoading] = useState(false);

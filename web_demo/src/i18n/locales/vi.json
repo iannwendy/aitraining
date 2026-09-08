@@ -12,8 +12,8 @@
     "admin": "Quản trị"
   },
   "header": {
-    "appTitle": "Mental Health AI",
-    "appSubtitle": "Nền tảng phát hiện trầm cảm",
+    "appTitle": "MindGuard",
+    "appSubtitle": "Phát hiện nguy cơ trầm cảm",
     "signIn": "Đăng nhập",
     "logout": "Đăng xuất",
     "adminDashboard": "Trang quản trị"
@@ -43,8 +43,8 @@
     "search": "Tìm kiếm"
   },
   "home": {
-    "title": "Mental Health AI",
-    "subtitle": "Nền tảng phát hiện trầm cảm",
+    "title": "MindGuard",
+    "subtitle": "Phát hiện nguy cơ trầm cảm",
     "batchProcessing": "Xử lý hàng loạt",
     "heroDescription": "Hệ thống NLP nâng cao sử dụng PhoBERT + BERTopic để phát hiện dấu hiệu trầm cảm trong văn bản mạng xã hội tiếng Việt",
     "uploadCsvDescription": "Tải lên file CSV để phân tích nhiều văn bản cùng lúc"

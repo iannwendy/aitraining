@@ -5,6 +5,10 @@
       <stop offset="100%" style="stop-color:#14B8A6;stop-opacity:1" />
     </linearGradient>
   </defs>
-  <circle cx="50" cy="50" r="45" fill="url(#grad)"/>
-  <path d="M50 25 C35 25, 25 40, 25 50 C25 65, 35 75, 50 75 C55 75, 60 73, 64 70 L64 55 L58 55 L58 68 C54 70, 52 70, 50 70 C40 70, 32 62, 32 50 C32 42, 38 35, 50 35 C55 35, 58 37, 60 40 L64 36 C60 31, 55 25, 50 25 Z" fill="white"/>
+  <!-- Shield shape -->
+  <path d="M50 10 L85 25 L85 50 C85 70, 70 85, 50 95 C30 85, 15 70, 15 50 L15 25 Z" fill="url(#grad)"/>
+  <!-- Inner shield highlight -->
+  <path d="M50 20 L75 30 L75 48 C75 63, 65 75, 50 82 C35 75, 25 63, 25 48 L25 30 Z" fill="rgba(255,255,255,0.2)"/>
+  <!-- M letter for MindGuard -->
+  <path d="M35 70 L35 42 L42.5 55 L50 42 L50 70 M50 70 L50 42 L57.5 55 L65 42 L65 70" fill="white" stroke="white" stroke-width="2" stroke-linejoin="round"/>
 </svg>
