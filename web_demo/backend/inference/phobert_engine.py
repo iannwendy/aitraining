@@ -20,6 +20,10 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 for _var in ["http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "all_proxy"]:
     os.environ.pop(_var, None)
 
+# Force offline mode for local models
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
 # ── Paths ─────────────────────────────────────────────────────────────────────
 # Backend code is in /app/ (copied from web_demo/backend/)
 # Models are mounted at /app/models/
