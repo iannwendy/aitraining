@@ -74,16 +74,17 @@ class YouTubeFetcher:
             )
         self.api_key = api_key
         self.base_url = "https://www.googleapis.com/youtube/v3"
+        # Reuse httpx client for connection pooling
+        self._client = httpx.Client(timeout=30.0)
 
     def _make_request(self, endpoint: str, params: dict) -> dict:
         """Make authenticated request to YouTube API."""
         params["key"] = self.api_key
         url = f"{self.base_url}/{endpoint}"
 
-        with httpx.Client(timeout=30.0) as client:
-            response = client.get(url, params=params)
-            response.raise_for_status()
-            return response.json()
+        response = self._client.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
 
     def get_video_metadata(self, video_id: str) -> VideoMetadata:
         """Fetch video metadata."""

@@ -25,7 +25,7 @@ for _var in ["http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROX
 # Fine-tuned model on HuggingFace Hub
 HF_REPO_ID = "iannwendy/depression-phobert-round6v2-seed42"
 MAX_LENGTH = 128
-BATCH_SIZE = 16
+BATCH_SIZE = 64  # Increased from 16 for better throughput
 
 LABEL_MAP = {0: "normal", 1: "depression"}
 logger = logging.getLogger(__name__)

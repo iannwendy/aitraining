@@ -246,6 +246,23 @@ async def startup_event():
     except Exception as e:
         logger.warning("PhoBERT engine warmup failed: %s", e)
 
+    # Pre-warm BERTopic engine (load topic model on startup)
+    try:
+        from inference.bertopic_engine import get_engine as get_topic_engine
+        topic_engine = get_topic_engine()
+        logger.info("BERTopic engine warmed up")
+    except Exception as e:
+        logger.warning("BERTopic engine warmup failed: %s", e)
+
+    # Pre-cache metrics (load all metrics on startup for faster first request)
+    try:
+        from inference.metrics_loader import load_all_metrics, load_dashboard_stats
+        metrics = load_all_metrics()
+        dashboard = load_dashboard_stats()
+        logger.info("Metrics pre-cached: %d models loaded", len(metrics))
+    except Exception as e:
+        logger.warning("Metrics cache warmup failed: %s", e)
+
     logger.info("Startup complete")
 
 

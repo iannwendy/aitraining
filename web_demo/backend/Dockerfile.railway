@@ -14,6 +14,10 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PORT=8080
 
+# HuggingFace optimizations for faster model loading
+ENV HF_HUB_ENABLE_HF_TRANSFER=1
+ENV HF_HUB_DISABLE_SYMLINKS=1
+
 # Copy requirements first for better caching
 COPY requirements.txt .
 
@@ -33,5 +37,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # Expose port
 EXPOSE ${PORT}
 
-# Run with uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${PORT}"]
+# Run with uvicorn (2 workers for better concurrency on Railway)
+# Railway ephemeral storage needs --forwarded-allow-ips=*
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${PORT}", "--workers", "2", "--forwarded-allow-ips", "*"]

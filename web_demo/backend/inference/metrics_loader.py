@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import json
 import logging
+import time
+from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
@@ -417,10 +419,33 @@ def _load_round6_v2() -> list[dict]:
     return results
 
 
+# ── Cache with TTL ────────────────────────────────────────────────────────────
+
+_metrics_cache: Optional[list[dict]] = None
+_dashboard_cache: Optional[dict] = None
+_cache_timestamp: float = 0
+CACHE_TTL_SECONDS: float = 300  # 5 minutes
+
+
+def _is_cache_valid() -> bool:
+    global _cache_timestamp
+    return (_metrics_cache is not None) and (time.time() - _cache_timestamp < CACHE_TTL_SECONDS)
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
-def load_all_metrics() -> list[dict]:
-    """Load all model comparison metrics for the web demo."""
+def load_all_metrics(force_refresh: bool = False) -> list[dict]:
+    """Load all model comparison metrics for the web demo.
+
+    Results are cached for 5 minutes to avoid repeated disk I/O.
+    Set force_refresh=True to bypass cache (e.g., after model update).
+    """
+    global _metrics_cache, _cache_timestamp
+
+    if not force_refresh and _is_cache_valid():
+        logger.debug("Returning cached metrics (%d models)", len(_metrics_cache))
+        return _metrics_cache
+
     results: list[dict] = []
 
     # Baseline
@@ -455,23 +480,51 @@ def load_all_metrics() -> list[dict]:
                 results.append(entry)
                 existing_names.add(entry["name"])
 
-    logger.info("Loaded metrics for %d models", len(results))
+    # Cache the results
+    _metrics_cache = results
+    _cache_timestamp = time.time()
+
+    logger.info("Loaded and cached metrics for %d models", len(results))
     return results
 
 
-def load_dashboard_stats() -> dict:
-    """Load dashboard statistics from CSV files and registry."""
+def load_dashboard_stats(force_refresh: bool = False) -> dict:
+    """Load dashboard statistics from CSV files and registry.
+
+    Results are cached for 5 minutes.
+    """
+    global _dashboard_cache, _cache_timestamp
+
+    if not force_refresh and _dashboard_cache is not None and _is_cache_valid():
+        logger.debug("Returning cached dashboard stats")
+        return _dashboard_cache
+
     from .registry import ResultsRegistry
 
     try:
         reg = ResultsRegistry.get()
         if reg.data.get("latest"):
-            return _build_stats_from_registry(reg)
+            stats = _build_stats_from_registry(reg)
+            _dashboard_cache = stats
+            _cache_timestamp = time.time()
+            return stats
     except Exception:
         pass
 
     # Fallback: count rows directly
-    return _build_stats_from_files()
+    stats = _build_stats_from_files()
+    _dashboard_cache = stats
+    _cache_timestamp = time.time()
+    return stats
+
+
+def clear_metrics_cache() -> None:
+    """Clear the metrics cache (call after model refresh)."""
+    global _metrics_cache, _dashboard_cache, _cache_timestamp
+    _metrics_cache = None
+    _dashboard_cache = None
+    _cache_timestamp = 0
+    logger.info("Metrics cache cleared")
 
 
 def _build_stats_from_registry(reg: "ResultsRegistry") -> dict:
