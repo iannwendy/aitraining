@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# HuggingFace optimizations for faster model loading
-ENV HF_HUB_ENABLE_HF_TRANSFER=1
+# HuggingFace optimizations (disabled - hf_transfer not installed)
+# ENV HF_HUB_ENABLE_HF_TRANSFER=1
 ENV HF_HUB_DISABLE_SYMLINKS=1
 
 # Copy requirements first for better caching
