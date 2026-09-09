@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Upload, Download, FileText, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Upload, Download, FileText, AlertTriangle, CheckCircle, X, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { batchPredict } from '@/services/api';
 import { PredictionResult } from '@/types';
@@ -17,7 +17,42 @@ export default function BatchPrediction() {
   const [results, setResults] = useState<PredictionResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedResult, setSelectedResult] = useState<PredictionResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedResult(null);
+    };
+    if (selectedResult) {
+      document.addEventListener('keydown', handleEscape);
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [selectedResult]);
+
+  const getRiskLevel = (result: PredictionResult): 'high' | 'medium' | 'low' => {
+    if (result.prediction === 'depression') {
+      if (result.confidence >= 0.9) return 'high';
+      if (result.confidence >= 0.7) return 'medium';
+      return 'low';
+    }
+    return 'low';
+  };
+
+  const getRiskBadge = (risk: 'high' | 'medium' | 'low') => {
+    const config = {
+      high: { label: '⚠️ Cao', className: 'bg-red-100 text-red-700 border-red-300' },
+      medium: { label: '⚡ Trung bình', className: 'bg-amber-100 text-amber-700 border-amber-300' },
+      low: { label: '✅ Thấp', className: 'bg-green-100 text-green-700 border-green-300' },
+    } as const;
+    return config[risk];
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -297,60 +332,218 @@ Video hay quá.
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((result, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
-                    >
-                      <td className="py-4 px-4 text-dark max-w-md truncate">
-                        {result.text}
-                      </td>
-                      <td className="py-4 px-4">
-                        <span
-                          className={cn(
-                            'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium',
-                            result.prediction === 'depression'
-                              ? 'bg-depression/10 text-depression'
-                              : 'bg-normal/10 text-normal',
-                          )}
-                        >
-                          {result.prediction === 'depression' ? (
-                            <AlertTriangle className="w-4 h-4" />
-                          ) : (
-                            <CheckCircle className="w-4 h-4" />
-                          )}
-                          {result.prediction.charAt(0).toUpperCase() +
-                            result.prediction.slice(1)}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div
-                              className={cn(
-                                'h-full rounded-full',
-                                result.prediction === 'depression'
-                                  ? 'bg-depression'
-                                  : 'bg-normal',
-                              )}
-                              style={{ width: `${result.confidence * 100}%` }}
-                            />
-                          </div>
-                          <span className="font-mono text-sm text-muted">
-                            {(result.confidence * 100).toFixed(0)}%
+                  {results.map((result, index) => {
+                    const risk = getRiskLevel(result);
+                    const riskBadge = getRiskBadge(risk);
+                    return (
+                      <tr
+                        key={index}
+                        onClick={() => setSelectedResult(result)}
+                        className={cn(
+                          'border-b border-slate-100 transition-colors cursor-pointer',
+                          'hover:bg-slate-50',
+                          risk === 'high' && 'bg-red-50/40 hover:bg-red-50',
+                          risk === 'medium' && 'bg-amber-50/30 hover:bg-amber-50'
+                        )}
+                      >
+                        <td className="py-4 px-4 text-dark max-w-md">
+                          <div className="line-clamp-2">{result.text}</div>
+                          <span className="text-xs text-primary mt-1 inline-block">
+                            Click để xem đầy đủ →
                           </span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-sm text-muted">
-                        {result.topic || '—'}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex flex-col gap-1 items-start">
+                            <span
+                              className={cn(
+                                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium',
+                                result.prediction === 'depression'
+                                  ? 'bg-depression/10 text-depression'
+                                  : 'bg-normal/10 text-normal',
+                              )}
+                            >
+                              {result.prediction === 'depression' ? (
+                                <AlertTriangle className="w-4 h-4" />
+                              ) : (
+                                <CheckCircle className="w-4 h-4" />
+                              )}
+                              {result.prediction.charAt(0).toUpperCase() +
+                                result.prediction.slice(1)}
+                            </span>
+                            <span
+                              className={cn(
+                                'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border',
+                                riskBadge.className
+                              )}
+                            >
+                              <Activity className="w-3 h-3" />
+                              {riskBadge.label}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div
+                                className={cn(
+                                  'h-full rounded-full',
+                                  result.prediction === 'depression'
+                                    ? 'bg-depression'
+                                    : 'bg-normal',
+                                )}
+                                style={{ width: `${result.confidence * 100}%` }}
+                              />
+                            </div>
+                            <span className="font-mono text-sm text-muted">
+                              {(result.confidence * 100).toFixed(0)}%
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-sm text-muted">
+                          {result.topic || '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Full Comment Modal */}
+      {selectedResult && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-fade-in"
+          onClick={() => setSelectedResult(null)}
+        >
+          <div
+            className={cn(
+              'bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden animate-slide-up',
+              getRiskLevel(selectedResult) === 'high' && 'border-t-4 border-red-500',
+              getRiskLevel(selectedResult) === 'medium' && 'border-t-4 border-amber-500',
+              getRiskLevel(selectedResult) === 'low' && 'border-t-4 border-green-500',
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-slate-200">
+              <div className="flex items-center gap-3">
+                <h3 className="font-display text-lg font-semibold text-dark">
+                  Chi tiết bình luận
+                </h3>
+                {(() => {
+                  const risk = getRiskLevel(selectedResult);
+                  const badge = getRiskBadge(risk);
+                  return (
+                    <span
+                      className={cn(
+                        'inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border',
+                        badge.className
+                      )}
+                    >
+                      <Activity className="w-3 h-3" />
+                      Mức độ: {badge.label}
+                    </span>
+                  );
+                })()}
+              </div>
+              <button
+                onClick={() => setSelectedResult(null)}
+                className="p-2 rounded-lg hover:bg-slate-100 transition"
+                aria-label="Đóng"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+              {/* Full text */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-muted mb-2">
+                  Nội dung đầy đủ
+                </label>
+                <div
+                  className={cn(
+                    'p-4 rounded-xl border-2 text-dark leading-relaxed whitespace-pre-wrap break-words',
+                    getRiskLevel(selectedResult) === 'high' && 'bg-red-50 border-red-200',
+                    getRiskLevel(selectedResult) === 'medium' && 'bg-amber-50 border-amber-200',
+                    getRiskLevel(selectedResult) === 'low' && 'bg-green-50 border-green-200',
+                  )}
+                >
+                  {selectedResult.text}
+                </div>
+                <div className="flex items-center gap-4 mt-2 text-xs text-muted">
+                  <span>{selectedResult.text.length} ký tự</span>
+                  <span>{selectedResult.text.split(/\s+/).filter(Boolean).length} từ</span>
+                </div>
+              </div>
+
+              {/* Prediction details */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="p-4 bg-slate-50 rounded-xl">
+                  <p className="text-xs text-muted uppercase mb-1">Dự đoán</p>
+                  <p
+                    className={cn(
+                      'font-semibold text-lg',
+                      selectedResult.prediction === 'depression' ? 'text-red-600' : 'text-green-600'
+                    )}
+                  >
+                    {selectedResult.prediction === 'depression' ? '⚠️ Trầm cảm' : '✅ Bình thường'}
+                  </p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-xl">
+                  <p className="text-xs text-muted uppercase mb-1">Độ tin cậy</p>
+                  <p className="font-semibold text-lg font-mono">
+                    {(selectedResult.confidence * 100).toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+
+              {/* Confidence bar */}
+              <div className="mb-6">
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-muted">Mức độ tự tin của mô hình</span>
+                  <span className="font-mono">{(selectedResult.confidence * 100).toFixed(1)}%</span>
+                </div>
+                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className={cn(
+                      'h-full rounded-full transition-all duration-700',
+                      selectedResult.prediction === 'depression' ? 'bg-red-500' : 'bg-green-500'
+                    )}
+                    style={{ width: `${selectedResult.confidence * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Topic */}
+              {selectedResult.topic && (
+                <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl">
+                  <p className="text-xs text-muted uppercase mb-1">Chủ đề</p>
+                  <p className="font-medium text-dark">{selectedResult.topic}</p>
+                </div>
+              )}
+
+              {/* Explanation if available */}
+              {selectedResult.explanation && (
+                <div className="mt-4 p-4 bg-slate-50 rounded-xl">
+                  <p className="text-xs text-muted uppercase mb-1">Giải thích</p>
+                  <p className="text-sm text-dark">{selectedResult.explanation}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-3 p-4 border-t border-slate-200 bg-slate-50">
+              <Button variant="outline" onClick={() => setSelectedResult(null)}>
+                Đóng
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
       </div>
     </ErrorBoundary>
