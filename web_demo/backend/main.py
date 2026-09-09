@@ -180,6 +180,10 @@ class YouTubeCommentResponse(BaseModel):
     author: str
     like_count: int
     published_at: str
+    prediction: Optional[str] = None  # "depression" | "normal"
+    confidence: Optional[float] = None
+    risk_level: Optional[str] = None  # "low" | "medium" | "high"
+    prob_depression: Optional[float] = None
 
 
 class YouTubeFetchResponse(BaseModel):
@@ -863,8 +867,12 @@ async def fetch_youtube_video(
                     author=c.author,
                     like_count=c.like_count,
                     published_at=c.published_at,
+                    prediction=predictions[i].get("prediction") if i < len(predictions) else None,
+                    confidence=predictions[i].get("confidence") if i < len(predictions) else None,
+                    risk_level=predictions[i].get("risk_level") if i < len(predictions) else None,
+                    prob_depression=predictions[i].get("prob_depression") if i < len(predictions) else None,
                 )
-                for c in comments
+                for i, c in enumerate(comments)
             ],
             total_comments=len(comments),
             analysis_summary=analysis_summary,

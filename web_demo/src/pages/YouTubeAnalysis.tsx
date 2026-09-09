@@ -1,7 +1,23 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { AlertCircle, Play, ExternalLink, ThumbsUp, Eye, MessageSquare, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
+import {
+  AlertCircle,
+  Play,
+  ExternalLink,
+  ThumbsUp,
+  Eye,
+  MessageSquare,
+  AlertTriangle,
+  CheckCircle,
+  TrendingUp,
+  Search,
+  ChevronUp,
+  ChevronDown,
+  Calendar,
+  Heart,
+  Activity,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface VideoMetadata {
@@ -21,6 +37,10 @@ interface Comment {
   author: string;
   like_count: number;
   published_at: string;
+  prediction?: 'depression' | 'normal' | null;
+  confidence?: number | null;
+  risk_level?: 'low' | 'medium' | 'high' | null;
+  prob_depression?: number | null;
 }
 
 interface AnalysisSummary {
@@ -46,13 +66,22 @@ interface YouTubeFetchResponse {
   analysis_summary: AnalysisSummary;
 }
 
+type SortKey = 'risk' | 'date' | 'likes';
+type SortDir = 'asc' | 'desc';
+type FilterRisk = 'all' | 'high' | 'medium' | 'low';
+
 export default function YouTubeAnalysis() {
   const [url, setUrl] = useState('');
   const [maxComments, setMaxComments] = useState(100);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<YouTubeFetchResponse | null>(null);
-  const [showComments, setShowComments] = useState(false);
+
+  // Filters & sort
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortKey, setSortKey] = useState<SortKey>('risk');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [filterRisk, setFilterRisk] = useState<FilterRisk>('all');
 
   const handleAnalyze = async () => {
     if (!url.trim()) return;
@@ -101,16 +130,116 @@ export default function YouTubeAnalysis() {
     return num.toString();
   };
 
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case 'high':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium':
-        return 'bg-amber-100 text-amber-800 border-amber-200';
-      default:
-        return 'bg-green-100 text-green-800 border-green-200';
+  const formatDate = (isoString: string) => {
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return isoString;
     }
   };
+
+  const getRiskBadge = (risk?: string | null) => {
+    if (!risk) return null;
+    const config = {
+      high: { label: 'Cao', className: 'bg-red-100 text-red-700 border-red-300', icon: AlertTriangle },
+      medium: { label: 'Trung bình', className: 'bg-amber-100 text-amber-700 border-amber-300', icon: Activity },
+      low: { label: 'Thấp', className: 'bg-green-100 text-green-700 border-green-300', icon: CheckCircle },
+    } as const;
+    const cfg = config[risk as keyof typeof config];
+    if (!cfg) return null;
+    const Icon = cfg.icon;
+    return (
+      <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border', cfg.className)}>
+        <Icon className="w-3 h-3" />
+        {cfg.label}
+      </span>
+    );
+  };
+
+  const getRiskCardColor = (risk?: string | null) => {
+    switch (risk) {
+      case 'high':
+        return 'border-l-4 border-l-red-500 bg-red-50/30';
+      case 'medium':
+        return 'border-l-4 border-l-amber-500 bg-amber-50/30';
+      case 'low':
+        return 'border-l-4 border-l-green-500';
+      default:
+        return 'border-l-4 border-l-slate-300';
+    }
+  };
+
+  // Risk weight for sorting
+  const riskWeight = (risk?: string | null) => {
+    if (risk === 'high') return 3;
+    if (risk === 'medium') return 2;
+    if (risk === 'low') return 1;
+    return 0;
+  };
+
+  // Filtered and sorted comments
+  const filteredComments = useMemo(() => {
+    if (!result) return [];
+
+    let list = result.comments;
+
+    // Filter by risk
+    if (filterRisk !== 'all') {
+      list = list.filter((c) => c.risk_level === filterRisk);
+    }
+
+    // Search by keyword
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(
+        (c) =>
+          c.text.toLowerCase().includes(q) ||
+          c.author.toLowerCase().includes(q)
+      );
+    }
+
+    // Sort
+    const sorted = [...list].sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'risk') {
+        cmp = riskWeight(a.risk_level) - riskWeight(b.risk_level);
+        // Tie-break by prob_depression
+        if (cmp === 0) {
+          cmp = (b.prob_depression || 0) - (a.prob_depression || 0);
+        }
+      } else if (sortKey === 'date') {
+        cmp = new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+      } else if (sortKey === 'likes') {
+        cmp = b.like_count - a.like_count;
+      }
+      return sortDir === 'asc' ? -cmp : cmp;
+    });
+
+    return sorted;
+  }, [result, searchQuery, sortKey, sortDir, filterRisk]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  };
+
+  const SortIcon = ({ active, dir }: { active: boolean; dir: SortDir }) => (
+    <span className="ml-1 inline-flex flex-col">
+      <ChevronUp className={cn('w-3 h-3 -mb-1', active && dir === 'asc' ? 'text-primary' : 'text-slate-300')} />
+      <ChevronDown className={cn('w-3 h-3', active && dir === 'desc' ? 'text-primary' : 'text-slate-300')} />
+    </span>
+  );
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
@@ -259,7 +388,9 @@ export default function YouTubeAnalysis() {
                   <h3 className="font-semibold text-dark">Đánh giá rủi ro</h3>
                   <span className={cn(
                     'px-3 py-1 rounded-full text-sm font-semibold border',
-                    getRiskColor(result.analysis_summary.overall_risk)
+                    result.analysis_summary.overall_risk === 'high' && 'bg-red-100 text-red-800 border-red-200',
+                    result.analysis_summary.overall_risk === 'medium' && 'bg-amber-100 text-amber-800 border-amber-200',
+                    result.analysis_summary.overall_risk === 'low' && 'bg-green-100 text-green-800 border-green-200',
                   )}>
                     {result.analysis_summary.overall_risk === 'high' ? '⚠️ Cao' :
                      result.analysis_summary.overall_risk === 'medium' ? '⚡ Trung bình' : '✅ Thấp'}
@@ -329,7 +460,6 @@ export default function YouTubeAnalysis() {
                   </div>
                 </div>
 
-                {/* High risk comments count */}
                 {result.analysis_summary.high_risk_comments.length > 0 && (
                   <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
                     <div className="flex items-center gap-2 text-sm text-red-700">
@@ -344,79 +474,149 @@ export default function YouTubeAnalysis() {
             </Card>
           </div>
 
-          {/* High Risk Comments */}
-          {result.analysis_summary.high_risk_comments.length > 0 && (
-            <Card className="border-red-200 bg-red-50/50">
-              <CardContent className="p-6">
-                <h3 className="font-display text-lg font-semibold text-dark mb-4 flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-500" />
-                  Bình luận có nguy cơ cao
-                </h3>
-
-                <div className="space-y-3">
-                  {result.analysis_summary.high_risk_comments.map((comment, index) => (
-                    <div
-                      key={index}
-                      className="p-4 bg-white rounded-lg border border-red-200"
-                    >
-                      <p className="text-dark text-sm mb-2">{comment.text}</p>
-                      <div className="flex items-center gap-4 text-xs text-muted">
-                        <span>Mức độ tự tin: {(comment.confidence * 100).toFixed(0)}%</span>
-                        <span className={cn(
-                          'px-2 py-0.5 rounded-full text-xs font-medium',
-                          comment.risk_level === 'high' && 'bg-red-100 text-red-700',
-                          comment.risk_level === 'medium' && 'bg-amber-100 text-amber-700',
-                        )}>
-                          {comment.risk_level === 'high' ? 'Cao' : 'Trung bình'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Comments List */}
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-dark">
-                  Bình luận ({result.comments.length})
+                  Bình luận ({filteredComments.length}/{result.comments.length})
                 </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowComments(!showComments)}
-                >
-                  {showComments ? 'Ẩn bình luận' : 'Hiển thị bình luận'}
-                </Button>
               </div>
 
-              {showComments && (
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {result.comments.slice(0, 50).map((comment) => (
+              {/* Controls: search, filter, sort */}
+              <div className="flex flex-col md:flex-row gap-3 mb-4">
+                {/* Search */}
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Tìm kiếm theo nội dung hoặc tác giả..."
+                    className="input-field pl-10"
+                  />
+                </div>
+
+                {/* Filter by risk */}
+                <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+                  {(['all', 'high', 'medium', 'low'] as FilterRisk[]).map((risk) => (
+                    <button
+                      key={risk}
+                      onClick={() => setFilterRisk(risk)}
+                      className={cn(
+                        'px-3 py-1.5 rounded-md text-xs font-semibold transition',
+                        filterRisk === risk
+                          ? 'bg-white shadow text-dark'
+                          : 'text-slate-500 hover:text-dark'
+                      )}
+                    >
+                      {risk === 'all' && 'Tất cả'}
+                      {risk === 'high' && '⚠️ Cao'}
+                      {risk === 'medium' && '⚡ TB'}
+                      {risk === 'low' && '✅ Thấp'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sort buttons */}
+              <div className="flex items-center gap-2 mb-4 text-sm">
+                <span className="text-muted">Sắp xếp:</span>
+                <button
+                  onClick={() => toggleSort('risk')}
+                  className={cn(
+                    'inline-flex items-center px-3 py-1.5 rounded-md border transition',
+                    sortKey === 'risk'
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                  )}
+                >
+                  <Activity className="w-3.5 h-3.5 mr-1" />
+                  Mức độ
+                  <SortIcon active={sortKey === 'risk'} dir={sortDir} />
+                </button>
+                <button
+                  onClick={() => toggleSort('date')}
+                  className={cn(
+                    'inline-flex items-center px-3 py-1.5 rounded-md border transition',
+                    sortKey === 'date'
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                  )}
+                >
+                  <Calendar className="w-3.5 h-3.5 mr-1" />
+                  Ngày
+                  <SortIcon active={sortKey === 'date'} dir={sortDir} />
+                </button>
+                <button
+                  onClick={() => toggleSort('likes')}
+                  className={cn(
+                    'inline-flex items-center px-3 py-1.5 rounded-md border transition',
+                    sortKey === 'likes'
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                  )}
+                >
+                  <Heart className="w-3.5 h-3.5 mr-1" />
+                  Likes
+                  <SortIcon active={sortKey === 'likes'} dir={sortDir} />
+                </button>
+              </div>
+
+              {/* Comments list - all comments, scrollable */}
+              <div className="space-y-3 max-h-[800px] overflow-y-auto pr-2">
+                {filteredComments.length === 0 ? (
+                  <div className="text-center py-8 text-muted">
+                    {searchQuery || filterRisk !== 'all'
+                      ? 'Không tìm thấy bình luận phù hợp'
+                      : 'Không có bình luận'}
+                  </div>
+                ) : (
+                  filteredComments.map((comment) => (
                     <div
                       key={comment.comment_id}
-                      className="p-4 bg-slate-50 rounded-lg"
+                      className={cn(
+                        'p-4 bg-slate-50 rounded-lg transition hover:bg-slate-100',
+                        getRiskCardColor(comment.risk_level)
+                      )}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-sm text-dark">{comment.author}</span>
-                        <span className="text-xs text-muted flex items-center gap-1">
-                          <ThumbsUp className="w-3 h-3" />
-                          {comment.like_count}
+                      <div className="flex items-start justify-between mb-2 gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <span className="font-medium text-sm text-dark">{comment.author}</span>
+                            {getRiskBadge(comment.risk_level)}
+                            {comment.prediction === 'depression' && (
+                              <span className="text-xs text-red-600 font-medium">
+                                ⚠️ Trầm cảm
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-slate-700 whitespace-pre-wrap break-words">
+                            {comment.text}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between gap-4 mt-3 text-xs text-muted">
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center gap-1">
+                            <ThumbsUp className="w-3 h-3" />
+                            {comment.like_count}
+                          </span>
+                          {comment.confidence !== null && comment.confidence !== undefined && (
+                            <span className="flex items-center gap-1 font-mono">
+                              Tin cậy: {(comment.confidence * 100).toFixed(0)}%
+                            </span>
+                          )}
+                        </div>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(comment.published_at)}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-600">{comment.text}</p>
                     </div>
-                  ))}
-                  {result.comments.length > 50 && (
-                    <p className="text-center text-sm text-muted py-2">
-                      Hiển thị 50/{result.comments.length} bình luận
-                    </p>
-                  )}
-                </div>
-              )}
+                  ))
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
