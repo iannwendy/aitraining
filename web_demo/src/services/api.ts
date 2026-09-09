@@ -15,7 +15,7 @@ import {
 
 // API Configuration - supports both local and production URLs
 const API_BASE = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api`
+  ? `${import.meta.env.VITE_API_URL.trim()}/api`
   : '/api';
 
 // API Configuration
