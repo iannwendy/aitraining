@@ -1,6 +1,6 @@
 """PhoBERT inference engine for depression detection.
 
-Loads the Round 6 v2 fine-tuned PhoBERT model and provides batch inference.
+Loads the Round 6 v2 fine-tuned PhoBERT model from HuggingFace Hub.
 """
 
 from __future__ import annotations
@@ -17,22 +17,13 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-# Disable proxies so transformers loads from local cache
+# Disable proxies
 for _var in ["http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "all_proxy"]:
     os.environ.pop(_var, None)
 
-# Force offline mode for local models
-os.environ["HF_HUB_OFFLINE"] = "1"
-os.environ["TRANSFORMERS_OFFLINE"] = "1"
-
-# ── Paths ─────────────────────────────────────────────────────────────────────
-# Backend code is in /app/ (copied from web_demo/backend/)
-# Models are mounted at /app/models/
-_BACKEND_DIR = Path(__file__).resolve().parent  # /app/inference
-_APP_DIR = _BACKEND_DIR.parent  # /app/
-
-PHOBERT_MODEL_DIR = _APP_DIR / "models" / "phobert_seed_42" / "best_model"
-PHOBERT_TOKENIZER_DIR = _APP_DIR / "models" / "phobert_base_local"
+# ── HuggingFace Model Config ──────────────────────────────────────────────────
+# Fine-tuned model on HuggingFace Hub
+HF_REPO_ID = "iannwendy/depression-phobert-round6v2-seed42"
 MAX_LENGTH = 128
 BATCH_SIZE = 16
 
@@ -73,32 +64,21 @@ class PhoBertEngine:
         # Set HOME to /tmp to avoid transformers cache issues
         os.environ["HOME"] = "/tmp"
 
-        # Load tokenizer using transformers
-        logger.info("Loading PhoBERT tokenizer from %s", PHOBERT_TOKENIZER_DIR)
+        # Load tokenizer and model from HuggingFace Hub
+        logger.info("Loading PhoBERT tokenizer from HuggingFace: %s", HF_REPO_ID)
         self.tokenizer = AutoTokenizer.from_pretrained(
-            str(PHOBERT_TOKENIZER_DIR),
-            local_files_only=True,
+            HF_REPO_ID,
             use_fast=False,
         )
 
-        # Load model config
-        config_path = PHOBERT_MODEL_DIR / "config.json"
-        with open(config_path) as f:
-            model_config = json.load(f)
-
-        # Load model using from_config + state_dict
-        logger.info("Loading PhoBERT model from %s", PHOBERT_MODEL_DIR)
-        self.model = AutoModelForSequenceClassification.from_config(model_config)
-
-        # Load state dict
-        safetensors_path = PHOBERT_MODEL_DIR / "model.safetensors"
-        from safetensors.torch import load_file
-        state_dict = load_file(str(safetensors_path))
-        self.model.load_state_dict(state_dict, strict=False)
+        logger.info("Loading PhoBERT model from HuggingFace: %s", HF_REPO_ID)
+        self.model = AutoModelForSequenceClassification.from_pretrained(
+            HF_REPO_ID,
+        )
 
         self.model.to(self.device)
         self.model.eval()
-        logger.info("PhoBERT model loaded successfully")
+        logger.info("PhoBERT model loaded successfully from HuggingFace")
 
     @staticmethod
     def _get_device() -> torch.device:
