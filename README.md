@@ -9,6 +9,16 @@ annotation, model training, evaluation, and a controlled
 domain-adaptive-pretraining (DAPT) counter-experiment conducted against
 the published `vinai/phobert-base` model.
 
+## 🔗 Repository Links
+
+| Resource | Link |
+|----------|------|
+| **Dataset** | https://github.com/iannwendy/aitraining/tree/main/data |
+| **Source Code** | https://github.com/iannwendy/aitraining |
+| **Raw Data (可直接下载)** | https://github.com/iannwendy/aitraining/tree/main/data/labeled |
+| **Augmented Data** | https://github.com/iannwendy/aitraining/tree/main/data/augmented_v2 |
+| **Issue / Questions** | https://github.com/iannwendy/aitraining/issues |
+
 ## Research Question
 
 Can Vietnamese social-media text be used to train a depression-sign
@@ -74,6 +84,38 @@ PhoBERT numbers are majority-vote aggregation across three seeds (42, 123, 2024)
 | BERTopic-only | `models/bertopic/bertopic_model.pkl`                   | 0.4208 / 0.5030 |
 
 ## Reproducing Results
+
+### Data Access
+
+**Option 1: Clone the repository**
+```bash
+git clone https://github.com/iannwendy/aitraining.git
+cd aittraining/data
+```
+
+**Option 2: Download specific files directly**
+```bash
+# Main labeled dataset
+curl -O https://raw.githubusercontent.com/iannwendy/aitraining/main/data/labeled/final_dataset.csv
+
+# Train/Val/Test splits
+curl -O https://raw.githubusercontent.com/iannwendy/aitraining/main/data/labeled/final_train.csv
+curl -O https://raw.githubusercontent.com/iannwendy/aitraining/main/data/labeled/final_val.csv
+curl -O https://raw.githubusercontent.com/iannwendy/aitraining/main/data/labeled/final_test.csv
+
+# Augmented training data
+curl -O https://raw.githubusercontent.com/iannwendy/aitraining/main/data/augmented_v2/final_train_aug.csv
+```
+
+**Option 3: Load directly in Python**
+```python
+import pandas as pd
+
+# Load from GitHub URL
+df = pd.read_csv('https://raw.githubusercontent.com/iannwendy/aitraining/main/data/labeled/final_dataset.csv')
+```
+
+### Training Pipeline
 
 ```bash
 # 1. Install dependencies

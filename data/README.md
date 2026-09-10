@@ -1,68 +1,165 @@
-# Data Directory Structure
+# Vietnamese Depression Detection - Dataset Documentation
 
-This directory contains all datasets for the Vietnamese Depression Detection project.
+## 📁 Data Access
 
-## Directory Structure
+**GitHub Repository:** https://github.com/iannwendy/aitraining
 
+**Data Directory:** https://github.com/iannwendy/aitraining/tree/main/data
+
+---
+
+## 📋 Dataset Description
+
+This dataset contains Vietnamese YouTube comments labeled for depression detection, collected and annotated through multiple rounds of active learning. The data is used for training and evaluating machine learning models for binary classification (depression risk: yes/no).
+
+### Data Format
+
+All CSV files follow this schema:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `text` | string | Vietnamese text (comment content) |
+| `label` | int | 0 = no depression risk, 1 = depression risk |
+| `source` | string | Data source (youtube, reddit, etc.) |
+| `round` | int | Annotation round number |
+| `video_id` | string | YouTube video ID (for YouTube comments) |
+
+---
+
+## 📂 Directory Structure
+
+### `raw/` - Raw Crawled Data
 ```
-data/
-├── _archive/                 # Obsolete/backup files from previous iterations
-│
-├── raw/                      # Raw crawled and processed data
-│   ├── raw_comments.csv      # Raw YouTube comments
-│   ├── cleaned_comments.csv  # Cleaned comments
-│   ├── video_metadata.csv    # Video metadata
-│   ├── processed_videos.txt  # List of processed video IDs
-│   └── auto_labeled_comments.csv  # Weak-labeled comments
-│
-├── labeled/                  # Labeled datasets for training
-│   ├── initial_train.csv    # Initial training set
-│   ├── gold_review.csv      # Gold review set
-│   ├── final_dataset.csv    # Final dataset (all rounds)
-│   ├── train.csv / val.csv / test.csv  # Train/val/test splits
-│   ├── final_train.csv / final_val.csv / final_test.csv  # Final splits
-│   ├── train_gold.csv / val_gold.csv / test_gold.csv  # Gold splits
-│   └── final_train_augmented*.csv  # Augmented versions
-│
-├── model_predictions/        # Model prediction outputs
-│   ├── phobert_active_learning_samples.csv
-│   ├── phobert_confident_predictions.csv
-│   ├── phobert_remaining_predictions.csv
-│   └── review_samples.csv
-│
-├── analysis/                 # Analysis and error reports
-│   ├── baseline_gold_errors.csv
-│   ├── review_eval_errors.csv
-│   ├── labeling_report.json
-│   ├── review_eval_report.json
-│   └── bertopic_thesis_export.json
-│
-├── round1/ / round2/ / round3/ / round4/ / round5/  # Round-specific data
-│
-├── augmented_v1/             # Augmented dataset version 1
-│   ├── final_dataset_aug.csv
-│   ├── final_train_aug.csv
-│   ├── final_val_aug.csv
-│   └── final_test_aug.csv
-│
-└── predictions.db           # SQLite database (not tracked in git)
+raw/
+├── raw_comments.csv          # Raw YouTube comments (before cleaning)
+├── cleaned_comments.csv       # Cleaned comments
+├── video_metadata.csv         # Video metadata
+├── processed_videos.txt       # List of processed video IDs
+└── auto_labeled_comments.csv  # Weak-labeled via keywords
 ```
 
-## Dataset Naming Conventions
+### `labeled/` - Labeled Training Datasets
+```
+labeled/
+├── gold_review.csv            # Gold standard set (human-annotated)
+├── final_dataset.csv          # Complete dataset (all rounds combined)
+├── train.csv / val.csv / test.csv           # Initial splits (80/10/10)
+├── final_train.csv / final_val.csv / final_test.csv  # Final splits
+└── train_gold.csv / val_gold.csv / test_gold.csv    # Gold-only splits
+```
 
-- `*_gold.csv` - Gold standard (human annotated)
-- `*_final*.csv` - Final version after all rounds
-- `*_augmented*.csv` - Data with augmentation
-- `*.backup_*.csv` - Backup files
-- `*.v1_obsolete.csv` - Obsolete version 1 files (in _archive)
+### `round1/` - `round6/` - Round-Specific Data
+Each round folder contains annotations from that specific iteration:
+```
+round5/
+├── round5_reviewed_clean.csv  # Clean annotations from round 5
+round6/
+├── round6_reviewed_clean.csv  # Clean annotations from round 6
+```
 
-## Data Flow
+### `augmented_v1/` & `augmented_v2/` - Augmented Datasets
+Data expanded via back-translation and synthetic generation:
+```
+augmented_v2/
+├── final_dataset_aug.csv      # Complete augmented dataset
+├── final_train_aug.csv        # Training split
+├── final_val_aug.csv          # Validation split
+└── final_test_aug.csv         # Test split
+```
 
-1. **Raw** → Crawled YouTube comments
-2. **Labeled** → Cleaned & annotated datasets
-3. **Model Predictions** → PhoBERT predictions for active learning
-4. **Round folders** → Round-specific training data
+### `translated/` - Translated Data
+```
+translated/
+└── reddit_dep_translated.csv   # Reddit depression posts (translated to Vietnamese)
+```
 
-## Last Reorganized
+### `analysis/` - Analysis Reports
+```
+analysis/
+├── dataset_integrity_report_round6_v2.json    # Data quality report
+├── labeling_report.json                        # Labeling statistics
+└── bertopic_thesis_export.json                 # Topic analysis
+```
 
-2026-07-20: Files reorganized by data type (raw, labeled, predictions, analysis).
+---
+
+## 🔗 Dataset Files for Reproduction
+
+### For Training Models
+| File | Link | Description |
+|------|------|-------------|
+| `final_dataset.csv` | [GitHub](https://github.com/iannwendy/aitraining/blob/main/data/labeled/final_dataset.csv) | Main dataset |
+| `final_train.csv` / `final_val.csv` / `final_test.csv` | [GitHub](https://github.com/iannwendy/aitraining/tree/main/data/labeled) | Train/Val/Test splits |
+| `augmented_v2/final_train_aug.csv` | [GitHub](https://github.com/iannwendy/aitraining/blob/main/data/augmented_v2/final_train_aug.csv) | Augmented training data |
+
+### For Analysis
+| File | Link | Description |
+|------|------|-------------|
+| `gold_review.csv` | [GitHub](https://github.com/iannwendy/aitraining/blob/main/data/labeled/gold_review.csv) | Gold standard (annotated subset) |
+| `analysis/dataset_integrity_report_round6_v2.json` | [GitHub](https://github.com/iannwendy/aitraining/blob/main/data/analysis/dataset_integrity_report_round6_v2.json) | Data quality report |
+
+---
+
+## 🚀 How to Use This Data
+
+### Clone and Access
+```bash
+# Clone the repository
+git clone https://github.com/iannwendy/aitraining.git
+
+# Navigate to data directory
+cd aittraining/data
+
+# Or download specific file
+curl -O https://raw.githubusercontent.com/iannwendy/aitraining/main/data/labeled/final_dataset.csv
+```
+
+### Load in Python
+```python
+import pandas as pd
+
+# Load main dataset
+df = pd.read_csv('https://raw.githubusercontent.com/iannwendy/aitraining/main/data/labeled/final_dataset.csv')
+
+# Load augmented data
+df_aug = pd.read_csv('https://raw.githubusercontent.com/iannwendy/aitraining/main/data/augmented_v2/final_train_aug.csv')
+
+print(f"Dataset size: {len(df)} samples")
+print(f"Label distribution:\n{df['label'].value_counts()}")
+```
+
+---
+
+## 📊 Dataset Statistics
+
+### Label Distribution
+| Label | Description | Count |
+|-------|-------------|-------|
+| 0 | No depression risk | ~majority |
+| 1 | Depression risk | ~minority |
+
+### Data Sources
+- **YouTube Comments**: Crawled from Vietnamese videos related to mental health, depression, and related topics
+- **Reddit**: Translated depression-related posts (in `translated/` folder)
+
+---
+
+## 📝 Citation
+
+If you use this dataset in your research, please cite:
+
+```
+Vietnamese Depression Detection Dataset
+https://github.com/iannwendy/aitraining
+```
+
+---
+
+## 📞 Contact
+
+For questions about the dataset, please refer to the main repository issues page:
+https://github.com/iannwendy/aitraining/issues
+
+---
+
+**Last Updated:** September 2026
